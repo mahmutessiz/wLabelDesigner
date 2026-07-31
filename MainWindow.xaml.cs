@@ -32,6 +32,13 @@ public partial class MainWindow : Window
 
     private void MainWindow_KeyDown(object sender, KeyEventArgs e)
     {
+        if (e.Key == Key.F1)
+        {
+            ShowHelp();
+            e.Handled = true;
+            return;
+        }
+
         if (Keyboard.FocusedElement is TextBoxBase or ComboBox || DataContext is not MainViewModel viewModel)
         {
             return;
@@ -70,12 +77,44 @@ public partial class MainWindow : Window
         {
             command = viewModel.DeleteSelectedCommand;
         }
+        else if (e.Key == Key.Escape)
+        {
+            command = viewModel.DeselectAllCommand;
+        }
 
         if (command?.CanExecute(parameter) == true)
         {
             command.Execute(parameter);
             e.Handled = true;
         }
+    }
+
+    private void Workspace_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.OriginalSource is not DependencyObject source ||
+            FindVisualAncestor<ListBoxItem>(source) is not null ||
+            DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        if (viewModel.DeselectAllCommand.CanExecute(null))
+        {
+            viewModel.DeselectAllCommand.Execute(null);
+        }
+
+        DesignerCanvas.Focus();
+    }
+
+    private void Help_Click(object sender, RoutedEventArgs e) => ShowHelp();
+
+    private void ShowHelp()
+    {
+        var helpWindow = new HelpWindow
+        {
+            Owner = this
+        };
+        helpWindow.ShowDialog();
     }
 
     private static void SelectAdjacentElement(MainViewModel viewModel, int direction)

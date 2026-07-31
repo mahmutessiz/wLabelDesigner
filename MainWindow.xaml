@@ -188,6 +188,7 @@
         </Style>
 
         <Style x:Key="DesignerItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Panel.ZIndex" Value="0" />
             <Setter Property="Canvas.Left" Value="{Binding X, Converter={StaticResource MmToDip}}" />
             <Setter Property="Canvas.Top" Value="{Binding Y, Converter={StaticResource MmToDip}}" />
             <Setter Property="Width" Value="{Binding Width, Converter={StaticResource MmToDip}}" />
@@ -203,6 +204,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Panel.ZIndex" Value="10000" />
                                 <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
                                 <Setter TargetName="SelectionBorder" Property="Background" Value="#0D4F46E5" />
                             </Trigger>
@@ -235,7 +237,11 @@
                 <MenuItem Header="_Paste" Command="{Binding PasteCommand}" InputGestureText="Ctrl+V" />
                 <MenuItem Header="D_uplicate" Command="{Binding DuplicateCommand}" InputGestureText="Ctrl+D" />
                 <Separator />
+                <MenuItem Header="Deselect _all" Command="{Binding DeselectAllCommand}" InputGestureText="Esc" />
                 <MenuItem Header="_Delete selected" Command="{Binding DeleteSelectedCommand}" InputGestureText="Delete" />
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_User guide" InputGestureText="F1" Click="Help_Click" />
             </MenuItem>
         </Menu>
 
@@ -431,7 +437,9 @@
                 </StackPanel>
             </Border>
 
-            <Grid Grid.Column="1" Background="{StaticResource CanvasWorkspaceBrush}">
+            <Grid Grid.Column="1"
+                  Background="{StaticResource CanvasWorkspaceBrush}"
+                  PreviewMouseLeftButtonDown="Workspace_PreviewMouseLeftButtonDown">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Padding="56">
                     <Border Width="{Binding LabelWidth, Converter={StaticResource MmToDip}}"
                             Height="{Binding LabelHeight, Converter={StaticResource MmToDip}}"

@@ -209,6 +209,15 @@ public sealed partial class MainViewModel : ObservableObject
 
     private bool CanDeleteSelected() => selectedElements.Count > 0;
 
+    [RelayCommand(CanExecute = nameof(CanDeselectAll))]
+    private void DeselectAll()
+    {
+        SelectedElement = null;
+        StatusMessage = "Selection cleared";
+    }
+
+    private bool CanDeselectAll() => selectedElements.Count > 0;
+
     [RelayCommand(CanExecute = nameof(CanUndo))]
     private void Undo()
     {
@@ -784,6 +793,7 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(HasShapeSelection));
         OnPropertyChanged(nameof(HasFormattingSelection));
         DeleteSelectedCommand.NotifyCanExecuteChanged();
+        DeselectAllCommand.NotifyCanExecuteChanged();
         AlignSelectionCommand.NotifyCanExecuteChanged();
         DistributeSelectionCommand.NotifyCanExecuteChanged();
         NotifySelectionCommandsChanged();
