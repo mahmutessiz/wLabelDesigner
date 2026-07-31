@@ -16,10 +16,12 @@
         <KeyBinding Key="N" Modifiers="Control" Command="{Binding NewDocumentCommand}" />
         <KeyBinding Key="O" Modifiers="Control" Command="{Binding OpenCommand}" />
         <KeyBinding Key="S" Modifiers="Control" Command="{Binding SaveCommand}" />
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding PrintCommand}" />
         <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}" />
     </Window.InputBindings>
     <Window.Resources>
         <converters:MillimetersToDeviceIndependentPixelsConverter x:Key="MmToDip" />
+        <converters:LabelElementImageConverter x:Key="ElementImage" />
         <Style x:Key="DesignerItemStyle" TargetType="ListBoxItem">
             <Setter Property="Canvas.Left" Value="{Binding X, Converter={StaticResource MmToDip}}" />
             <Setter Property="Canvas.Top" Value="{Binding Y, Converter={StaticResource MmToDip}}" />
@@ -58,6 +60,7 @@
                 <MenuItem Header="_New" Command="{Binding NewDocumentCommand}" InputGestureText="Ctrl+N" />
                 <MenuItem Header="_Open…" Command="{Binding OpenCommand}" InputGestureText="Ctrl+O" />
                 <MenuItem Header="_Save" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S" />
+                <MenuItem Header="_Print…" Command="{Binding PrintCommand}" InputGestureText="Ctrl+P" />
                 <Separator />
                 <MenuItem Header="E_xit" Click="Exit_Click" />
             </MenuItem>
@@ -71,6 +74,7 @@
                 <Button Command="{Binding NewDocumentCommand}" ToolTip="New label" Margin="0">New</Button>
                 <Button Command="{Binding OpenCommand}" ToolTip="Open template" Margin="0">Open</Button>
                 <Button Command="{Binding SaveCommand}" ToolTip="Save template" Margin="0">Save</Button>
+                <Button Command="{Binding PrintCommand}" ToolTip="Print label" Margin="0">Print</Button>
                 <Separator />
                 <Button Command="{Binding DeleteSelectedCommand}" ToolTip="Delete selected element" Margin="0">Delete</Button>
             </ToolBar>
@@ -146,22 +150,65 @@
                                                    TextTrimming="CharacterEllipsis"
                                                    VerticalAlignment="Center"
                                                    HorizontalAlignment="Center" />
-                                        <Thumb Background="Transparent"
-                                               Cursor="SizeAll"
+                                        <Image x:Name="PreviewImage"
+                                               Stretch="Fill"
+                                               RenderOptions.BitmapScalingMode="HighQuality"
+                                               SnapsToDevicePixels="True"
+                                               Visibility="Collapsed">
+                                            <Image.Source>
+                                                <MultiBinding Converter="{StaticResource ElementImage}">
+                                                    <Binding Path="Content" />
+                                                    <Binding Path="Kind" />
+                                                </MultiBinding>
+                                            </Image.Source>
+                                        </Image>
+                                        <Thumb Cursor="SizeAll"
                                                PreviewMouseLeftButtonDown="DesignerItem_PreviewMouseLeftButtonDown"
-                                               DragDelta="DesignerItem_DragDelta" />
+                                               DragDelta="DesignerItem_DragDelta">
+                                            <Thumb.Template>
+                                                <ControlTemplate TargetType="Thumb">
+                                                    <Border Background="Transparent" />
+                                                </ControlTemplate>
+                                            </Thumb.Template>
+                                        </Thumb>
+                                        <Thumb Width="10"
+                                               Height="10"
+                                               Margin="0,0,-5,-5"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Bottom"
+                                               Cursor="SizeNWSE"
+                                               DragDelta="DesignerItem_ResizeDelta">
+                                            <Thumb.Style>
+                                                <Style TargetType="Thumb">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Thumb">
+                                                                <Border Background="{StaticResource AccentBrush}"
+                                                                        BorderBrush="White"
+                                                                        BorderThickness="1" />
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Thumb.Style>
+                                        </Thumb>
                                     </Grid>
                                     <DataTemplate.Triggers>
                                         <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Barcode}">
-                                            <Setter TargetName="PreviewText" Property="Text" Value="▌│▐ ▌││▐ ▌│▐" />
-                                            <Setter TargetName="PreviewText" Property="FontFamily" Value="Consolas" />
-                                            <Setter TargetName="PreviewText" Property="FontSize" Value="22" />
-                                            <Setter TargetName="PreviewText" Property="ToolTip" Value="{Binding Content}" />
+                                            <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="PreviewImage" Property="Visibility" Value="Visible" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.QrCode}">
-                                            <Setter TargetName="PreviewText" Property="Text" Value="▦" />
-                                            <Setter TargetName="PreviewText" Property="FontSize" Value="40" />
-                                            <Setter TargetName="PreviewText" Property="ToolTip" Value="{Binding Content}" />
+                                            <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="PreviewImage" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="PreviewImage" Property="Stretch" Value="Uniform" />
+                                            <Setter TargetName="PreviewImage" Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
                                         </DataTrigger>
                                     </DataTemplate.Triggers>
                                 </DataTemplate>

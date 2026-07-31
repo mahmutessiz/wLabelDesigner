@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Printing;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -13,13 +14,18 @@ public sealed partial class MainViewModel : ObservableObject
 {
     private readonly ILabelDocumentStore documentStore;
     private readonly IFileDialogService fileDialogService;
+    private readonly ILabelPrintService printService;
     private string? currentPath;
     private bool isLoading;
 
-    public MainViewModel(ILabelDocumentStore documentStore, IFileDialogService fileDialogService)
+    public MainViewModel(
+        ILabelDocumentStore documentStore,
+        IFileDialogService fileDialogService,
+        ILabelPrintService printService)
     {
         this.documentStore = documentStore;
         this.fileDialogService = fileDialogService;
+        this.printService = printService;
         NewDocument();
     }
 
@@ -165,6 +171,21 @@ public sealed partial class MainViewModel : ObservableObject
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             StatusMessage = $"Could not save template: {exception.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void Print()
+    {
+        try
+        {
+            StatusMessage = printService.Print(CreateDocument())
+                ? "Label sent to printer"
+                : "Printing cancelled";
+        }
+        catch (Exception exception) when (exception is PrintSystemException or InvalidOperationException)
+        {
+            StatusMessage = $"Could not print label: {exception.Message}";
         }
     }
 
