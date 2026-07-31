@@ -49,6 +49,32 @@ public static class LabelDrawingRenderer
             element.Width * DeviceIndependentPixelsPerMillimeter,
             element.Height * DeviceIndependentPixelsPerMillimeter);
 
+        var rotation = double.IsFinite(element.RotationDegrees) ? element.RotationDegrees : 0;
+        var isRotated = Math.Abs(rotation) > 0.001;
+        if (isRotated)
+        {
+            drawingContext.PushTransform(new RotateTransform(rotation, bounds.X + (bounds.Width / 2), bounds.Y + (bounds.Height / 2)));
+        }
+
+        try
+        {
+            DrawUnrotatedElement(drawingContext, element, bounds);
+        }
+        finally
+        {
+            if (isRotated)
+            {
+                drawingContext.Pop();
+            }
+        }
+    }
+
+    private static void DrawUnrotatedElement(
+        DrawingContext drawingContext,
+        LabelElementData element,
+        Rect bounds)
+    {
+
         if (element.Kind is LabelElementKind.Rectangle or LabelElementKind.RoundedRectangle)
         {
             var pen = new Pen(Brushes.Black, element.StrokeThickness);

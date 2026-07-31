@@ -31,4 +31,6 @@ public sealed class LabelElementData
     public double StrokeThickness { get; set; } = 1;
 
     public bool IsLineDirectionReversed { get; set; }
+
+    public double RotationDegrees { get; set; }
 }

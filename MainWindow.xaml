@@ -188,12 +188,47 @@
             </Style.Triggers>
         </Style>
 
+        <Style x:Key="RotationThumbStyle" TargetType="Thumb">
+            <Setter Property="Width" Value="18" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Margin" Value="0,-14,0,0" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Panel.ZIndex" Value="30" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Grid>
+                            <Line X1="9" Y1="12" X2="9" Y2="28" Stroke="{StaticResource AccentBrush}" StrokeThickness="1.5" />
+                            <Ellipse Width="12" Height="12" VerticalAlignment="Top" Fill="White" Stroke="{StaticResource AccentBrush}" StrokeThickness="2" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <Style x:Key="DesignerItemStyle" TargetType="ListBoxItem">
             <Setter Property="Panel.ZIndex" Value="0" />
             <Setter Property="Canvas.Left" Value="{Binding X, Converter={StaticResource MmToDip}}" />
             <Setter Property="Canvas.Top" Value="{Binding Y, Converter={StaticResource MmToDip}}" />
             <Setter Property="Width" Value="{Binding Width, Converter={StaticResource MmToDip}}" />
             <Setter Property="Height" Value="{Binding Height, Converter={StaticResource MmToDip}}" />
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <RotateTransform Angle="{Binding RotationDegrees}" />
+                </Setter.Value>
+            </Setter>
             <Setter Property="Padding" Value="0" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Stretch" />
@@ -247,7 +282,6 @@
                 <MenuItem Header="_Actual size" Command="{Binding ResetZoomCommand}" InputGestureText="Ctrl+0" />
                 <Separator />
                 <MenuItem Header="Show _grid" IsCheckable="True" IsChecked="{Binding IsGridVisible}" />
-                <MenuItem Header="Enable _snapping" IsCheckable="True" IsChecked="{Binding IsSnappingEnabled}" />
                 <MenuItem Header="Show _rulers" IsCheckable="True" IsChecked="{Binding AreRulersVisible}" />
             </MenuItem>
             <MenuItem Header="_Help">
@@ -391,7 +425,6 @@
                     <CheckBox Content="Grid" IsChecked="{Binding IsGridVisible}" VerticalAlignment="Center" Margin="14,0,4,0" />
                     <ComboBox Width="62" MinHeight="24" IsEditable="True" ItemsSource="{Binding CommonGridSizes}" Text="{Binding GridSize, UpdateSourceTrigger=PropertyChanged, Delay=100}" ToolTip="Grid size in millimetres" />
                     <TextBlock Text="mm" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="4,0,10,0" />
-                    <CheckBox Content="Snap" IsChecked="{Binding IsSnappingEnabled}" VerticalAlignment="Center" Margin="0,0,10,0" />
                     <CheckBox Content="Rulers" IsChecked="{Binding AreRulersVisible}" VerticalAlignment="Center" />
                 </StackPanel>
             </StatusBarItem>
@@ -647,6 +680,11 @@
                                         <Thumb Tag="W" Margin="-4,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Cursor="SizeWE" Style="{StaticResource NonLineResizeThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
                                         <Thumb Tag="LineStart" Style="{StaticResource LineStartThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
                                         <Thumb Tag="LineEnd" Style="{StaticResource LineEndThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
+                                        <Thumb Style="{StaticResource RotationThumbStyle}"
+                                               ToolTip="Drag to rotate; hold Shift to snap to 15°"
+                                               DragStarted="DesignerItem_RotationStarted"
+                                               DragDelta="DesignerItem_RotationDelta"
+                                               DragCompleted="DesignerItem_RotationCompleted" />
                                     </Grid>
                                     <DataTemplate.Triggers>
                                         <DataTrigger Binding="{Binding IsEditing}" Value="True">
@@ -720,22 +758,34 @@
                     Background="{StaticResource PanelBrush}"
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1,0,0,0"
-                    Visibility="{Binding HasDataElementSelection, Converter={StaticResource BoolToVisibility}}">
+                    Visibility="{Binding HasSingleSelection, Converter={StaticResource BoolToVisibility}}">
                 <StackPanel>
-                    <TextBlock Text="DATA" Style="{StaticResource SectionHeading}" />
+                    <TextBlock Text="ELEMENT" Style="{StaticResource SectionHeading}" />
                     <TextBlock Text="{Binding SelectedElement.DisplayName, Mode=OneWay}" FontSize="18" FontWeight="SemiBold" />
-                    <TextBlock Text="Encoded content" Style="{StaticResource FieldLabel}" />
-                    <TextBox Text="{Binding SelectedElement.Content, UpdateSourceTrigger=PropertyChanged}"
-                             AcceptsReturn="True"
-                             MinHeight="110"
-                             Padding="9"
-                             VerticalContentAlignment="Top"
-                             TextWrapping="Wrap" />
-                    <TextBlock Text="The preview updates automatically as you type."
-                               Foreground="{StaticResource MutedTextBrush}"
-                               FontSize="12"
-                               TextWrapping="Wrap"
-                               Margin="0,8,0,0" />
+                    <TextBlock Text="Rotation" Style="{StaticResource FieldLabel}" />
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Right" Text="°" VerticalAlignment="Center" Margin="5,0,0,0" />
+                        <TextBox Text="{Binding SelectedElement.RotationDegrees, UpdateSourceTrigger=LostFocus}" />
+                    </DockPanel>
+                    <Slider Minimum="-180" Maximum="180"
+                            Value="{Binding SelectedElement.RotationDegrees}"
+                            TickFrequency="15"
+                            IsSnapToTickEnabled="False"
+                            Margin="0,8,0,4" />
+                    <StackPanel Visibility="{Binding HasDataElementSelection, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="Encoded content" Style="{StaticResource FieldLabel}" />
+                        <TextBox Text="{Binding SelectedElement.Content, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True"
+                                 MinHeight="110"
+                                 Padding="9"
+                                 VerticalContentAlignment="Top"
+                                 TextWrapping="Wrap" />
+                        <TextBlock Text="The preview updates automatically as you type."
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   Margin="0,8,0,0" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
         </Grid>

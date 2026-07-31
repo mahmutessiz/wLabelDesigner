@@ -24,6 +24,7 @@ public sealed partial class LabelElementViewModel : ObservableObject
             ? Math.Clamp(data.StrokeThickness, 0.25, 20)
             : 1;
         isLineDirectionReversed = data.IsLineDirectionReversed;
+        rotationDegrees = NormalizeRotation(data.RotationDegrees);
     }
 
     public Guid Id { get; }
@@ -113,6 +114,14 @@ public sealed partial class LabelElementViewModel : ObservableObject
     [ObservableProperty]
     private bool isLineDirectionReversed;
 
+    private double rotationDegrees;
+
+    public double RotationDegrees
+    {
+        get => rotationDegrees;
+        set => SetProperty(ref rotationDegrees, NormalizeRotation(value));
+    }
+
     public LabelElementData ToData() => new()
     {
         Id = Id,
@@ -129,9 +138,30 @@ public sealed partial class LabelElementViewModel : ObservableObject
         IsUnderlined = IsUnderlined,
         TextAlignment = TextAlignment,
         StrokeThickness = StrokeThickness,
-        IsLineDirectionReversed = IsLineDirectionReversed
+        IsLineDirectionReversed = IsLineDirectionReversed,
+        RotationDegrees = RotationDegrees
     };
 
     private static double Normalize(double value, double minimum, double maximum) =>
         double.IsFinite(value) ? Math.Clamp(value, minimum, maximum) : minimum;
+
+    private static double NormalizeRotation(double value)
+    {
+        if (!double.IsFinite(value))
+        {
+            return 0;
+        }
+
+        var normalized = value % 360;
+        if (normalized > 180)
+        {
+            normalized -= 360;
+        }
+        else if (normalized < -180)
+        {
+            normalized += 360;
+        }
+
+        return Math.Round(normalized, 2);
+    }
 }

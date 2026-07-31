@@ -58,6 +58,8 @@ public sealed partial class MainViewModel : ObservableObject
 
     public bool HasMultipleSelection => selectedElements.Count > 1;
 
+    public bool HasSingleSelection => selectedElements.Count == 1;
+
     public bool HasTextSelection => selectedElements.Count == 1 && SelectedElement?.Kind == LabelElementKind.Text;
 
     public bool HasDataElementSelection => selectedElements.Count == 1 &&
@@ -111,6 +113,7 @@ public sealed partial class MainViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasDataElementSelection))]
     [NotifyPropertyChangedFor(nameof(HasShapeSelection))]
     [NotifyPropertyChangedFor(nameof(HasFormattingSelection))]
+    [NotifyPropertyChangedFor(nameof(HasSingleSelection))]
     [NotifyCanExecuteChangedFor(nameof(CopyCommand))]
     [NotifyCanExecuteChangedFor(nameof(CutCommand))]
     [NotifyCanExecuteChangedFor(nameof(DuplicateCommand))]
@@ -133,9 +136,6 @@ public sealed partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private bool isGridVisible = true;
-
-    [ObservableProperty]
-    private bool isSnappingEnabled = true;
 
     [ObservableProperty]
     private bool areRulersVisible = true;
@@ -661,7 +661,8 @@ public sealed partial class MainViewModel : ObservableObject
             IsUnderlined = source.IsUnderlined,
             TextAlignment = source.TextAlignment,
             StrokeThickness = source.StrokeThickness,
-            IsLineDirectionReversed = source.IsLineDirectionReversed
+            IsLineDirectionReversed = source.IsLineDirectionReversed,
+            RotationDegrees = source.RotationDegrees
         };
     }
 
@@ -828,6 +829,7 @@ public sealed partial class MainViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(SelectedElements));
         OnPropertyChanged(nameof(HasMultipleSelection));
+        OnPropertyChanged(nameof(HasSingleSelection));
         OnPropertyChanged(nameof(HasTextSelection));
         OnPropertyChanged(nameof(HasDataElementSelection));
         OnPropertyChanged(nameof(HasShapeSelection));

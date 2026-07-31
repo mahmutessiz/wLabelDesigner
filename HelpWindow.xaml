@@ -61,10 +61,12 @@
                            Text="Click an element to select it. Shift-click toggles additional elements in the selection. Click empty workspace or press Escape to clear the selection. Drag a selected element to move the whole selection. Use the eight handles to resize regular elements; lines use two endpoint handles." />
                 <TextBlock Style="{StaticResource HelpBody}" Margin="0,8,0,0"
                            Text="Double-click text to edit it directly. Enter creates a new line, Ctrl+Enter commits, Escape cancels, and clicking away commits. Barcode and QR data is edited in the contextual panel on the right." />
+                <TextBlock Style="{StaticResource HelpBody}" Margin="0,8,0,0"
+                           Text="Drag the circular handle above a selected element to rotate it. Hold Shift while dragging to snap the angle to 15-degree increments, or enter an exact rotation in the element panel on the right." />
 
-                <TextBlock Text="Canvas navigation and snapping" Style="{StaticResource HelpHeading}" />
+                <TextBlock Text="Canvas navigation and alignment guides" Style="{StaticResource HelpHeading}" />
                 <TextBlock Style="{StaticResource HelpBody}"
-                           Text="Use the controls in the bottom bar to zoom, show or hide the millimetre grid and rulers, choose the grid size, and enable snapping. While snapping is enabled, moved elements snap to grid intersections, label edges and centres, and the edges and centres of other elements. Pink guides appear temporarily for aligned edges and centres." />
+                           Text="Use the controls in the bottom bar to zoom, show or hide the millimetre grid and rulers, and choose the grid size. Pink guides appear temporarily when moved elements approach the edges or centres of the label and other elements. Guides do not alter element movement." />
 
                 <TextBlock Text="Keyboard shortcuts" Style="{StaticResource HelpHeading}" />
 

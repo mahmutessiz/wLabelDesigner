@@ -29,6 +29,9 @@ public partial class MainWindow : Window
     private double dragRawVerticalChange;
     private double dragAppliedHorizontalChange;
     private double dragAppliedVerticalChange;
+    private LabelElementViewModel? rotatingElement;
+    private double rotationStartAngle;
+    private double rotationPointerStartAngle;
 
     public MainWindow()
     {
@@ -340,23 +343,17 @@ public partial class MainWindow : Window
         const double millimetersPerDeviceIndependentPixel = 25.4d / 96d;
         dragRawHorizontalChange += e.HorizontalChange * millimetersPerDeviceIndependentPixel;
         dragRawVerticalChange += e.VerticalChange * millimetersPerDeviceIndependentPixel;
-        var desiredHorizontalChange = dragRawHorizontalChange;
-        var desiredVerticalChange = dragRawVerticalChange;
-
-        if (viewModel.IsSnappingEnabled && dragInitialBounds is DesignerBounds selectionBounds)
+        if (dragInitialBounds is DesignerBounds selectionBounds)
         {
-            var snap = DesignerSnapEngine.SnapMovement(
+            var guides = DesignerGuideEngine.FindGuides(
                 selectionBounds,
                 dragRawHorizontalChange,
                 dragRawVerticalChange,
                 viewModel.LabelWidth,
                 viewModel.LabelHeight,
-                viewModel.GridSize,
                 5 * millimetersPerDeviceIndependentPixel / viewModel.ZoomScale,
                 dragOtherBounds);
-            desiredHorizontalChange = snap.HorizontalChange;
-            desiredVerticalChange = snap.VerticalChange;
-            ShowAlignmentGuides(snap);
+            ShowAlignmentGuides(guides);
         }
         else
         {
@@ -364,8 +361,8 @@ public partial class MainWindow : Window
         }
 
         viewModel.MoveSelectedElements(
-            desiredHorizontalChange - dragAppliedHorizontalChange,
-            desiredVerticalChange - dragAppliedVerticalChange);
+            dragRawHorizontalChange - dragAppliedHorizontalChange,
+            dragRawVerticalChange - dragAppliedVerticalChange);
         if (dragInitialBounds is DesignerBounds initialBounds)
         {
             dragAppliedHorizontalChange = viewModel.SelectedElements.Min(candidate => candidate.X) - initialBounds.X;
@@ -381,17 +378,17 @@ public partial class MainWindow : Window
         HideAlignmentGuides();
     }
 
-    private void ShowAlignmentGuides(SnapResult snap)
+    private void ShowAlignmentGuides(AlignmentGuideResult guides)
     {
         const double pixelsPerMillimeter = 96d / 25.4d;
-        VerticalAlignmentGuide.Visibility = snap.VerticalGuide is null ? Visibility.Collapsed : Visibility.Visible;
-        HorizontalAlignmentGuide.Visibility = snap.HorizontalGuide is null ? Visibility.Collapsed : Visibility.Visible;
-        if (snap.VerticalGuide is double x)
+        VerticalAlignmentGuide.Visibility = guides.VerticalGuide is null ? Visibility.Collapsed : Visibility.Visible;
+        HorizontalAlignmentGuide.Visibility = guides.HorizontalGuide is null ? Visibility.Collapsed : Visibility.Visible;
+        if (guides.VerticalGuide is double x)
         {
             VerticalAlignmentGuide.X1 = VerticalAlignmentGuide.X2 = x * pixelsPerMillimeter;
         }
 
-        if (snap.HorizontalGuide is double y)
+        if (guides.HorizontalGuide is double y)
         {
             HorizontalAlignmentGuide.Y1 = HorizontalAlignmentGuide.Y2 = y * pixelsPerMillimeter;
         }
@@ -541,6 +538,73 @@ public partial class MainWindow : Window
         element.Height = bottom - top;
         viewModel.SelectedElement = element;
         e.Handled = true;
+    }
+
+    private void DesignerItem_RotationStarted(object sender, DragStartedEventArgs e)
+    {
+        if (sender is not Thumb { DataContext: LabelElementViewModel element })
+        {
+            return;
+        }
+
+        rotatingElement = element;
+        rotationStartAngle = element.RotationDegrees;
+        rotationPointerStartAngle = GetPointerAngle(element);
+        e.Handled = true;
+    }
+
+    private void DesignerItem_RotationDelta(object sender, DragDeltaEventArgs e)
+    {
+        if (rotatingElement is not LabelElementViewModel element)
+        {
+            return;
+        }
+
+        var pointerDelta = NormalizeAngle(GetPointerAngle(element) - rotationPointerStartAngle);
+        var angle = NormalizeAngle(rotationStartAngle + pointerDelta);
+        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+        {
+            angle = Math.Round(angle / 15d, MidpointRounding.AwayFromZero) * 15;
+        }
+
+        element.RotationDegrees = angle;
+        if (DataContext is MainViewModel viewModel)
+        {
+            viewModel.SelectedElement = element;
+            viewModel.StatusMessage = $"Rotation {element.RotationDegrees:0.##}°";
+        }
+
+        e.Handled = true;
+    }
+
+    private void DesignerItem_RotationCompleted(object sender, DragCompletedEventArgs e)
+    {
+        rotatingElement = null;
+        e.Handled = true;
+    }
+
+    private double GetPointerAngle(LabelElementViewModel element)
+    {
+        const double pixelsPerMillimeter = 96d / 25.4d;
+        var pointer = Mouse.GetPosition(DesignerCanvas);
+        var centerX = (element.X + (element.Width / 2)) * pixelsPerMillimeter;
+        var centerY = (element.Y + (element.Height / 2)) * pixelsPerMillimeter;
+        return (Math.Atan2(pointer.Y - centerY, pointer.X - centerX) * 180d / Math.PI) + 90d;
+    }
+
+    private static double NormalizeAngle(double angle)
+    {
+        var normalized = angle % 360;
+        if (normalized > 180)
+        {
+            normalized -= 360;
+        }
+        else if (normalized < -180)
+        {
+            normalized += 360;
+        }
+
+        return normalized;
     }
 
     private static void ResizeLineEndpoint(
