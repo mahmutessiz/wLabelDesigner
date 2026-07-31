@@ -17,9 +17,12 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly ILabelPrintService printService;
     private readonly IElementClipboard elementClipboard;
     private readonly UndoHistory history = new();
+    private readonly List<LabelElementViewModel> selectedElements = [];
     private string? currentPath;
     private bool isLoading;
     private bool isRestoringHistory;
+    private bool isSynchronizingSelection;
+    private bool isApplyingBatchChange;
     private string savedDocumentFingerprint = string.Empty;
     private int printCopies = 1;
     private string? printPrinterName;
@@ -49,14 +52,19 @@ public sealed partial class MainViewModel : ObservableObject
 
     public IReadOnlyList<double> CommonStrokeWidths { get; } = [0.5, 0.75, 1, 1.5, 2, 3, 4, 6];
 
-    public bool HasTextSelection => SelectedElement?.Kind == LabelElementKind.Text;
+    public IReadOnlyList<LabelElementViewModel> SelectedElements => selectedElements;
 
-    public bool HasDataElementSelection => SelectedElement?.Kind is LabelElementKind.Barcode or LabelElementKind.QrCode;
+    public bool HasMultipleSelection => selectedElements.Count > 1;
 
-    public bool HasShapeSelection => SelectedElement?.Kind is
+    public bool HasTextSelection => selectedElements.Count == 1 && SelectedElement?.Kind == LabelElementKind.Text;
+
+    public bool HasDataElementSelection => selectedElements.Count == 1 &&
+        SelectedElement?.Kind is LabelElementKind.Barcode or LabelElementKind.QrCode;
+
+    public bool HasShapeSelection => selectedElements.Count == 1 && SelectedElement?.Kind is
         LabelElementKind.Rectangle or LabelElementKind.RoundedRectangle or LabelElementKind.Line;
 
-    public bool HasFormattingSelection => HasTextSelection || HasShapeSelection;
+    public bool HasFormattingSelection => HasTextSelection || HasShapeSelection || HasMultipleSelection;
 
     public string WindowTitle => $"{DocumentName}{(IsDirty ? " *" : string.Empty)} — FckBarTender";
 
@@ -121,6 +129,17 @@ public sealed partial class MainViewModel : ObservableObject
 
     partial void OnSelectedElementChanged(LabelElementViewModel? value)
     {
+        if (!isSynchronizingSelection)
+        {
+            selectedElements.Clear();
+            if (value is not null)
+            {
+                selectedElements.Add(value);
+            }
+
+            NotifySelectionStateChanged();
+        }
+
         if (!isLoading && !isRestoringHistory)
         {
             history.UpdateSelection(value?.Id);
@@ -169,19 +188,26 @@ public sealed partial class MainViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanDeleteSelected))]
     private void DeleteSelected()
     {
-        if (SelectedElement is null)
+        if (selectedElements.Count == 0)
         {
             return;
         }
 
-        SelectedElement.PropertyChanged -= OnElementPropertyChanged;
-        Elements.Remove(SelectedElement);
+        var elementsToDelete = selectedElements.ToArray();
+        foreach (var element in elementsToDelete)
+        {
+            element.PropertyChanged -= OnElementPropertyChanged;
+            Elements.Remove(element);
+        }
+
         SelectedElement = null;
         MarkDirty();
-        StatusMessage = "Element deleted";
+        StatusMessage = elementsToDelete.Length == 1
+            ? "Element deleted"
+            : $"{elementsToDelete.Length} elements deleted";
     }
 
-    private bool CanDeleteSelected() => SelectedElement is not null;
+    private bool CanDeleteSelected() => selectedElements.Count > 0;
 
     [RelayCommand(CanExecute = nameof(CanUndo))]
     private void Undo()
@@ -204,6 +230,142 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     private bool CanRedo() => history.CanRedo;
+
+    public void SetSelectionFromView(
+        IEnumerable<LabelElementViewModel> elements,
+        LabelElementViewModel? primaryElement)
+    {
+        var selection = elements.Distinct().ToArray();
+        isSynchronizingSelection = true;
+        try
+        {
+            selectedElements.Clear();
+            selectedElements.AddRange(selection);
+            SelectedElement = primaryElement is not null && selection.Contains(primaryElement)
+                ? primaryElement
+                : selection.LastOrDefault();
+        }
+        finally
+        {
+            isSynchronizingSelection = false;
+        }
+
+        history.UpdateSelection(SelectedElement?.Id);
+        NotifySelectionStateChanged();
+    }
+
+    public void MoveSelectedElements(double horizontalChange, double verticalChange)
+    {
+        if (selectedElements.Count == 0 ||
+            (!double.IsFinite(horizontalChange) && !double.IsFinite(verticalChange)))
+        {
+            return;
+        }
+
+        var minimumX = selectedElements.Min(element => element.X);
+        var minimumY = selectedElements.Min(element => element.Y);
+        var maximumRight = selectedElements.Max(element => element.X + element.Width);
+        var maximumBottom = selectedElements.Max(element => element.Y + element.Height);
+        var boundedHorizontalChange = Math.Clamp(
+            double.IsFinite(horizontalChange) ? horizontalChange : 0,
+            -minimumX,
+            LabelWidth - maximumRight);
+        var boundedVerticalChange = Math.Clamp(
+            double.IsFinite(verticalChange) ? verticalChange : 0,
+            -minimumY,
+            LabelHeight - maximumBottom);
+
+        if (boundedHorizontalChange == 0 && boundedVerticalChange == 0)
+        {
+            return;
+        }
+
+        ApplyBatchChange(() =>
+        {
+            foreach (var element in selectedElements)
+            {
+                element.X += boundedHorizontalChange;
+                element.Y += boundedVerticalChange;
+            }
+        }, "selection:geometry");
+    }
+
+    [RelayCommand(CanExecute = nameof(CanAlignSelection))]
+    private void AlignSelection(string? alignment)
+    {
+        if (selectedElements.Count < 2 || string.IsNullOrWhiteSpace(alignment))
+        {
+            return;
+        }
+
+        var left = selectedElements.Min(element => element.X);
+        var top = selectedElements.Min(element => element.Y);
+        var right = selectedElements.Max(element => element.X + element.Width);
+        var bottom = selectedElements.Max(element => element.Y + element.Height);
+        var horizontalCenter = (left + right) / 2;
+        var verticalCenter = (top + bottom) / 2;
+
+        ApplyBatchChange(() =>
+        {
+            foreach (var element in selectedElements)
+            {
+                switch (alignment)
+                {
+                    case "Left": element.X = left; break;
+                    case "HorizontalCenter": element.X = horizontalCenter - (element.Width / 2); break;
+                    case "Right": element.X = right - element.Width; break;
+                    case "Top": element.Y = top; break;
+                    case "VerticalCenter": element.Y = verticalCenter - (element.Height / 2); break;
+                    case "Bottom": element.Y = bottom - element.Height; break;
+                }
+            }
+        }, null);
+        StatusMessage = $"Aligned {selectedElements.Count} elements";
+    }
+
+    private bool CanAlignSelection(string? alignment) => selectedElements.Count >= 2;
+
+    [RelayCommand(CanExecute = nameof(CanDistributeSelection))]
+    private void DistributeSelection(string? direction)
+    {
+        if (selectedElements.Count < 3 || string.IsNullOrWhiteSpace(direction))
+        {
+            return;
+        }
+
+        ApplyBatchChange(() =>
+        {
+            if (direction == "Horizontal")
+            {
+                var ordered = selectedElements.OrderBy(element => element.X).ToArray();
+                var availableSpan = (ordered[^1].X + ordered[^1].Width) - ordered[0].X;
+                var totalWidth = ordered.Sum(element => element.Width);
+                var gap = (availableSpan - totalWidth) / (ordered.Length - 1);
+                var position = ordered[0].X + ordered[0].Width + gap;
+                for (var index = 1; index < ordered.Length - 1; index++)
+                {
+                    ordered[index].X = position;
+                    position += ordered[index].Width + gap;
+                }
+            }
+            else
+            {
+                var ordered = selectedElements.OrderBy(element => element.Y).ToArray();
+                var availableSpan = (ordered[^1].Y + ordered[^1].Height) - ordered[0].Y;
+                var totalHeight = ordered.Sum(element => element.Height);
+                var gap = (availableSpan - totalHeight) / (ordered.Length - 1);
+                var position = ordered[0].Y + ordered[0].Height + gap;
+                for (var index = 1; index < ordered.Length - 1; index++)
+                {
+                    ordered[index].Y = position;
+                    position += ordered[index].Height + gap;
+                }
+            }
+        }, null);
+        StatusMessage = $"Distributed {selectedElements.Count} elements";
+    }
+
+    private bool CanDistributeSelection(string? direction) => selectedElements.Count >= 3;
 
     [RelayCommand(CanExecute = nameof(CanManipulateSelectedElement))]
     private void Copy()
@@ -272,7 +434,7 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     private bool CanManipulateSelectedElement() =>
-        SelectedElement is { IsEditing: false };
+        selectedElements.Count == 1 && SelectedElement is { IsEditing: false };
 
     [RelayCommand(CanExecute = nameof(CanNudge))]
     private void Nudge(string? direction)
@@ -287,26 +449,22 @@ public sealed partial class MainViewModel : ObservableObject
             ? 5d
             : 0.5d;
 
+        var horizontalChange = 0d;
+        var verticalChange = 0d;
         switch (parts[0])
         {
-            case "Left":
-                SelectedElement.X = Math.Max(0, SelectedElement.X - step);
-                break;
-            case "Right":
-                SelectedElement.X = Math.Min(LabelWidth - SelectedElement.Width, SelectedElement.X + step);
-                break;
-            case "Up":
-                SelectedElement.Y = Math.Max(0, SelectedElement.Y - step);
-                break;
-            case "Down":
-                SelectedElement.Y = Math.Min(LabelHeight - SelectedElement.Height, SelectedElement.Y + step);
-                break;
+            case "Left": horizontalChange = -step; break;
+            case "Right": horizontalChange = step; break;
+            case "Up": verticalChange = -step; break;
+            case "Down": verticalChange = step; break;
         }
 
+        MoveSelectedElements(horizontalChange, verticalChange);
         StatusMessage = parts.Length > 1 ? "Element moved 5 mm" : "Element moved 0.5 mm";
     }
 
-    private bool CanNudge(string? direction) => CanManipulateSelectedElement();
+    private bool CanNudge(string? direction) =>
+        selectedElements.Count > 0 && selectedElements.All(element => !element.IsEditing);
 
     [RelayCommand]
     private async Task OpenAsync()
@@ -513,6 +671,11 @@ public sealed partial class MainViewModel : ObservableObject
 
     private void OnElementPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (isApplyingBatchChange)
+        {
+            return;
+        }
+
         if (e.PropertyName == nameof(LabelElementViewModel.IsEditing))
         {
             NotifySelectionCommandsChanged();
@@ -610,6 +773,35 @@ public sealed partial class MainViewModel : ObservableObject
         PasteCommand.NotifyCanExecuteChanged();
         DuplicateCommand.NotifyCanExecuteChanged();
         NudgeCommand.NotifyCanExecuteChanged();
+    }
+
+    private void NotifySelectionStateChanged()
+    {
+        OnPropertyChanged(nameof(SelectedElements));
+        OnPropertyChanged(nameof(HasMultipleSelection));
+        OnPropertyChanged(nameof(HasTextSelection));
+        OnPropertyChanged(nameof(HasDataElementSelection));
+        OnPropertyChanged(nameof(HasShapeSelection));
+        OnPropertyChanged(nameof(HasFormattingSelection));
+        DeleteSelectedCommand.NotifyCanExecuteChanged();
+        AlignSelectionCommand.NotifyCanExecuteChanged();
+        DistributeSelectionCommand.NotifyCanExecuteChanged();
+        NotifySelectionCommandsChanged();
+    }
+
+    private void ApplyBatchChange(Action change, string? mergeKey)
+    {
+        isApplyingBatchChange = true;
+        try
+        {
+            change();
+        }
+        finally
+        {
+            isApplyingBatchChange = false;
+        }
+
+        MarkDirty(mergeKey);
     }
 
     private static string CreateFingerprint(LabelDocument document) =>

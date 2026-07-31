@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.ComponentModel;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -15,15 +16,18 @@ public partial class MainWindow : Window
     private Point toolboxDragStart;
     private LabelElementViewModel? inlineEditingElement;
     private string? inlineEditOriginalContent;
+    private bool isSynchronizingCanvasSelection;
 
     public MainWindow()
     {
         InitializeComponent();
-        DataContext = new MainViewModel(
+        var viewModel = new MainViewModel(
             new JsonLabelDocumentStore(),
             new FileDialogService(),
             new WpfLabelPrintService(),
             new WpfElementClipboard());
+        viewModel.PropertyChanged += MainViewModel_PropertyChanged;
+        DataContext = viewModel;
     }
 
     private void MainWindow_KeyDown(object sender, KeyEventArgs e)
@@ -86,6 +90,21 @@ public partial class MainWindow : Window
 
     private void DesignerCanvas_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (DataContext is MainViewModel viewModel)
+        {
+            isSynchronizingCanvasSelection = true;
+            try
+            {
+                viewModel.SetSelectionFromView(
+                    DesignerCanvas.SelectedItems.Cast<LabelElementViewModel>(),
+                    DesignerCanvas.SelectedItem as LabelElementViewModel);
+            }
+            finally
+            {
+                isSynchronizingCanvasSelection = false;
+            }
+        }
+
         Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
         {
             if (Keyboard.FocusedElement is TextBoxBase)
@@ -101,6 +120,34 @@ public partial class MainWindow : Window
             else
             {
                 DesignerCanvas.Focus();
+            }
+        });
+    }
+
+    private void MainViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (isSynchronizingCanvasSelection ||
+            e.PropertyName != nameof(MainViewModel.SelectedElement) ||
+            sender is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        Dispatcher.BeginInvoke(DispatcherPriority.DataBind, () =>
+        {
+            isSynchronizingCanvasSelection = true;
+            try
+            {
+                DesignerCanvas.UnselectAll();
+                if (viewModel.SelectedElement is not null &&
+                    DesignerCanvas.ItemContainerGenerator.ContainerFromItem(viewModel.SelectedElement) is ListBoxItem container)
+                {
+                    container.IsSelected = true;
+                }
+            }
+            finally
+            {
+                isSynchronizingCanvasSelection = false;
             }
         });
     }
@@ -166,7 +213,20 @@ public partial class MainWindow : Window
         if (sender is Thumb { DataContext: LabelElementViewModel element } &&
             DataContext is MainViewModel viewModel)
         {
-            viewModel.SelectedElement = element;
+            var container = FindVisualAncestor<ListBoxItem>((DependencyObject)sender);
+            if (container is not null && Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+            {
+                container.IsSelected = !container.IsSelected;
+                e.Handled = true;
+                return;
+            }
+
+            if (container is not null && !container.IsSelected)
+            {
+                DesignerCanvas.UnselectAll();
+                container.IsSelected = true;
+            }
+
             if (e.ClickCount == 2 && element.Kind == LabelElementKind.Text)
             {
                 BeginInlineEdit(element);
@@ -184,12 +244,9 @@ public partial class MainWindow : Window
         }
 
         const double millimetersPerDeviceIndependentPixel = 25.4d / 96d;
-        var maximumX = Math.Max(0, viewModel.LabelWidth - element.Width);
-        var maximumY = Math.Max(0, viewModel.LabelHeight - element.Height);
-
-        element.X = Math.Clamp(element.X + (e.HorizontalChange * millimetersPerDeviceIndependentPixel), 0, maximumX);
-        element.Y = Math.Clamp(element.Y + (e.VerticalChange * millimetersPerDeviceIndependentPixel), 0, maximumY);
-        viewModel.SelectedElement = element;
+        viewModel.MoveSelectedElements(
+            e.HorizontalChange * millimetersPerDeviceIndependentPixel,
+            e.VerticalChange * millimetersPerDeviceIndependentPixel);
     }
 
     private void DesignerItem_ResizeDelta(object sender, DragDeltaEventArgs e)
@@ -381,6 +438,23 @@ public partial class MainWindow : Window
             {
                 return descendant;
             }
+        }
+
+        return null;
+    }
+
+    private static T? FindVisualAncestor<T>(DependencyObject child)
+        where T : DependencyObject
+    {
+        var current = child;
+        while (current is not null)
+        {
+            if (current is T match)
+            {
+                return match;
+            }
+
+            current = VisualTreeHelper.GetParent(current);
         }
 
         return null;

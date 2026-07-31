@@ -337,6 +337,21 @@
                                       Text="{Binding SelectedElement.StrokeThickness, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
                             <TextBlock Text="px" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="6,0,0,0" />
                         </StackPanel>
+                        <StackPanel Orientation="Horizontal"
+                                    VerticalAlignment="Center"
+                                    Visibility="{Binding HasMultipleSelection, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="MULTI" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,14,0" />
+                            <Button Content="Left" Command="{Binding AlignSelectionCommand}" CommandParameter="Left" Style="{StaticResource TopActionButton}" ToolTip="Align left edges" />
+                            <Button Content="Center" Command="{Binding AlignSelectionCommand}" CommandParameter="HorizontalCenter" Style="{StaticResource TopActionButton}" ToolTip="Align horizontal centers" />
+                            <Button Content="Right" Command="{Binding AlignSelectionCommand}" CommandParameter="Right" Style="{StaticResource TopActionButton}" ToolTip="Align right edges" />
+                            <Separator Margin="6,8" />
+                            <Button Content="Top" Command="{Binding AlignSelectionCommand}" CommandParameter="Top" Style="{StaticResource TopActionButton}" ToolTip="Align top edges" />
+                            <Button Content="Middle" Command="{Binding AlignSelectionCommand}" CommandParameter="VerticalCenter" Style="{StaticResource TopActionButton}" ToolTip="Align vertical centers" />
+                            <Button Content="Bottom" Command="{Binding AlignSelectionCommand}" CommandParameter="Bottom" Style="{StaticResource TopActionButton}" ToolTip="Align bottom edges" />
+                            <Separator Margin="6,8" />
+                            <Button Content="Space H" Command="{Binding DistributeSelectionCommand}" CommandParameter="Horizontal" Style="{StaticResource TopActionButton}" ToolTip="Distribute horizontally (3 or more)" />
+                            <Button Content="Space V" Command="{Binding DistributeSelectionCommand}" CommandParameter="Vertical" Style="{StaticResource TopActionButton}" ToolTip="Distribute vertically (3 or more)" />
+                        </StackPanel>
                     </Grid>
                 </Border>
             </StackPanel>
@@ -430,8 +445,8 @@
                         </Border.Effect>
                         <ListBox x:Name="DesignerCanvas"
                                  ItemsSource="{Binding Elements}"
-                                 SelectedItem="{Binding SelectedElement}"
                                  SelectionChanged="DesignerCanvas_SelectionChanged"
+                                 SelectionMode="Extended"
                                  ItemContainerStyle="{StaticResource DesignerItemStyle}"
                                  AllowDrop="True"
                                  Drop="DesignerCanvas_Drop"
