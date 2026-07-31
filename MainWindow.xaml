@@ -11,6 +11,7 @@
         Height="850"
         MinWidth="1080"
         MinHeight="680"
+        PreviewKeyDown="MainWindow_KeyDown"
         WindowStartupLocation="CenterScreen">
     <Window.InputBindings>
         <KeyBinding Key="N" Modifiers="Control" Command="{Binding NewDocumentCommand}" />
@@ -20,7 +21,6 @@
         <KeyBinding Key="Z" Modifiers="Control" Command="{Binding UndoCommand}" />
         <KeyBinding Key="Y" Modifiers="Control" Command="{Binding RedoCommand}" />
         <KeyBinding Key="Z" Modifiers="Control+Shift" Command="{Binding RedoCommand}" />
-        <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}" />
     </Window.InputBindings>
 
     <Window.Resources>
@@ -230,6 +230,11 @@
                 <MenuItem Header="_Undo" Command="{Binding UndoCommand}" InputGestureText="Ctrl+Z" />
                 <MenuItem Header="_Redo" Command="{Binding RedoCommand}" InputGestureText="Ctrl+Y" />
                 <Separator />
+                <MenuItem Header="Cu_t" Command="{Binding CutCommand}" InputGestureText="Ctrl+X" />
+                <MenuItem Header="_Copy" Command="{Binding CopyCommand}" InputGestureText="Ctrl+C" />
+                <MenuItem Header="_Paste" Command="{Binding PasteCommand}" InputGestureText="Ctrl+V" />
+                <MenuItem Header="D_uplicate" Command="{Binding DuplicateCommand}" InputGestureText="Ctrl+D" />
+                <Separator />
                 <MenuItem Header="_Delete selected" Command="{Binding DeleteSelectedCommand}" InputGestureText="Delete" />
             </MenuItem>
         </Menu>
@@ -426,6 +431,7 @@
                         <ListBox x:Name="DesignerCanvas"
                                  ItemsSource="{Binding Elements}"
                                  SelectedItem="{Binding SelectedElement}"
+                                 SelectionChanged="DesignerCanvas_SelectionChanged"
                                  ItemContainerStyle="{StaticResource DesignerItemStyle}"
                                  AllowDrop="True"
                                  Drop="DesignerCanvas_Drop"

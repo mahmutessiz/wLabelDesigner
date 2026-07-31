@@ -22,7 +22,87 @@ public partial class MainWindow : Window
         DataContext = new MainViewModel(
             new JsonLabelDocumentStore(),
             new FileDialogService(),
-            new WpfLabelPrintService());
+            new WpfLabelPrintService(),
+            new WpfElementClipboard());
+    }
+
+    private void MainWindow_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (Keyboard.FocusedElement is TextBoxBase or ComboBox || DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var controlPressed = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+        var shiftPressed = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+
+        if (e.Key == Key.Tab && viewModel.Elements.Count > 0)
+        {
+            SelectAdjacentElement(viewModel, shiftPressed ? -1 : 1);
+            e.Handled = true;
+            return;
+        }
+
+        System.Windows.Input.ICommand? command = null;
+        object? parameter = null;
+
+        if (controlPressed)
+        {
+            command = e.Key switch
+            {
+                Key.C => viewModel.CopyCommand,
+                Key.X => viewModel.CutCommand,
+                Key.V => viewModel.PasteCommand,
+                Key.D => viewModel.DuplicateCommand,
+                _ => null
+            };
+        }
+        else if (e.Key is Key.Left or Key.Right or Key.Up or Key.Down)
+        {
+            command = viewModel.NudgeCommand;
+            parameter = $"{e.Key}{(shiftPressed ? ":Large" : string.Empty)}";
+        }
+        else if (e.Key == Key.Delete)
+        {
+            command = viewModel.DeleteSelectedCommand;
+        }
+
+        if (command?.CanExecute(parameter) == true)
+        {
+            command.Execute(parameter);
+            e.Handled = true;
+        }
+    }
+
+    private static void SelectAdjacentElement(MainViewModel viewModel, int direction)
+    {
+        var currentIndex = viewModel.SelectedElement is null
+            ? (direction > 0 ? -1 : 0)
+            : viewModel.Elements.IndexOf(viewModel.SelectedElement);
+        var nextIndex = (currentIndex + direction + viewModel.Elements.Count) % viewModel.Elements.Count;
+        viewModel.SelectedElement = viewModel.Elements[nextIndex];
+        viewModel.StatusMessage = $"Selected {viewModel.SelectedElement.DisplayName}";
+    }
+
+    private void DesignerCanvas_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
+        {
+            if (Keyboard.FocusedElement is TextBoxBase)
+            {
+                return;
+            }
+
+            if (DataContext is MainViewModel { SelectedElement: not null } viewModel &&
+                DesignerCanvas.ItemContainerGenerator.ContainerFromItem(viewModel.SelectedElement) is ListBoxItem container)
+            {
+                container.Focus();
+            }
+            else
+            {
+                DesignerCanvas.Focus();
+            }
+        });
     }
 
     private void ToolboxItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e) =>

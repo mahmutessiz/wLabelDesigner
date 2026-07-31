@@ -15,6 +15,7 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly ILabelDocumentStore documentStore;
     private readonly IFileDialogService fileDialogService;
     private readonly ILabelPrintService printService;
+    private readonly IElementClipboard elementClipboard;
     private readonly UndoHistory history = new();
     private string? currentPath;
     private bool isLoading;
@@ -22,15 +23,18 @@ public sealed partial class MainViewModel : ObservableObject
     private string savedDocumentFingerprint = string.Empty;
     private int printCopies = 1;
     private string? printPrinterName;
+    private int pasteSequence = 1;
 
     public MainViewModel(
         ILabelDocumentStore documentStore,
         IFileDialogService fileDialogService,
-        ILabelPrintService printService)
+        ILabelPrintService printService,
+        IElementClipboard elementClipboard)
     {
         this.documentStore = documentStore;
         this.fileDialogService = fileDialogService;
         this.printService = printService;
+        this.elementClipboard = elementClipboard;
         NewDocument();
     }
 
@@ -97,6 +101,11 @@ public sealed partial class MainViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasDataElementSelection))]
     [NotifyPropertyChangedFor(nameof(HasShapeSelection))]
     [NotifyPropertyChangedFor(nameof(HasFormattingSelection))]
+    [NotifyCanExecuteChangedFor(nameof(CopyCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CutCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DuplicateCommand))]
+    [NotifyCanExecuteChangedFor(nameof(NudgeCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PasteCommand))]
     private LabelElementViewModel? selectedElement;
 
     [ObservableProperty]
@@ -130,6 +139,7 @@ public sealed partial class MainViewModel : ObservableObject
         PrinterDpi = 203;
         printCopies = 1;
         printPrinterName = null;
+        pasteSequence = 1;
         currentPath = null;
         SelectedElement = null;
         isLoading = false;
@@ -194,6 +204,109 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     private bool CanRedo() => history.CanRedo;
+
+    [RelayCommand(CanExecute = nameof(CanManipulateSelectedElement))]
+    private void Copy()
+    {
+        if (TryCopySelectedElement())
+        {
+            pasteSequence = 1;
+            PasteCommand.NotifyCanExecuteChanged();
+            StatusMessage = "Element copied";
+        }
+        else
+        {
+            StatusMessage = "Could not access the Windows clipboard";
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanManipulateSelectedElement))]
+    private void Cut()
+    {
+        if (!TryCopySelectedElement())
+        {
+            StatusMessage = "Could not access the Windows clipboard";
+            return;
+        }
+
+        DeleteSelected();
+        pasteSequence = 1;
+        PasteCommand.NotifyCanExecuteChanged();
+        StatusMessage = "Element cut";
+    }
+
+    [RelayCommand(CanExecute = nameof(CanPaste))]
+    private void Paste()
+    {
+        if (!elementClipboard.TryGetElement(out var source) || source is null)
+        {
+            StatusMessage = "Could not read an element from the Windows clipboard";
+            return;
+        }
+
+        if (!Enum.IsDefined(source.Kind))
+        {
+            StatusMessage = "The clipboard contains an unsupported element type";
+            return;
+        }
+
+        var offset = Math.Min(30, pasteSequence * 3d);
+        var element = AddElementData(CloneElement(source, offset), "Element pasted");
+        SelectedElement = element;
+        pasteSequence++;
+    }
+
+    private bool CanPaste() =>
+        SelectedElement?.IsEditing != true && elementClipboard.ContainsElement();
+
+    [RelayCommand(CanExecute = nameof(CanManipulateSelectedElement))]
+    private void Duplicate()
+    {
+        if (SelectedElement is null)
+        {
+            return;
+        }
+
+        var element = AddElementData(CloneElement(SelectedElement.ToData(), offset: 3), "Element duplicated");
+        SelectedElement = element;
+    }
+
+    private bool CanManipulateSelectedElement() =>
+        SelectedElement is { IsEditing: false };
+
+    [RelayCommand(CanExecute = nameof(CanNudge))]
+    private void Nudge(string? direction)
+    {
+        if (SelectedElement is null || string.IsNullOrWhiteSpace(direction))
+        {
+            return;
+        }
+
+        var parts = direction.Split(':', StringSplitOptions.RemoveEmptyEntries);
+        var step = parts.Length > 1 && string.Equals(parts[1], "Large", StringComparison.OrdinalIgnoreCase)
+            ? 5d
+            : 0.5d;
+
+        switch (parts[0])
+        {
+            case "Left":
+                SelectedElement.X = Math.Max(0, SelectedElement.X - step);
+                break;
+            case "Right":
+                SelectedElement.X = Math.Min(LabelWidth - SelectedElement.Width, SelectedElement.X + step);
+                break;
+            case "Up":
+                SelectedElement.Y = Math.Max(0, SelectedElement.Y - step);
+                break;
+            case "Down":
+                SelectedElement.Y = Math.Min(LabelHeight - SelectedElement.Height, SelectedElement.Y + step);
+                break;
+        }
+
+        StatusMessage = parts.Length > 1 ? "Element moved 5 mm" : "Element moved 0.5 mm";
+    }
+
+    private bool CanNudge(string? direction) => CanManipulateSelectedElement();
 
     [RelayCommand]
     private async Task OpenAsync()
@@ -279,7 +392,7 @@ public sealed partial class MainViewModel : ObservableObject
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unsupported label element type.")
         };
 
-        var element = new LabelElementViewModel(new LabelElementData
+        var data = new LabelElementData
         {
             Kind = kind,
             Content = content,
@@ -287,17 +400,62 @@ public sealed partial class MainViewModel : ObservableObject
             Y = Math.Clamp(y, 0, Math.Max(0, LabelHeight - height)),
             Width = width,
             Height = height
-        })
+        };
+        var element = AddElementData(data, $"{kind switch
         {
-            IsEditing = beginEditing
+            LabelElementKind.QrCode => "QR code",
+            LabelElementKind.RoundedRectangle => "Rounded box",
+            LabelElementKind.Rectangle => "Box",
+            _ => kind.ToString()
+        }} added");
+        element.IsEditing = beginEditing;
+        return element;
+    }
+
+    private LabelElementViewModel AddElementData(LabelElementData data, string statusMessage)
+    {
+        var element = new LabelElementViewModel(data)
+        {
+            IsEditing = false
         };
 
         element.PropertyChanged += OnElementPropertyChanged;
         Elements.Add(element);
         SelectedElement = element;
         MarkDirty();
-        StatusMessage = $"{element.DisplayName} added";
+        StatusMessage = statusMessage;
         return element;
+    }
+
+    private bool TryCopySelectedElement() =>
+        SelectedElement is not null && elementClipboard.TryCopy(SelectedElement.ToData());
+
+    private LabelElementData CloneElement(LabelElementData source, double offset)
+    {
+        var sourceWidth = double.IsFinite(source.Width) ? source.Width : 10;
+        var sourceHeight = double.IsFinite(source.Height) ? source.Height : 10;
+        var sourceX = double.IsFinite(source.X) ? source.X : 0;
+        var sourceY = double.IsFinite(source.Y) ? source.Y : 0;
+        var width = Math.Clamp(sourceWidth, 0.1, LabelWidth);
+        var height = Math.Clamp(sourceHeight, 0.1, LabelHeight);
+        return new LabelElementData
+        {
+            Id = Guid.NewGuid(),
+            Kind = source.Kind,
+            Content = source.Content ?? string.Empty,
+            X = Math.Clamp(sourceX + offset, 0, Math.Max(0, LabelWidth - width)),
+            Y = Math.Clamp(sourceY + offset, 0, Math.Max(0, LabelHeight - height)),
+            Width = width,
+            Height = height,
+            FontSize = source.FontSize,
+            FontFamily = string.IsNullOrWhiteSpace(source.FontFamily) ? "Segoe UI" : source.FontFamily,
+            IsBold = source.IsBold,
+            IsItalic = source.IsItalic,
+            IsUnderlined = source.IsUnderlined,
+            TextAlignment = source.TextAlignment,
+            StrokeThickness = source.StrokeThickness,
+            IsLineDirectionReversed = source.IsLineDirectionReversed
+        };
     }
 
     private LabelDocument CreateDocument() => new()
@@ -355,8 +513,13 @@ public sealed partial class MainViewModel : ObservableObject
 
     private void OnElementPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (sender is LabelElementViewModel element &&
-            e.PropertyName != nameof(LabelElementViewModel.IsEditing))
+        if (e.PropertyName == nameof(LabelElementViewModel.IsEditing))
+        {
+            NotifySelectionCommandsChanged();
+            return;
+        }
+
+        if (sender is LabelElementViewModel element)
         {
             var isGeometryChange = e.PropertyName is
                 nameof(LabelElementViewModel.X) or
@@ -438,6 +601,15 @@ public sealed partial class MainViewModel : ObservableObject
     {
         UndoCommand.NotifyCanExecuteChanged();
         RedoCommand.NotifyCanExecuteChanged();
+    }
+
+    private void NotifySelectionCommandsChanged()
+    {
+        CopyCommand.NotifyCanExecuteChanged();
+        CutCommand.NotifyCanExecuteChanged();
+        PasteCommand.NotifyCanExecuteChanged();
+        DuplicateCommand.NotifyCanExecuteChanged();
+        NudgeCommand.NotifyCanExecuteChanged();
     }
 
     private static string CreateFingerprint(LabelDocument document) =>
