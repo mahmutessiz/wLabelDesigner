@@ -101,17 +101,35 @@
             <Border Grid.Column="0" Padding="16" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
                 <StackPanel>
                     <TextBlock Text="ELEMENTS" Style="{StaticResource SectionHeading}" />
-                    <Button Content="＋  Text" Command="{Binding AddTextCommand}" HorizontalContentAlignment="Left" />
-                    <Button Content="▥  Barcode" Command="{Binding AddBarcodeCommand}" HorizontalContentAlignment="Left" />
-                    <Button Content="▦  QR code" Command="{Binding AddQrCodeCommand}" HorizontalContentAlignment="Left" />
+                    <Button Content="+  Text"
+                            Tag="{x:Static models:LabelElementKind.Text}"
+                            Click="AddTextButton_Click"
+                            PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown"
+                            PreviewMouseMove="ToolboxItem_PreviewMouseMove"
+                            HorizontalContentAlignment="Left"
+                            ToolTip="Click to add, or drag onto the label" />
+                    <Button Content="▥  Barcode"
+                            Tag="{x:Static models:LabelElementKind.Barcode}"
+                            Command="{Binding AddBarcodeCommand}"
+                            PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown"
+                            PreviewMouseMove="ToolboxItem_PreviewMouseMove"
+                            HorizontalContentAlignment="Left"
+                            ToolTip="Click to add, or drag onto the label" />
+                    <Button Content="▦  QR code"
+                            Tag="{x:Static models:LabelElementKind.QrCode}"
+                            Command="{Binding AddQrCodeCommand}"
+                            PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown"
+                            PreviewMouseMove="ToolboxItem_PreviewMouseMove"
+                            HorizontalContentAlignment="Left"
+                            ToolTip="Click to add, or drag onto the label" />
                     <Separator Margin="0,12" />
                     <TextBlock Text="DOCUMENT" Style="{StaticResource SectionHeading}" />
                     <TextBlock Text="Name" Style="{StaticResource FieldLabel}" />
                     <TextBox Text="{Binding DocumentName, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock Text="Width (mm)" Style="{StaticResource FieldLabel}" />
-                    <TextBox Text="{Binding LabelWidth, UpdateSourceTrigger=LostFocus}" />
+                    <TextBox Text="{Binding LabelWidth, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
                     <TextBlock Text="Height (mm)" Style="{StaticResource FieldLabel}" />
-                    <TextBox Text="{Binding LabelHeight, UpdateSourceTrigger=LostFocus}" />
+                    <TextBox Text="{Binding LabelHeight, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
                     <TextBlock Text="Printer resolution" Style="{StaticResource FieldLabel}" />
                     <ComboBox ItemsSource="{Binding SupportedDpi}" SelectedItem="{Binding PrinterDpi}" />
                 </StackPanel>
@@ -128,9 +146,12 @@
                             BorderThickness="1"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center">
-                        <ListBox ItemsSource="{Binding Elements}"
+                        <ListBox x:Name="DesignerCanvas"
+                                 ItemsSource="{Binding Elements}"
                                  SelectedItem="{Binding SelectedElement}"
                                  ItemContainerStyle="{StaticResource DesignerItemStyle}"
+                                 AllowDrop="True"
+                                 Drop="DesignerCanvas_Drop"
                                  Background="Transparent"
                                  BorderThickness="0"
                                  Padding="0"
@@ -150,6 +171,17 @@
                                                    TextTrimming="CharacterEllipsis"
                                                    VerticalAlignment="Center"
                                                    HorizontalAlignment="Center" />
+                                        <TextBox x:Name="InlineTextEditor"
+                                                 Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontSize="{Binding FontSize}"
+                                                 Padding="2,0"
+                                                 BorderThickness="0"
+                                                 Background="White"
+                                                 TextAlignment="Center"
+                                                 VerticalContentAlignment="Center"
+                                                 Visibility="Collapsed"
+                                                 LostKeyboardFocus="InlineTextEditor_LostKeyboardFocus"
+                                                 PreviewKeyDown="InlineTextEditor_PreviewKeyDown" />
                                         <Image x:Name="PreviewImage"
                                                Stretch="Fill"
                                                RenderOptions.BitmapScalingMode="HighQuality"
@@ -165,11 +197,22 @@
                                         <Thumb Cursor="SizeAll"
                                                PreviewMouseLeftButtonDown="DesignerItem_PreviewMouseLeftButtonDown"
                                                DragDelta="DesignerItem_DragDelta">
-                                            <Thumb.Template>
-                                                <ControlTemplate TargetType="Thumb">
-                                                    <Border Background="Transparent" />
-                                                </ControlTemplate>
-                                            </Thumb.Template>
+                                            <Thumb.Style>
+                                                <Style TargetType="Thumb">
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Thumb">
+                                                                <Border Background="Transparent" />
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Thumb.Style>
                                         </Thumb>
                                         <Thumb Width="10"
                                                Height="10"
@@ -194,12 +237,19 @@
                                                         <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
                                                             <Setter Property="Visibility" Value="Visible" />
                                                         </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </Thumb.Style>
                                         </Thumb>
                                     </Grid>
                                     <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                            <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="InlineTextEditor" Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
                                         <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Barcode}">
                                             <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
                                             <Setter TargetName="PreviewImage" Property="Visibility" Value="Visible" />
@@ -232,7 +282,7 @@
                             </Style>
                         </StackPanel.Style>
                         <TextBlock Text="PROPERTIES" Style="{StaticResource SectionHeading}" />
-                        <TextBlock Text="Select an element on the label to edit it."
+                        <TextBlock Text="Drag elements onto the label. Double-click text to edit it in place."
                                    Foreground="{StaticResource MutedTextBrush}"
                                    TextWrapping="Wrap"
                                    Margin="0,0,0,12" />
@@ -252,11 +302,11 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel>
                                 <TextBlock Text="X (mm)" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding SelectedElement.X, UpdateSourceTrigger=LostFocus}" />
+                                <TextBox Text="{Binding SelectedElement.X, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
                             </StackPanel>
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Y (mm)" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding SelectedElement.Y, UpdateSourceTrigger=LostFocus}" />
+                                <TextBox Text="{Binding SelectedElement.Y, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
                             </StackPanel>
                         </Grid>
                         <Grid>
@@ -267,15 +317,15 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel>
                                 <TextBlock Text="Width (mm)" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding SelectedElement.Width, UpdateSourceTrigger=LostFocus}" />
+                                <TextBox Text="{Binding SelectedElement.Width, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
                             </StackPanel>
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Height (mm)" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding SelectedElement.Height, UpdateSourceTrigger=LostFocus}" />
+                                <TextBox Text="{Binding SelectedElement.Height, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
                             </StackPanel>
                         </Grid>
                         <TextBlock Text="Font size" Style="{StaticResource FieldLabel}" />
-                        <TextBox Text="{Binding SelectedElement.FontSize, UpdateSourceTrigger=LostFocus}" />
+                        <TextBox Text="{Binding SelectedElement.FontSize, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
                         <Button Content="Delete element"
                                 Command="{Binding DeleteSelectedCommand}"
                                 Margin="0,18,0,0" />

@@ -103,13 +103,13 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void AddText() => AddElement(LabelElementKind.Text, "Sample text", 40, 10);
+    private void AddText() => AddElementAt(LabelElementKind.Text, 5, 5, beginEditing: true);
 
     [RelayCommand]
-    private void AddBarcode() => AddElement(LabelElementKind.Barcode, "123456789012", 50, 16);
+    private void AddBarcode() => AddElementAt(LabelElementKind.Barcode, 5, 5);
 
     [RelayCommand]
-    private void AddQrCode() => AddElement(LabelElementKind.QrCode, "https://example.com", 22, 22);
+    private void AddQrCode() => AddElementAt(LabelElementKind.QrCode, 5, 5);
 
     [RelayCommand(CanExecute = nameof(CanDeleteSelected))]
     private void DeleteSelected()
@@ -189,23 +189,39 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
-    private void AddElement(LabelElementKind kind, string content, double width, double height)
+    public LabelElementViewModel AddElementAt(
+        LabelElementKind kind,
+        double x,
+        double y,
+        bool beginEditing = false)
     {
+        var (content, width, height) = kind switch
+        {
+            LabelElementKind.Text => ("Text", 40d, 10d),
+            LabelElementKind.Barcode => ("123456789012", 50d, 16d),
+            LabelElementKind.QrCode => ("https://example.com", 22d, 22d),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unsupported label element type.")
+        };
+
         var element = new LabelElementViewModel(new LabelElementData
         {
             Kind = kind,
             Content = content,
-            X = 5,
-            Y = 5,
+            X = Math.Clamp(x, 0, Math.Max(0, LabelWidth - width)),
+            Y = Math.Clamp(y, 0, Math.Max(0, LabelHeight - height)),
             Width = width,
             Height = height
-        });
+        })
+        {
+            IsEditing = beginEditing
+        };
 
         element.PropertyChanged += OnElementPropertyChanged;
         Elements.Add(element);
         SelectedElement = element;
         MarkDirty();
         StatusMessage = $"{element.DisplayName} added";
+        return element;
     }
 
     private LabelDocument CreateDocument() => new()
@@ -251,7 +267,13 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
-    private void OnElementPropertyChanged(object? sender, PropertyChangedEventArgs e) => MarkDirty();
+    private void OnElementPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(LabelElementViewModel.IsEditing))
+        {
+            MarkDirty();
+        }
+    }
 
     private void MarkDirty()
     {

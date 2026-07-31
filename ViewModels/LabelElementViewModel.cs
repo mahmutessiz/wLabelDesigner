@@ -32,6 +32,9 @@ public sealed partial class LabelElementViewModel : ObservableObject
     [ObservableProperty]
     private string content;
 
+    [ObservableProperty]
+    private bool isEditing;
+
     private double x;
 
     public double X
