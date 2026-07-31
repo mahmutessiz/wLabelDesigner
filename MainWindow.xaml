@@ -1,12 +1,240 @@
-﻿<Window x:Class="wLabelDesigner.MainWindow"
+<Window x:Class="wLabelDesigner.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:wLabelDesigner"
+        xmlns:converters="clr-namespace:wLabelDesigner.Converters"
+        xmlns:models="clr-namespace:wLabelDesigner.Models"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="{Binding WindowTitle}"
+        Width="1280"
+        Height="800"
+        MinWidth="980"
+        MinHeight="640"
+        WindowStartupLocation="CenterScreen">
+    <Window.InputBindings>
+        <KeyBinding Key="N" Modifiers="Control" Command="{Binding NewDocumentCommand}" />
+        <KeyBinding Key="O" Modifiers="Control" Command="{Binding OpenCommand}" />
+        <KeyBinding Key="S" Modifiers="Control" Command="{Binding SaveCommand}" />
+        <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}" />
+    </Window.InputBindings>
+    <Window.Resources>
+        <converters:MillimetersToDeviceIndependentPixelsConverter x:Key="MmToDip" />
+        <Style x:Key="DesignerItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Canvas.Left" Value="{Binding X, Converter={StaticResource MmToDip}}" />
+            <Setter Property="Canvas.Top" Value="{Binding Y, Converter={StaticResource MmToDip}}" />
+            <Setter Property="Width" Value="{Binding Width, Converter={StaticResource MmToDip}}" />
+            <Setter Property="Height" Value="{Binding Height, Converter={StaticResource MmToDip}}" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="SelectionBorder"
+                                BorderBrush="Transparent"
+                                BorderThickness="1"
+                                Background="Transparent">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                <Setter TargetName="SelectionBorder" Property="Background" Value="#122563EB" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter TargetName="SelectionBorder" Property="BorderThickness" Value="2" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 
-    </Grid>
+    <DockPanel Background="#E2E8F0">
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New" Command="{Binding NewDocumentCommand}" InputGestureText="Ctrl+N" />
+                <MenuItem Header="_Open…" Command="{Binding OpenCommand}" InputGestureText="Ctrl+O" />
+                <MenuItem Header="_Save" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S" />
+                <Separator />
+                <MenuItem Header="E_xit" Click="Exit_Click" />
+            </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem Header="_Delete selected" Command="{Binding DeleteSelectedCommand}" InputGestureText="Delete" />
+            </MenuItem>
+        </Menu>
+
+        <ToolBarTray DockPanel.Dock="Top" Background="White">
+            <ToolBar>
+                <Button Command="{Binding NewDocumentCommand}" ToolTip="New label" Margin="0">New</Button>
+                <Button Command="{Binding OpenCommand}" ToolTip="Open template" Margin="0">Open</Button>
+                <Button Command="{Binding SaveCommand}" ToolTip="Save template" Margin="0">Save</Button>
+                <Separator />
+                <Button Command="{Binding DeleteSelectedCommand}" ToolTip="Delete selected element" Margin="0">Delete</Button>
+            </ToolBar>
+        </ToolBarTray>
+
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem Content="{Binding StatusMessage}" />
+            <Separator />
+            <StatusBarItem>
+                <TextBlock>
+                    <Run Text="{Binding LabelWidth, Mode=OneWay}" /><Run Text=" × " /><Run Text="{Binding LabelHeight, Mode=OneWay}" /><Run Text=" mm" />
+                </TextBlock>
+            </StatusBarItem>
+            <StatusBarItem Content="{Binding PrinterDpi, StringFormat={}{0} DPI}" />
+        </StatusBar>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="190" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="280" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Padding="16" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+                <StackPanel>
+                    <TextBlock Text="ELEMENTS" Style="{StaticResource SectionHeading}" />
+                    <Button Content="＋  Text" Command="{Binding AddTextCommand}" HorizontalContentAlignment="Left" />
+                    <Button Content="▥  Barcode" Command="{Binding AddBarcodeCommand}" HorizontalContentAlignment="Left" />
+                    <Button Content="▦  QR code" Command="{Binding AddQrCodeCommand}" HorizontalContentAlignment="Left" />
+                    <Separator Margin="0,12" />
+                    <TextBlock Text="DOCUMENT" Style="{StaticResource SectionHeading}" />
+                    <TextBlock Text="Name" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding DocumentName, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="Width (mm)" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding LabelWidth, UpdateSourceTrigger=LostFocus}" />
+                    <TextBlock Text="Height (mm)" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding LabelHeight, UpdateSourceTrigger=LostFocus}" />
+                    <TextBlock Text="Printer resolution" Style="{StaticResource FieldLabel}" />
+                    <ComboBox ItemsSource="{Binding SupportedDpi}" SelectedItem="{Binding PrinterDpi}" />
+                </StackPanel>
+            </Border>
+
+            <Grid Grid.Column="1" Background="#CBD5E1">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Auto"
+                              Padding="48">
+                    <Border Width="{Binding LabelWidth, Converter={StaticResource MmToDip}}"
+                            Height="{Binding LabelHeight, Converter={StaticResource MmToDip}}"
+                            Background="White"
+                            BorderBrush="#94A3B8"
+                            BorderThickness="1"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                        <ListBox ItemsSource="{Binding Elements}"
+                                 SelectedItem="{Binding SelectedElement}"
+                                 ItemContainerStyle="{StaticResource DesignerItemStyle}"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Padding="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas />
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ClipToBounds="True" ToolTip="{Binding DisplayName}">
+                                        <TextBlock x:Name="PreviewText"
+                                                   Text="{Binding Content}"
+                                                   FontSize="{Binding FontSize}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center" />
+                                        <Thumb Background="Transparent"
+                                               Cursor="SizeAll"
+                                               PreviewMouseLeftButtonDown="DesignerItem_PreviewMouseLeftButtonDown"
+                                               DragDelta="DesignerItem_DragDelta" />
+                                    </Grid>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Barcode}">
+                                            <Setter TargetName="PreviewText" Property="Text" Value="▌│▐ ▌││▐ ▌│▐" />
+                                            <Setter TargetName="PreviewText" Property="FontFamily" Value="Consolas" />
+                                            <Setter TargetName="PreviewText" Property="FontSize" Value="22" />
+                                            <Setter TargetName="PreviewText" Property="ToolTip" Value="{Binding Content}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.QrCode}">
+                                            <Setter TargetName="PreviewText" Property="Text" Value="▦" />
+                                            <Setter TargetName="PreviewText" Property="FontSize" Value="40" />
+                                            <Setter TargetName="PreviewText" Property="ToolTip" Value="{Binding Content}" />
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+                </ScrollViewer>
+            </Grid>
+
+            <Border Grid.Column="2" Padding="16" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,0,0,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="IsEnabled" Value="True" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedElement}" Value="{x:Null}">
+                                        <Setter Property="IsEnabled" Value="False" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <TextBlock Text="PROPERTIES" Style="{StaticResource SectionHeading}" />
+                        <TextBlock Text="Select an element on the label to edit it."
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,12" />
+                        <TextBlock Text="Type" Style="{StaticResource FieldLabel}" />
+                        <TextBox Text="{Binding SelectedElement.DisplayName, Mode=OneWay}" IsReadOnly="True" />
+                        <TextBlock Text="Content" Style="{StaticResource FieldLabel}" />
+                        <TextBox Text="{Binding SelectedElement.Content, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True"
+                                 MinHeight="62"
+                                 VerticalContentAlignment="Top"
+                                 TextWrapping="Wrap" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="X (mm)" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding SelectedElement.X, UpdateSourceTrigger=LostFocus}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Y (mm)" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding SelectedElement.Y, UpdateSourceTrigger=LostFocus}" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Width (mm)" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding SelectedElement.Width, UpdateSourceTrigger=LostFocus}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Height (mm)" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding SelectedElement.Height, UpdateSourceTrigger=LostFocus}" />
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock Text="Font size" Style="{StaticResource FieldLabel}" />
+                        <TextBox Text="{Binding SelectedElement.FontSize, UpdateSourceTrigger=LostFocus}" />
+                        <Button Content="Delete element"
+                                Command="{Binding DeleteSelectedCommand}"
+                                Margin="0,18,0,0" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </DockPanel>
 </Window>

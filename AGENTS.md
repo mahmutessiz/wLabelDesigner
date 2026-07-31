@@ -16,6 +16,7 @@
 
 ## C# conventions
 
+- Target .NET 10 and do not downgrade the target framework to match stale documentation.
 - Enable and respect nullable reference types and implicit usings.
 - Use modern, idiomatic C# supported by the project's target framework.
 - Use clear, intention-revealing names; avoid abbreviations unless they are established domain terms.

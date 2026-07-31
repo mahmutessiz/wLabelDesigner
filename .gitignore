@@ -1,0 +1,118 @@
+## =======================================================================
+## FckBarTender Project - Git Ignore Rules
+## Target: C# / .NET 10 / WPF / Visual Studio 2026 / Rider / VS Code
+## =======================================================================
+
+# -----------------------------------------------------------------------
+# .NET 10 Build Outputs, Artifacts & Binaries
+# -----------------------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+build/
+dist/
+out/
+artifacts/
+
+# WPF Intermediate Compilation Files
+*_wpftmp.csproj
+*.g.cs
+*.g.i.cs
+*.baml
+
+# -----------------------------------------------------------------------
+# Visual Studio / Roslyn Source Generators (.NET 10)
+# -----------------------------------------------------------------------
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.userprefs
+*.dbmdl
+*.mdf
+*.ldf
+
+# Build logs and diagnostics
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+
+# -----------------------------------------------------------------------
+# JetBrains Rider & Resharper
+# -----------------------------------------------------------------------
+.idea/
+*.sln.iml
+_ReSharper*/
+*.ReSharper
+
+# -----------------------------------------------------------------------
+# Visual Studio Code / Cursor
+# -----------------------------------------------------------------------
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# -----------------------------------------------------------------------
+# NuGet Package Artifacts & Caches
+# -----------------------------------------------------------------------
+*.nupkg
+*.snupkg
+*.nuget.props
+*.nuget.targets
+**/packages/*
+!**/packages/build/
+
+# -----------------------------------------------------------------------
+# Operating System Junk
+# -----------------------------------------------------------------------
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.stackdump
+
+# macOS (if syncing across machines)
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# -----------------------------------------------------------------------
+# App-Specific / Local Testing Artifacts
+# -----------------------------------------------------------------------
+# Ignore test print outputs (PNGs/BMPs generated while testing renderers)
+*.png
+*.bmp
+!**/Assets/*.png
+!**/Assets/*.bmp
+!**/Resources/*.png
+!**/Resources/*.bmp
+
+# Ignore local test designs (keep the repo clean)
+*.fckbartndr
+!**/Samples/*.fckbartndr
