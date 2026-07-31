@@ -66,7 +66,7 @@ public sealed partial class MainViewModel : ObservableObject
 
     public bool HasFormattingSelection => HasTextSelection || HasShapeSelection || HasMultipleSelection;
 
-    public string WindowTitle => $"{DocumentName}{(IsDirty ? " *" : string.Empty)} — FckBarTender";
+    public string WindowTitle => $"{DocumentName}{(IsDirty ? " *" : string.Empty)} — wLabel Designer";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(WindowTitle))]
