@@ -63,10 +63,14 @@
                            Text="Double-click text to edit it directly. Enter creates a new line, Ctrl+Enter commits, Escape cancels, and clicking away commits. Barcode and QR data is edited in the contextual panel on the right." />
                 <TextBlock Style="{StaticResource HelpBody}" Margin="0,8,0,0"
                            Text="Drag the circular handle above a selected element to rotate it. Hold Shift while dragging to snap the angle to 15-degree increments, or enter an exact rotation in the element panel on the right." />
+                <TextBlock Style="{StaticResource HelpBody}" Margin="0,8,0,0"
+                           Text="When two or more elements are selected, the contextual toolbar provides edge and centre alignment commands. With three or more selected elements, Space H and Space V distribute them evenly." />
 
                 <TextBlock Text="Canvas navigation and alignment guides" Style="{StaticResource HelpHeading}" />
                 <TextBlock Style="{StaticResource HelpBody}"
-                           Text="Use the controls in the bottom bar to zoom, show or hide the millimetre grid and rulers, and choose the grid size. Pink guides appear temporarily when moved elements approach the edges or centres of the label and other elements. Guides do not alter element movement." />
+                           Text="Use the controls in the bottom bar to zoom, show or hide the millimetre grid and rulers, and choose the visual grid size. The grid and rulers are design aids and are not printed. Use middle-button drag, or hold Space and drag with the left button, to reposition the label in the white workspace." />
+                <TextBlock Style="{StaticResource HelpBody}" Margin="0,8,0,0"
+                           Text="Red guides appear temporarily when moved elements approach the edges or centres of the label and other elements. Elements always move freely: the grid and alignment guides never change or snap their position." />
 
                 <TextBlock Text="Keyboard shortcuts" Style="{StaticResource HelpHeading}" />
 
