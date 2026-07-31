@@ -17,6 +17,8 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly ILabelPrintService printService;
     private string? currentPath;
     private bool isLoading;
+    private int printCopies = 1;
+    private string? printPrinterName;
 
     public MainViewModel(
         ILabelDocumentStore documentStore,
@@ -106,6 +108,8 @@ public sealed partial class MainViewModel : ObservableObject
         LabelWidth = 100;
         LabelHeight = 50;
         PrinterDpi = 203;
+        printCopies = 1;
+        printPrinterName = null;
         isLoading = false;
         currentPath = null;
         SelectedElement = null;
@@ -188,15 +192,19 @@ public sealed partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void Print()
     {
+        var document = CreateDocument();
         try
         {
-            StatusMessage = printService.Print(CreateDocument())
-                ? "Label sent to printer"
-                : "Printing cancelled";
+            var printed = printService.Print(document);
+            StatusMessage = printed ? "Label sent to printer" : "Printing cancelled";
         }
         catch (Exception exception) when (exception is PrintSystemException or InvalidOperationException)
         {
             StatusMessage = $"Could not print label: {exception.Message}";
+        }
+        finally
+        {
+            ApplyPrintSettings(document.PrintSettings);
         }
     }
 
@@ -241,6 +249,11 @@ public sealed partial class MainViewModel : ObservableObject
         WidthMillimeters = Math.Clamp(LabelWidth, 1, 1000),
         HeightMillimeters = Math.Clamp(LabelHeight, 1, 1000),
         PrinterDpi = SupportedDpi.Contains(PrinterDpi) ? PrinterDpi : 203,
+        PrintSettings = new LabelPrintSettings
+        {
+            Copies = Math.Clamp(printCopies, 1, 999),
+            PrinterName = printPrinterName
+        },
         Elements = Elements.Select(element => element.ToData()).ToList()
     };
 
@@ -258,6 +271,11 @@ public sealed partial class MainViewModel : ObservableObject
         LabelWidth = Math.Clamp(document.WidthMillimeters, 1, 1000);
         LabelHeight = Math.Clamp(document.HeightMillimeters, 1, 1000);
         PrinterDpi = SupportedDpi.Contains(document.PrinterDpi) ? document.PrinterDpi : 203;
+        var printSettings = document.PrintSettings ?? new LabelPrintSettings();
+        printCopies = Math.Clamp(printSettings.Copies, 1, 999);
+        printPrinterName = string.IsNullOrWhiteSpace(printSettings.PrinterName)
+            ? null
+            : printSettings.PrinterName;
 
         foreach (var data in document.Elements)
         {
@@ -291,6 +309,21 @@ public sealed partial class MainViewModel : ObservableObject
         if (!isLoading)
         {
             IsDirty = true;
+        }
+    }
+
+    private void ApplyPrintSettings(LabelPrintSettings settings)
+    {
+        var copies = Math.Clamp(settings.Copies, 1, 999);
+        var printerName = string.IsNullOrWhiteSpace(settings.PrinterName) ? null : settings.PrinterName;
+        var settingsChanged = printCopies != copies ||
+            !string.Equals(printPrinterName, printerName, StringComparison.Ordinal);
+
+        printCopies = copies;
+        printPrinterName = printerName;
+        if (settingsChanged)
+        {
+            MarkDirty();
         }
     }
 

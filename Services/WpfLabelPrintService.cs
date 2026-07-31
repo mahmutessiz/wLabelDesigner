@@ -1,101 +1,87 @@
-using System.Globalization;
 using System.Printing;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using wLabelDesigner.Models;
+using wLabelDesigner.ViewModels;
 
 namespace wLabelDesigner.Services;
 
 public sealed class WpfLabelPrintService : ILabelPrintService
 {
-    private const double DeviceIndependentPixelsPerMillimeter = 96d / 25.4d;
-
     public bool Print(LabelDocument document)
     {
         ArgumentNullException.ThrowIfNull(document);
 
-        var dialog = new PrintDialog();
-        if (dialog.ShowDialog() != true)
+        var printers = GetPrinterNames(out var defaultPrinter);
+        var viewModel = new PrintPreviewViewModel(document, printers, defaultPrinter);
+        var previewWindow = new PrintPreviewWindow(viewModel)
+        {
+            Owner = Application.Current.MainWindow
+        };
+
+        if (previewWindow.ShowDialog() != true || viewModel.SelectedPrinter is null)
         {
             return false;
         }
 
-        var visual = CreatePrintVisual(document);
-        dialog.PrintTicket.PageMediaSize = new PageMediaSize(
-            document.WidthMillimeters * DeviceIndependentPixelsPerMillimeter,
-            document.HeightMillimeters * DeviceIndependentPixelsPerMillimeter);
-        dialog.PrintVisual(visual, document.Name);
+        document.PrintSettings.Copies = viewModel.Copies;
+        document.PrintSettings.PrinterName = viewModel.SelectedPrinter;
+        PrintToSelectedPrinter(document);
         return true;
     }
 
-    private static DrawingVisual CreatePrintVisual(LabelDocument document)
+    private static IReadOnlyList<string> GetPrinterNames(out string? defaultPrinter)
     {
-        var visual = new DrawingVisual();
-        using var drawingContext = visual.RenderOpen();
-        var labelBounds = new Rect(
-            0,
-            0,
-            document.WidthMillimeters * DeviceIndependentPixelsPerMillimeter,
-            document.HeightMillimeters * DeviceIndependentPixelsPerMillimeter);
-
-        drawingContext.DrawRectangle(Brushes.White, null, labelBounds);
-        drawingContext.PushClip(new RectangleGeometry(labelBounds));
-
-        foreach (var element in document.Elements)
+        try
         {
-            DrawElement(drawingContext, element);
-        }
+            using var server = new LocalPrintServer();
+            using var defaultQueue = LocalPrintServer.GetDefaultPrintQueue();
+            using var queues = server.GetPrintQueues();
 
-        drawingContext.Pop();
-        return visual;
+            defaultPrinter = defaultQueue?.FullName;
+            return queues
+                .Select(queue => queue.FullName)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Order(StringComparer.CurrentCultureIgnoreCase)
+                .ToArray();
+        }
+        catch (PrintSystemException)
+        {
+            defaultPrinter = null;
+            return [];
+        }
     }
 
-    private static void DrawElement(DrawingContext drawingContext, LabelElementData element)
+    private static void PrintToSelectedPrinter(LabelDocument document)
     {
-        var bounds = new Rect(
-            element.X * DeviceIndependentPixelsPerMillimeter,
-            element.Y * DeviceIndependentPixelsPerMillimeter,
-            element.Width * DeviceIndependentPixelsPerMillimeter,
-            element.Height * DeviceIndependentPixelsPerMillimeter);
+        using var server = new LocalPrintServer();
+        using var queues = server.GetPrintQueues();
+        var queue = queues.FirstOrDefault(candidate =>
+            string.Equals(candidate.FullName, document.PrintSettings.PrinterName, StringComparison.OrdinalIgnoreCase));
 
-        if (element.Kind == LabelElementKind.Text)
+        if (queue is null)
         {
-            drawingContext.PushClip(new RectangleGeometry(bounds));
-            var text = new FormattedText(
-                element.Content,
-                CultureInfo.CurrentCulture,
-                FlowDirection.LeftToRight,
-                new Typeface(
-                    new FontFamily(element.FontFamily),
-                    element.IsItalic ? FontStyles.Italic : FontStyles.Normal,
-                    element.IsBold ? FontWeights.Bold : FontWeights.Normal,
-                    FontStretches.Normal),
-                element.FontSize,
-                Brushes.Black,
-                pixelsPerDip: 1);
-            text.MaxTextWidth = bounds.Width;
-            text.MaxTextHeight = bounds.Height;
-            text.TextAlignment = element.TextAlignment switch
-            {
-                TextAlignmentOption.Left => TextAlignment.Left,
-                TextAlignmentOption.Right => TextAlignment.Right,
-                _ => TextAlignment.Center
-            };
-            if (element.IsUnderlined)
-            {
-                text.SetTextDecorations(TextDecorations.Underline);
-            }
-
-            drawingContext.DrawText(text, bounds.TopLeft);
-            drawingContext.Pop();
-            return;
+            throw new PrintQueueException("The selected printer is no longer available.");
         }
 
-        var image = LabelImageRenderer.Render(element.Kind, element.Content);
-        if (image is not null)
+        var dialog = new PrintDialog
         {
-            drawingContext.DrawImage(image, bounds);
+            PrintQueue = queue,
+            PrintTicket = queue.DefaultPrintTicket
+        };
+        dialog.PrintTicket.CopyCount = Math.Clamp(document.PrintSettings.Copies, 1, 999);
+        dialog.PrintTicket.PageMediaSize = new PageMediaSize(
+            document.WidthMillimeters * LabelDrawingRenderer.DeviceIndependentPixelsPerMillimeter,
+            document.HeightMillimeters * LabelDrawingRenderer.DeviceIndependentPixelsPerMillimeter);
+
+        var visual = new DrawingVisual();
+        using (var context = visual.RenderOpen())
+        {
+            context.DrawDrawing(LabelDrawingRenderer.CreateDrawing(document));
         }
+
+        dialog.PrintVisual(visual, document.Name);
     }
 }

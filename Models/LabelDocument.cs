@@ -2,7 +2,7 @@ namespace wLabelDesigner.Models;
 
 public sealed class LabelDocument
 {
-    public const int CurrentFormatVersion = 1;
+    public const int CurrentFormatVersion = 2;
 
     public int FormatVersion { get; init; } = CurrentFormatVersion;
 
@@ -13,6 +13,8 @@ public sealed class LabelDocument
     public double HeightMillimeters { get; set; } = 50;
 
     public int PrinterDpi { get; set; } = 203;
+
+    public LabelPrintSettings PrintSettings { get; set; } = new();
 
     public List<LabelElementData> Elements { get; init; } = [];
 }
