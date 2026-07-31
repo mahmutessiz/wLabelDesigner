@@ -220,7 +220,7 @@ public partial class MainWindow : Window
 
     private void InlineTextEditor_PreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter)
+        if (e.Key == Key.Enter && Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
         {
             CompleteInlineEdit(cancel: false);
             DesignerCanvas.Focus();

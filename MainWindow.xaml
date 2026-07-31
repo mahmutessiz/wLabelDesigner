@@ -354,7 +354,7 @@
                             PreviewMouseMove="ToolboxItem_PreviewMouseMove"
                             Style="{StaticResource PaletteButton}"
                             ToolTip="Text — click to add or drag onto the label">
-                        <TextBlock Text="T" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" FontSize="18" />
+                        <TextBlock Text="A" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" FontSize="18" />
                     </Button>
                     <Button Tag="{x:Static models:LabelElementKind.Barcode}"
                             Command="{Binding AddBarcodeCommand}"
@@ -362,7 +362,7 @@
                             PreviewMouseMove="ToolboxItem_PreviewMouseMove"
                             Style="{StaticResource PaletteButton}"
                             ToolTip="Barcode — click to add or drag onto the label">
-                        <TextBlock Text="▥" Foreground="#15803D" FontSize="20" />
+                        <TextBlock Text="𝄃𝄂𝄂𝄀𝄁𝄃𝄂𝄂𝄃" Foreground="#15803D" FontSize="20" />
                     </Button>
                     <Button Tag="{x:Static models:LabelElementKind.QrCode}"
                             Command="{Binding AddQrCodeCommand}"
@@ -370,7 +370,7 @@
                             PreviewMouseMove="ToolboxItem_PreviewMouseMove"
                             Style="{StaticResource PaletteButton}"
                             ToolTip="QR code — click to add or drag onto the label">
-                        <TextBlock Text="▦" Foreground="#C2410C" FontSize="20" />
+                        <TextBlock Text="⚄" Foreground="#C2410C" FontSize="20" />
                     </Button>
                     <Separator Margin="0,4,0,12" />
                     <Button Tag="{x:Static models:LabelElementKind.Rectangle}"
@@ -436,8 +436,9 @@
                                                    FontFamily="{Binding FontFamily}"
                                                    FontSize="{Binding FontSize}"
                                                    TextTrimming="CharacterEllipsis"
+                                                   TextWrapping="Wrap"
                                                    TextAlignment="Center"
-                                                   VerticalAlignment="Center"
+                                                   VerticalAlignment="Stretch"
                                                    HorizontalAlignment="Stretch" />
                                         <TextBox x:Name="InlineTextEditor"
                                                  Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
@@ -446,8 +447,11 @@
                                                  Padding="2,0"
                                                  BorderThickness="0"
                                                  Background="White"
+                                                 AcceptsReturn="True"
+                                                 TextWrapping="Wrap"
+                                                 VerticalScrollBarVisibility="Auto"
                                                  TextAlignment="Center"
-                                                 VerticalContentAlignment="Center"
+                                                 VerticalContentAlignment="Top"
                                                  Visibility="Collapsed"
                                                  LostKeyboardFocus="InlineTextEditor_LostKeyboardFocus"
                                                  PreviewKeyDown="InlineTextEditor_PreviewKeyDown" />
