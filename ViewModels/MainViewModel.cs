@@ -15,8 +15,11 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly ILabelDocumentStore documentStore;
     private readonly IFileDialogService fileDialogService;
     private readonly ILabelPrintService printService;
+    private readonly UndoHistory history = new();
     private string? currentPath;
     private bool isLoading;
+    private bool isRestoringHistory;
+    private string savedDocumentFingerprint = string.Empty;
     private int printCopies = 1;
     private string? printPrinterName;
 
@@ -66,7 +69,7 @@ public sealed partial class MainViewModel : ObservableObject
         {
             if (SetProperty(ref labelWidth, NormalizeDimension(value)))
             {
-                MarkDirty();
+                MarkDirty("document:width");
             }
         }
     }
@@ -80,7 +83,7 @@ public sealed partial class MainViewModel : ObservableObject
         {
             if (SetProperty(ref labelHeight, NormalizeDimension(value)))
             {
-                MarkDirty();
+                MarkDirty("document:height");
             }
         }
     }
@@ -103,9 +106,17 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string statusMessage = "Ready";
 
-    partial void OnDocumentNameChanged(string value) => MarkDirty();
+    partial void OnDocumentNameChanged(string value) => MarkDirty("document:name");
 
-    partial void OnPrinterDpiChanged(int value) => MarkDirty();
+    partial void OnPrinterDpiChanged(int value) => MarkDirty("document:dpi");
+
+    partial void OnSelectedElementChanged(LabelElementViewModel? value)
+    {
+        if (!isLoading && !isRestoringHistory)
+        {
+            history.UpdateSelection(value?.Id);
+        }
+    }
 
     [RelayCommand]
     private void NewDocument()
@@ -119,11 +130,12 @@ public sealed partial class MainViewModel : ObservableObject
         PrinterDpi = 203;
         printCopies = 1;
         printPrinterName = null;
-        isLoading = false;
         currentPath = null;
         SelectedElement = null;
+        isLoading = false;
         IsDirty = false;
         StatusMessage = "New 100 × 50 mm label";
+        ResetHistory(markAsSaved: true);
     }
 
     [RelayCommand]
@@ -161,6 +173,28 @@ public sealed partial class MainViewModel : ObservableObject
 
     private bool CanDeleteSelected() => SelectedElement is not null;
 
+    [RelayCommand(CanExecute = nameof(CanUndo))]
+    private void Undo()
+    {
+        if (history.TryUndo(out var snapshot) && snapshot is not null)
+        {
+            RestoreSnapshot(snapshot, "Undo");
+        }
+    }
+
+    private bool CanUndo() => history.CanUndo;
+
+    [RelayCommand(CanExecute = nameof(CanRedo))]
+    private void Redo()
+    {
+        if (history.TryRedo(out var snapshot) && snapshot is not null)
+        {
+            RestoreSnapshot(snapshot, "Redo");
+        }
+    }
+
+    private bool CanRedo() => history.CanRedo;
+
     [RelayCommand]
     private async Task OpenAsync()
     {
@@ -175,6 +209,7 @@ public sealed partial class MainViewModel : ObservableObject
             var document = await documentStore.LoadAsync(path);
             LoadDocument(document);
             currentPath = path;
+            ResetHistory(markAsSaved: true);
             IsDirty = false;
             StatusMessage = $"Opened {Path.GetFileName(path)}";
         }
@@ -198,6 +233,7 @@ public sealed partial class MainViewModel : ObservableObject
         {
             await documentStore.SaveAsync(path, CreateDocument());
             currentPath = path;
+            savedDocumentFingerprint = CreateFingerprint(CreateDocument());
             IsDirty = false;
             StatusMessage = $"Saved {Path.GetFileName(path)}";
         }
@@ -319,17 +355,29 @@ public sealed partial class MainViewModel : ObservableObject
 
     private void OnElementPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName != nameof(LabelElementViewModel.IsEditing))
+        if (sender is LabelElementViewModel element &&
+            e.PropertyName != nameof(LabelElementViewModel.IsEditing))
         {
-            MarkDirty();
+            var isGeometryChange = e.PropertyName is
+                nameof(LabelElementViewModel.X) or
+                nameof(LabelElementViewModel.Y) or
+                nameof(LabelElementViewModel.Width) or
+                nameof(LabelElementViewModel.Height) or
+                nameof(LabelElementViewModel.IsLineDirectionReversed);
+            var mergeKey = isGeometryChange
+                ? $"element:{element.Id}:geometry"
+                : $"element:{element.Id}:{e.PropertyName}";
+            MarkDirty(mergeKey);
         }
     }
 
-    private void MarkDirty()
+    private void MarkDirty(string? mergeKey = null)
     {
-        if (!isLoading)
+        if (!isLoading && !isRestoringHistory)
         {
             IsDirty = true;
+            history.Record(CaptureSnapshot(), mergeKey);
+            NotifyHistoryCommandsChanged();
         }
     }
 
@@ -344,9 +392,56 @@ public sealed partial class MainViewModel : ObservableObject
         printPrinterName = printerName;
         if (settingsChanged)
         {
-            MarkDirty();
+            MarkDirty("document:print-settings");
         }
     }
+
+    private DesignerSnapshot CaptureSnapshot() =>
+        new(CreateDocument(), SelectedElement?.Id);
+
+    private void ResetHistory(bool markAsSaved)
+    {
+        var snapshot = CaptureSnapshot();
+        history.Reset(snapshot);
+        if (markAsSaved)
+        {
+            savedDocumentFingerprint = CreateFingerprint(snapshot.Document);
+        }
+
+        NotifyHistoryCommandsChanged();
+    }
+
+    private void RestoreSnapshot(DesignerSnapshot snapshot, string actionName)
+    {
+        isRestoringHistory = true;
+        try
+        {
+            LoadDocument(snapshot.Document);
+            SelectedElement = snapshot.SelectedElementId is Guid selectedId
+                ? Elements.FirstOrDefault(element => element.Id == selectedId)
+                : null;
+        }
+        finally
+        {
+            isRestoringHistory = false;
+        }
+
+        IsDirty = !string.Equals(
+            CreateFingerprint(CreateDocument()),
+            savedDocumentFingerprint,
+            StringComparison.Ordinal);
+        StatusMessage = actionName;
+        NotifyHistoryCommandsChanged();
+    }
+
+    private void NotifyHistoryCommandsChanged()
+    {
+        UndoCommand.NotifyCanExecuteChanged();
+        RedoCommand.NotifyCanExecuteChanged();
+    }
+
+    private static string CreateFingerprint(LabelDocument document) =>
+        JsonSerializer.Serialize(document);
 
     private static string MakeSafeFileName(string name)
     {

@@ -2,7 +2,7 @@
 
 ## Recommended implementation order
 
-- [ ] Add undo and redo for edits, movement, resizing, deletion, and styling.
+- [x] Add undo and redo for edits, movement, resizing, deletion, and styling.
 - [ ] Add copy, paste, duplicate, and keyboard nudging.
 - [ ] Add multi-selection with alignment and distribution tools.
 - [ ] Add zoom, pan, rulers, grid, snapping, and alignment guides.
@@ -13,7 +13,7 @@
 
 ## Designer interaction
 
-- [ ] Undo and redo every document-changing action.
+- [x] Undo and redo every document-changing action.
 - [ ] Copy, paste, duplicate, and cut selected elements.
 - [ ] Move selected elements using the arrow keys.
 - [ ] Support multi-selection using Shift-click and selection rectangles.

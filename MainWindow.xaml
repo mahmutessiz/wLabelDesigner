@@ -17,6 +17,9 @@
         <KeyBinding Key="O" Modifiers="Control" Command="{Binding OpenCommand}" />
         <KeyBinding Key="S" Modifiers="Control" Command="{Binding SaveCommand}" />
         <KeyBinding Key="P" Modifiers="Control" Command="{Binding PrintCommand}" />
+        <KeyBinding Key="Z" Modifiers="Control" Command="{Binding UndoCommand}" />
+        <KeyBinding Key="Y" Modifiers="Control" Command="{Binding RedoCommand}" />
+        <KeyBinding Key="Z" Modifiers="Control+Shift" Command="{Binding RedoCommand}" />
         <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}" />
     </Window.InputBindings>
 
@@ -224,6 +227,9 @@
                 <MenuItem Header="E_xit" Click="Exit_Click" />
             </MenuItem>
             <MenuItem Header="_Edit">
+                <MenuItem Header="_Undo" Command="{Binding UndoCommand}" InputGestureText="Ctrl+Z" />
+                <MenuItem Header="_Redo" Command="{Binding RedoCommand}" InputGestureText="Ctrl+Y" />
+                <Separator />
                 <MenuItem Header="_Delete selected" Command="{Binding DeleteSelectedCommand}" InputGestureText="Delete" />
             </MenuItem>
         </Menu>
@@ -239,6 +245,9 @@
                         <Button Content="New" Command="{Binding NewDocumentCommand}" Style="{StaticResource TopActionButton}" />
                         <Button Content="Open" Command="{Binding OpenCommand}" Style="{StaticResource TopActionButton}" />
                         <Button Content="Save" Command="{Binding SaveCommand}" Style="{StaticResource TopActionButton}" />
+                        <Separator Margin="8,10" />
+                        <Button Content="Undo" Command="{Binding UndoCommand}" Style="{StaticResource TopActionButton}" ToolTip="Undo (Ctrl+Z)" />
+                        <Button Content="Redo" Command="{Binding RedoCommand}" Style="{StaticResource TopActionButton}" ToolTip="Redo (Ctrl+Y)" />
                         <Separator Margin="8,10" />
                         <TextBlock Text="Label" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="4,0,6,0" />
                         <TextBox Width="160" Text="{Binding DocumentName, UpdateSourceTrigger=PropertyChanged}" />
