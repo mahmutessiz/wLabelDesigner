@@ -33,4 +33,8 @@ public sealed class LabelElementData
     public bool IsLineDirectionReversed { get; set; }
 
     public double RotationDegrees { get; set; }
+
+    public bool IsLocked { get; set; }
+
+    public bool IsVisible { get; set; } = true;
 }

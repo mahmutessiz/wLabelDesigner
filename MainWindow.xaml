@@ -132,6 +132,9 @@
                 <DataTrigger Binding="{Binding IsEditing}" Value="True">
                     <Setter Property="Visibility" Value="Collapsed" />
                 </DataTrigger>
+                <DataTrigger Binding="{Binding IsLocked}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
             </Style.Triggers>
         </Style>
 
@@ -165,6 +168,9 @@
                     </MultiDataTrigger.Conditions>
                     <Setter Property="Visibility" Value="Visible" />
                 </MultiDataTrigger>
+                <DataTrigger Binding="{Binding IsLocked}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
             </Style.Triggers>
         </Style>
 
@@ -214,6 +220,9 @@
                 <DataTrigger Binding="{Binding IsEditing}" Value="True">
                     <Setter Property="Visibility" Value="Collapsed" />
                 </DataTrigger>
+                <DataTrigger Binding="{Binding IsLocked}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
             </Style.Triggers>
         </Style>
 
@@ -223,6 +232,7 @@
             <Setter Property="Canvas.Top" Value="{Binding Y, Converter={StaticResource MmToDip}}" />
             <Setter Property="Width" Value="{Binding Width, Converter={StaticResource MmToDip}}" />
             <Setter Property="Height" Value="{Binding Height, Converter={StaticResource MmToDip}}" />
+            <Setter Property="Visibility" Value="{Binding IsVisible, Converter={StaticResource BoolToVisibility}}" />
             <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
             <Setter Property="RenderTransform">
                 <Setter.Value>
@@ -284,6 +294,12 @@
                 <MenuItem Header="Show _grid" IsCheckable="True" IsChecked="{Binding IsGridVisible}" />
                 <MenuItem Header="Show _rulers" IsCheckable="True" IsChecked="{Binding AreRulersVisible}" />
             </MenuItem>
+            <MenuItem Header="_Arrange">
+                <MenuItem Header="Bring to _front" Command="{Binding BringToFrontCommand}" />
+                <MenuItem Header="Bring _forward" Command="{Binding BringForwardCommand}" />
+                <MenuItem Header="Send _backward" Command="{Binding SendBackwardCommand}" />
+                <MenuItem Header="Send to _back" Command="{Binding SendToBackCommand}" />
+            </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_User guide" InputGestureText="F1" Click="Help_Click" />
             </MenuItem>
@@ -318,6 +334,14 @@
 
                 <Border Height="48" Background="#FAFBFC" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
                     <Grid Margin="14,0">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="IsEnabled" Value="True" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedElement.IsLocked}" Value="True"><Setter Property="IsEnabled" Value="False" /></DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
                         <TextBlock Text="Select an element to show formatting controls"
                                    Foreground="{StaticResource MutedTextBrush}"
                                    VerticalAlignment="Center">
@@ -666,6 +690,7 @@
                                                     </Setter>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsEditing}" Value="True"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsLocked}" Value="True"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </Thumb.Style>
@@ -757,11 +782,24 @@
                     Padding="20"
                     Background="{StaticResource PanelBrush}"
                     BorderBrush="{StaticResource BorderBrush}"
-                    BorderThickness="1,0,0,0"
-                    Visibility="{Binding HasSingleSelection, Converter={StaticResource BoolToVisibility}}">
-                <StackPanel>
+                    BorderThickness="1,0,0,0">
+                <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Visibility="{Binding HasSingleSelection, Converter={StaticResource BoolToVisibility}}">
                     <TextBlock Text="ELEMENT" Style="{StaticResource SectionHeading}" />
                     <TextBlock Text="{Binding SelectedElement.DisplayName, Mode=OneWay}" FontSize="18" FontWeight="SemiBold" />
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <CheckBox Content="Visible" IsChecked="{Binding SelectedElement.IsVisible}" Margin="0,0,16,0" />
+                        <CheckBox Content="Locked" IsChecked="{Binding SelectedElement.IsLocked}" />
+                    </StackPanel>
+                    <StackPanel>
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="IsEnabled" Value="True" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedElement.IsLocked}" Value="True"><Setter Property="IsEnabled" Value="False" /></DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
                     <TextBlock Text="Rotation" Style="{StaticResource FieldLabel}" />
                     <DockPanel>
                         <TextBlock DockPanel.Dock="Right" Text="°" VerticalAlignment="Center" Margin="5,0,0,0" />
@@ -786,7 +824,38 @@
                                    TextWrapping="Wrap"
                                    Margin="0,8,0,0" />
                     </StackPanel>
+                    </StackPanel>
                 </StackPanel>
+                <DockPanel Margin="0,18,0,0">
+                    <TextBlock DockPanel.Dock="Top" Text="LAYERS · FRONT TO BACK" Style="{StaticResource SectionHeading}" />
+                    <UniformGrid DockPanel.Dock="Bottom" Columns="4" Margin="0,10,0,0">
+                        <Button Content="Front" Command="{Binding BringToFrontCommand}" ToolTip="Bring to front" Margin="2" Padding="4" />
+                        <Button Content="Up" Command="{Binding BringForwardCommand}" ToolTip="Bring forward" Margin="2" Padding="4" />
+                        <Button Content="Down" Command="{Binding SendBackwardCommand}" ToolTip="Send backward" Margin="2" Padding="4" />
+                        <Button Content="Back" Command="{Binding SendToBackCommand}" ToolTip="Send to back" Margin="2" Padding="4" />
+                    </UniformGrid>
+                    <ListBox ItemsSource="{Binding LayerElements}"
+                             SelectedItem="{Binding SelectedElement, Mode=TwoWay}"
+                             BorderBrush="{StaticResource BorderBrush}"
+                             BorderThickness="1"
+                             HorizontalContentAlignment="Stretch">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="4,3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                    <CheckBox Grid.Column="1" Content="Show" IsChecked="{Binding IsVisible}" Margin="8,0" ToolTip="Show or hide element" />
+                                    <CheckBox Grid.Column="2" Content="Lock" IsChecked="{Binding IsLocked}" ToolTip="Lock or unlock element" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+                </DockPanel>
             </Border>
         </Grid>
     </DockPanel>

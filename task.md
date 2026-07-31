@@ -7,7 +7,7 @@
 - [x] Add multi-selection with alignment and distribution tools.
 - [x] Add zoom, pan, rulers, grid, and alignment guides.
 - [x] Add rotation handles for text, shapes, barcodes, QR codes, and images.
-- [ ] Add layer ordering, locking, and visibility controls.
+- [x] Add layer ordering, locking, and visibility controls.
 - [ ] Add an image/logo element.
 - [ ] Add CSV variables and batch printing.
 
@@ -25,8 +25,8 @@
 - [x] Add configurable grid visibility and grid size.
 - [x] Display temporary alignment guides while moving elements.
 - [x] Add rotation handles and precise rotation values.
-- [ ] Add bring forward, send backward, bring to front, and send to back.
-- [ ] Allow elements to be locked and hidden.
+- [x] Add bring forward, send backward, bring to front, and send to back.
+- [x] Allow elements to be locked and hidden.
 
 ## Styling
 

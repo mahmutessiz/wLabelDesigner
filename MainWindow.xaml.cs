@@ -300,7 +300,7 @@ public partial class MainWindow : Window
                 container.IsSelected = true;
             }
 
-            if (e.ClickCount == 2 && element.Kind == LabelElementKind.Text)
+            if (e.ClickCount == 2 && !element.IsLocked && element.Kind == LabelElementKind.Text)
             {
                 BeginInlineEdit(element);
                 e.Handled = true;
@@ -315,7 +315,11 @@ public partial class MainWindow : Window
             return;
         }
 
-        var selection = viewModel.SelectedElements;
+        var selection = viewModel.SelectedElements.Where(candidate => !candidate.IsLocked).ToArray();
+        if (selection.Length == 0)
+        {
+            return;
+        }
         dragInitialBounds = new DesignerBounds(
             selection.Min(candidate => candidate.X),
             selection.Min(candidate => candidate.Y),
@@ -323,7 +327,7 @@ public partial class MainWindow : Window
             selection.Max(candidate => candidate.Y + candidate.Height) - selection.Min(candidate => candidate.Y));
         var selectedIds = selection.Select(candidate => candidate.Id).ToHashSet();
         dragOtherBounds = viewModel.Elements
-            .Where(candidate => !selectedIds.Contains(candidate.Id))
+            .Where(candidate => candidate.IsVisible && !selectedIds.Contains(candidate.Id))
             .Select(candidate => new DesignerBounds(candidate.X, candidate.Y, candidate.Width, candidate.Height))
             .ToArray();
         dragRawHorizontalChange = 0;
@@ -334,7 +338,7 @@ public partial class MainWindow : Window
 
     private void DesignerItem_DragDelta(object sender, DragDeltaEventArgs e)
     {
-        if (sender is not Thumb { DataContext: LabelElementViewModel element } ||
+        if (sender is not Thumb { DataContext: LabelElementViewModel { IsLocked: false } } ||
             DataContext is not MainViewModel viewModel)
         {
             return;
@@ -365,8 +369,9 @@ public partial class MainWindow : Window
             dragRawVerticalChange - dragAppliedVerticalChange);
         if (dragInitialBounds is DesignerBounds initialBounds)
         {
-            dragAppliedHorizontalChange = viewModel.SelectedElements.Min(candidate => candidate.X) - initialBounds.X;
-            dragAppliedVerticalChange = viewModel.SelectedElements.Min(candidate => candidate.Y) - initialBounds.Y;
+            var movedElements = viewModel.SelectedElements.Where(candidate => !candidate.IsLocked).ToArray();
+            dragAppliedHorizontalChange = movedElements.Min(candidate => candidate.X) - initialBounds.X;
+            dragAppliedVerticalChange = movedElements.Min(candidate => candidate.Y) - initialBounds.Y;
         }
         e.Handled = true;
     }
@@ -481,7 +486,7 @@ public partial class MainWindow : Window
 
     private void DesignerItem_ResizeDelta(object sender, DragDeltaEventArgs e)
     {
-        if (sender is not Thumb { DataContext: LabelElementViewModel element } resizeThumb ||
+        if (sender is not Thumb { DataContext: LabelElementViewModel { IsLocked: false } element } resizeThumb ||
             DataContext is not MainViewModel viewModel)
         {
             return;
@@ -542,7 +547,7 @@ public partial class MainWindow : Window
 
     private void DesignerItem_RotationStarted(object sender, DragStartedEventArgs e)
     {
-        if (sender is not Thumb { DataContext: LabelElementViewModel element })
+        if (sender is not Thumb { DataContext: LabelElementViewModel { IsLocked: false } element })
         {
             return;
         }
@@ -670,7 +675,7 @@ public partial class MainWindow : Window
 
     private void BeginInlineEdit(LabelElementViewModel element)
     {
-        if (DataContext is not MainViewModel viewModel || element.Kind != LabelElementKind.Text)
+        if (DataContext is not MainViewModel viewModel || element.IsLocked || element.Kind != LabelElementKind.Text)
         {
             return;
         }

@@ -34,6 +34,11 @@ public static class LabelDrawingRenderer
         drawingContext.PushClip(new RectangleGeometry(labelBounds));
         foreach (var element in document.Elements)
         {
+            if (!element.IsVisible)
+            {
+                continue;
+            }
+
             DrawElement(drawingContext, element);
         }
 

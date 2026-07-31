@@ -56,6 +56,8 @@ public sealed partial class MainViewModel : ObservableObject
 
     public IReadOnlyList<LabelElementViewModel> SelectedElements => selectedElements;
 
+    public IReadOnlyList<LabelElementViewModel> LayerElements => Elements.Reverse().ToArray();
+
     public bool HasMultipleSelection => selectedElements.Count > 1;
 
     public bool HasSingleSelection => selectedElements.Count == 1;
@@ -176,6 +178,7 @@ public sealed partial class MainViewModel : ObservableObject
     {
         UnsubscribeFromElements();
         Elements.Clear();
+        OnPropertyChanged(nameof(LayerElements));
         isLoading = true;
         DocumentName = "Untitled label";
         LabelWidth = 100;
@@ -218,7 +221,11 @@ public sealed partial class MainViewModel : ObservableObject
             return;
         }
 
-        var elementsToDelete = selectedElements.ToArray();
+        var elementsToDelete = selectedElements.Where(element => !element.IsLocked).ToArray();
+        if (elementsToDelete.Length == 0)
+        {
+            return;
+        }
         foreach (var element in elementsToDelete)
         {
             element.PropertyChanged -= OnElementPropertyChanged;
@@ -226,13 +233,14 @@ public sealed partial class MainViewModel : ObservableObject
         }
 
         SelectedElement = null;
+        OnPropertyChanged(nameof(LayerElements));
         MarkDirty();
         StatusMessage = elementsToDelete.Length == 1
             ? "Element deleted"
             : $"{elementsToDelete.Length} elements deleted";
     }
 
-    private bool CanDeleteSelected() => selectedElements.Count > 0;
+    private bool CanDeleteSelected() => selectedElements.Any(element => !element.IsLocked);
 
     [RelayCommand(CanExecute = nameof(CanDeselectAll))]
     private void DeselectAll()
@@ -305,16 +313,17 @@ public sealed partial class MainViewModel : ObservableObject
 
     public void MoveSelectedElements(double horizontalChange, double verticalChange)
     {
-        if (selectedElements.Count == 0 ||
+        var movableElements = selectedElements.Where(element => !element.IsLocked).ToArray();
+        if (movableElements.Length == 0 ||
             (!double.IsFinite(horizontalChange) && !double.IsFinite(verticalChange)))
         {
             return;
         }
 
-        var minimumX = selectedElements.Min(element => element.X);
-        var minimumY = selectedElements.Min(element => element.Y);
-        var maximumRight = selectedElements.Max(element => element.X + element.Width);
-        var maximumBottom = selectedElements.Max(element => element.Y + element.Height);
+        var minimumX = movableElements.Min(element => element.X);
+        var minimumY = movableElements.Min(element => element.Y);
+        var maximumRight = movableElements.Max(element => element.X + element.Width);
+        var maximumBottom = movableElements.Max(element => element.Y + element.Height);
         var boundedHorizontalChange = Math.Clamp(
             double.IsFinite(horizontalChange) ? horizontalChange : 0,
             -minimumX,
@@ -331,7 +340,7 @@ public sealed partial class MainViewModel : ObservableObject
 
         ApplyBatchChange(() =>
         {
-            foreach (var element in selectedElements)
+            foreach (var element in movableElements)
             {
                 element.X += boundedHorizontalChange;
                 element.Y += boundedVerticalChange;
@@ -342,7 +351,7 @@ public sealed partial class MainViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanAlignSelection))]
     private void AlignSelection(string? alignment)
     {
-        if (selectedElements.Count < 2 || string.IsNullOrWhiteSpace(alignment))
+        if (selectedElements.Count < 2 || selectedElements.Any(element => element.IsLocked) || string.IsNullOrWhiteSpace(alignment))
         {
             return;
         }
@@ -372,12 +381,13 @@ public sealed partial class MainViewModel : ObservableObject
         StatusMessage = $"Aligned {selectedElements.Count} elements";
     }
 
-    private bool CanAlignSelection(string? alignment) => selectedElements.Count >= 2;
+    private bool CanAlignSelection(string? alignment) =>
+        selectedElements.Count >= 2 && selectedElements.All(element => !element.IsLocked);
 
     [RelayCommand(CanExecute = nameof(CanDistributeSelection))]
     private void DistributeSelection(string? direction)
     {
-        if (selectedElements.Count < 3 || string.IsNullOrWhiteSpace(direction))
+        if (selectedElements.Count < 3 || selectedElements.Any(element => element.IsLocked) || string.IsNullOrWhiteSpace(direction))
         {
             return;
         }
@@ -414,7 +424,26 @@ public sealed partial class MainViewModel : ObservableObject
         StatusMessage = $"Distributed {selectedElements.Count} elements";
     }
 
-    private bool CanDistributeSelection(string? direction) => selectedElements.Count >= 3;
+    private bool CanDistributeSelection(string? direction) =>
+        selectedElements.Count >= 3 && selectedElements.All(element => !element.IsLocked);
+
+    [RelayCommand(CanExecute = nameof(CanMoveLayerForward))]
+    private void BringForward() => MoveSelectedLayer(Elements.IndexOf(SelectedElement!) + 1, "Brought element forward");
+
+    private bool CanMoveLayerForward() =>
+        SelectedElement is { IsLocked: false } element && Elements.IndexOf(element) < Elements.Count - 1;
+
+    [RelayCommand(CanExecute = nameof(CanMoveLayerBackward))]
+    private void SendBackward() => MoveSelectedLayer(Elements.IndexOf(SelectedElement!) - 1, "Sent element backward");
+
+    private bool CanMoveLayerBackward() =>
+        SelectedElement is { IsLocked: false } element && Elements.IndexOf(element) > 0;
+
+    [RelayCommand(CanExecute = nameof(CanMoveLayerForward))]
+    private void BringToFront() => MoveSelectedLayer(Elements.Count - 1, "Brought element to front");
+
+    [RelayCommand(CanExecute = nameof(CanMoveLayerBackward))]
+    private void SendToBack() => MoveSelectedLayer(0, "Sent element to back");
 
     [RelayCommand(CanExecute = nameof(CanManipulateSelectedElement))]
     private void Copy()
@@ -483,7 +512,7 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     private bool CanManipulateSelectedElement() =>
-        selectedElements.Count == 1 && SelectedElement is { IsEditing: false };
+        selectedElements.Count == 1 && SelectedElement is { IsEditing: false, IsLocked: false };
 
     [RelayCommand(CanExecute = nameof(CanNudge))]
     private void Nudge(string? direction)
@@ -513,7 +542,7 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     private bool CanNudge(string? direction) =>
-        selectedElements.Count > 0 && selectedElements.All(element => !element.IsEditing);
+        selectedElements.Count > 0 && selectedElements.All(element => !element.IsEditing && !element.IsLocked);
 
     [RelayCommand]
     private async Task OpenAsync()
@@ -629,6 +658,7 @@ public sealed partial class MainViewModel : ObservableObject
         element.PropertyChanged += OnElementPropertyChanged;
         Elements.Add(element);
         SelectedElement = element;
+        OnPropertyChanged(nameof(LayerElements));
         MarkDirty();
         StatusMessage = statusMessage;
         return element;
@@ -662,7 +692,9 @@ public sealed partial class MainViewModel : ObservableObject
             TextAlignment = source.TextAlignment,
             StrokeThickness = source.StrokeThickness,
             IsLineDirectionReversed = source.IsLineDirectionReversed,
-            RotationDegrees = source.RotationDegrees
+            RotationDegrees = source.RotationDegrees,
+            IsLocked = source.IsLocked,
+            IsVisible = source.IsVisible
         };
     }
 
@@ -707,6 +739,8 @@ public sealed partial class MainViewModel : ObservableObject
             Elements.Add(element);
         }
 
+        OnPropertyChanged(nameof(LayerElements));
+
         SelectedElement = null;
         isLoading = false;
     }
@@ -734,6 +768,11 @@ public sealed partial class MainViewModel : ObservableObject
 
         if (sender is LabelElementViewModel element)
         {
+            if (e.PropertyName == nameof(LabelElementViewModel.IsLocked))
+            {
+                NotifySelectionStateChanged();
+            }
+
             var isGeometryChange = e.PropertyName is
                 nameof(LabelElementViewModel.X) or
                 nameof(LabelElementViewModel.Y) or
@@ -839,6 +878,7 @@ public sealed partial class MainViewModel : ObservableObject
         AlignSelectionCommand.NotifyCanExecuteChanged();
         DistributeSelectionCommand.NotifyCanExecuteChanged();
         NotifySelectionCommandsChanged();
+        NotifyLayerCommandsChanged();
     }
 
     private void ApplyBatchChange(Action change, string? mergeKey)
@@ -854,6 +894,35 @@ public sealed partial class MainViewModel : ObservableObject
         }
 
         MarkDirty(mergeKey);
+    }
+
+    private void MoveSelectedLayer(int targetIndex, string statusMessage)
+    {
+        if (SelectedElement is not { IsLocked: false } element)
+        {
+            return;
+        }
+
+        var currentIndex = Elements.IndexOf(element);
+        targetIndex = Math.Clamp(targetIndex, 0, Elements.Count - 1);
+        if (currentIndex == targetIndex)
+        {
+            return;
+        }
+
+        Elements.Move(currentIndex, targetIndex);
+        OnPropertyChanged(nameof(LayerElements));
+        MarkDirty("layers:order");
+        StatusMessage = statusMessage;
+        NotifyLayerCommandsChanged();
+    }
+
+    private void NotifyLayerCommandsChanged()
+    {
+        BringForwardCommand.NotifyCanExecuteChanged();
+        SendBackwardCommand.NotifyCanExecuteChanged();
+        BringToFrontCommand.NotifyCanExecuteChanged();
+        SendToBackCommand.NotifyCanExecuteChanged();
     }
 
     private static string CreateFingerprint(LabelDocument document) =>

@@ -25,6 +25,8 @@ public sealed partial class LabelElementViewModel : ObservableObject
             : 1;
         isLineDirectionReversed = data.IsLineDirectionReversed;
         rotationDegrees = NormalizeRotation(data.RotationDegrees);
+        isLocked = data.IsLocked;
+        isVisible = data.IsVisible;
     }
 
     public Guid Id { get; }
@@ -122,6 +124,12 @@ public sealed partial class LabelElementViewModel : ObservableObject
         set => SetProperty(ref rotationDegrees, NormalizeRotation(value));
     }
 
+    [ObservableProperty]
+    private bool isLocked;
+
+    [ObservableProperty]
+    private bool isVisible = true;
+
     public LabelElementData ToData() => new()
     {
         Id = Id,
@@ -139,7 +147,9 @@ public sealed partial class LabelElementViewModel : ObservableObject
         TextAlignment = TextAlignment,
         StrokeThickness = StrokeThickness,
         IsLineDirectionReversed = IsLineDirectionReversed,
-        RotationDegrees = RotationDegrees
+        RotationDegrees = RotationDegrees,
+        IsLocked = IsLocked,
+        IsVisible = IsVisible
     };
 
     private static double Normalize(double value, double minimum, double maximum) =>

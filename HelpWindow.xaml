@@ -66,6 +66,12 @@
                 <TextBlock Style="{StaticResource HelpBody}" Margin="0,8,0,0"
                            Text="When two or more elements are selected, the contextual toolbar provides edge and centre alignment commands. With three or more selected elements, Space H and Space V distribute them evenly." />
 
+                <TextBlock Text="Layers, locking, and visibility" Style="{StaticResource HelpHeading}" />
+                <TextBlock Style="{StaticResource HelpBody}"
+                           Text="The Layers panel lists elements from front to back. Select a layer, then use Front, Up, Down, or Back to change its stacking order. The same commands are available from the Arrange menu." />
+                <TextBlock Style="{StaticResource HelpBody}" Margin="0,8,0,0"
+                           Text="Lock an element to protect it from moving, resizing, rotating, formatting, deletion, and layer reordering. Hidden elements remain available in the Layers panel but do not appear on the label, in print preview, or in printed output. Unlock or show an element from its layer row at any time." />
+
                 <TextBlock Text="Canvas navigation and alignment guides" Style="{StaticResource HelpHeading}" />
                 <TextBlock Style="{StaticResource HelpBody}"
                            Text="Use the controls in the bottom bar to zoom, show or hide the millimetre grid and rulers, and choose the visual grid size. The grid and rulers are design aids and are not printed. Use middle-button drag, or hold Space and drag with the left button, to reposition the label in the white workspace." />
