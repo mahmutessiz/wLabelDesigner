@@ -66,10 +66,27 @@ public sealed class WpfLabelPrintService : ILabelPrintService
                 element.Content,
                 CultureInfo.CurrentCulture,
                 FlowDirection.LeftToRight,
-                new Typeface("Segoe UI"),
+                new Typeface(
+                    new FontFamily(element.FontFamily),
+                    element.IsItalic ? FontStyles.Italic : FontStyles.Normal,
+                    element.IsBold ? FontWeights.Bold : FontWeights.Normal,
+                    FontStretches.Normal),
                 element.FontSize,
                 Brushes.Black,
                 pixelsPerDip: 1);
+            text.MaxTextWidth = bounds.Width;
+            text.MaxTextHeight = bounds.Height;
+            text.TextAlignment = element.TextAlignment switch
+            {
+                TextAlignmentOption.Left => TextAlignment.Left,
+                TextAlignmentOption.Right => TextAlignment.Right,
+                _ => TextAlignment.Center
+            };
+            if (element.IsUnderlined)
+            {
+                text.SetTextDecorations(TextDecorations.Underline);
+            }
+
             drawingContext.DrawText(text, bounds.TopLeft);
             drawingContext.Pop();
             return;

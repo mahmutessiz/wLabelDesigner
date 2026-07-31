@@ -17,4 +17,14 @@ public sealed class LabelElementData
     public double Height { get; set; } = 10;
 
     public double FontSize { get; set; } = 12;
+
+    public string FontFamily { get; set; } = "Segoe UI";
+
+    public bool IsBold { get; set; }
+
+    public bool IsItalic { get; set; }
+
+    public bool IsUnderlined { get; set; }
+
+    public TextAlignmentOption TextAlignment { get; set; } = TextAlignmentOption.Center;
 }

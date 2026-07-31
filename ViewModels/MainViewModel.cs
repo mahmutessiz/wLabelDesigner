@@ -33,6 +33,15 @@ public sealed partial class MainViewModel : ObservableObject
 
     public IReadOnlyList<int> SupportedDpi { get; } = [203, 300];
 
+    public IReadOnlyList<string> AvailableFontFamilies { get; } =
+        ["Arial", "Calibri", "Consolas", "Segoe UI", "Tahoma", "Times New Roman", "Verdana"];
+
+    public IReadOnlyList<double> CommonFontSizes { get; } = [8, 9, 10, 11, 12, 14, 16, 18, 24, 32, 48, 64, 72];
+
+    public bool HasTextSelection => SelectedElement?.Kind == LabelElementKind.Text;
+
+    public bool HasDataElementSelection => SelectedElement?.Kind is LabelElementKind.Barcode or LabelElementKind.QrCode;
+
     public string WindowTitle => $"{DocumentName}{(IsDirty ? " *" : string.Empty)} — FckBarTender";
 
     [ObservableProperty]
@@ -72,6 +81,8 @@ public sealed partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DeleteSelectedCommand))]
+    [NotifyPropertyChangedFor(nameof(HasTextSelection))]
+    [NotifyPropertyChangedFor(nameof(HasDataElementSelection))]
     private LabelElementViewModel? selectedElement;
 
     [ObservableProperty]

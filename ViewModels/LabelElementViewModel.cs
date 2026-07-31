@@ -15,6 +15,11 @@ public sealed partial class LabelElementViewModel : ObservableObject
         width = data.Width;
         height = data.Height;
         fontSize = data.FontSize;
+        fontFamily = string.IsNullOrWhiteSpace(data.FontFamily) ? "Segoe UI" : data.FontFamily;
+        isBold = data.IsBold;
+        isItalic = data.IsItalic;
+        isUnderlined = data.IsUnderlined;
+        textAlignment = data.TextAlignment;
     }
 
     public Guid Id { get; }
@@ -75,6 +80,21 @@ public sealed partial class LabelElementViewModel : ObservableObject
         set => SetProperty(ref fontSize, Normalize(value, 1, 512));
     }
 
+    [ObservableProperty]
+    private string fontFamily;
+
+    [ObservableProperty]
+    private bool isBold;
+
+    [ObservableProperty]
+    private bool isItalic;
+
+    [ObservableProperty]
+    private bool isUnderlined;
+
+    [ObservableProperty]
+    private TextAlignmentOption textAlignment;
+
     public LabelElementData ToData() => new()
     {
         Id = Id,
@@ -84,7 +104,12 @@ public sealed partial class LabelElementViewModel : ObservableObject
         Y = Y,
         Width = Width,
         Height = Height,
-        FontSize = FontSize
+        FontSize = FontSize,
+        FontFamily = FontFamily,
+        IsBold = IsBold,
+        IsItalic = IsItalic,
+        IsUnderlined = IsUnderlined,
+        TextAlignment = TextAlignment
     };
 
     private static double Normalize(double value, double minimum, double maximum) =>

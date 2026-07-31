@@ -1,16 +1,16 @@
 <Window x:Class="wLabelDesigner.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:converters="clr-namespace:wLabelDesigner.Converters"
         xmlns:models="clr-namespace:wLabelDesigner.Models"
         mc:Ignorable="d"
         Title="{Binding WindowTitle}"
-        Width="1280"
-        Height="800"
-        MinWidth="980"
-        MinHeight="640"
+        Width="1400"
+        Height="850"
+        MinWidth="1080"
+        MinHeight="680"
         WindowStartupLocation="CenterScreen">
     <Window.InputBindings>
         <KeyBinding Key="N" Modifiers="Control" Command="{Binding NewDocumentCommand}" />
@@ -19,9 +19,92 @@
         <KeyBinding Key="P" Modifiers="Control" Command="{Binding PrintCommand}" />
         <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}" />
     </Window.InputBindings>
+
     <Window.Resources>
         <converters:MillimetersToDeviceIndependentPixelsConverter x:Key="MmToDip" />
         <converters:LabelElementImageConverter x:Key="ElementImage" />
+        <converters:EnumEqualsConverter x:Key="EnumEquals" />
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+
+        <Style x:Key="TopActionButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Padding" Value="10,5" />
+        </Style>
+
+        <Style x:Key="PrimaryActionButton" TargetType="Button" BasedOn="{StaticResource TopActionButton}">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+        </Style>
+
+        <Style x:Key="PaletteButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Height" Value="58" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="FormatToggle" TargetType="ToggleButton">
+            <Setter Property="Width" Value="34" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Chrome"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{StaticResource HoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="#E0E7FF" />
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="#A5B4FC" />
+                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="AlignmentOption" TargetType="RadioButton">
+            <Setter Property="Width" Value="34" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Chrome" Background="Transparent" BorderBrush="Transparent" BorderThickness="1" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{StaticResource HoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="#E0E7FF" />
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="#A5B4FC" />
+                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="DesignerItemStyle" TargetType="ListBoxItem">
             <Setter Property="Canvas.Left" Value="{Binding X, Converter={StaticResource MmToDip}}" />
             <Setter Property="Canvas.Top" Value="{Binding Y, Converter={StaticResource MmToDip}}" />
@@ -33,16 +116,13 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
-                        <Border x:Name="SelectionBorder"
-                                BorderBrush="Transparent"
-                                BorderThickness="1"
-                                Background="Transparent">
+                        <Border x:Name="SelectionBorder" BorderBrush="Transparent" BorderThickness="1" Background="Transparent">
                             <ContentPresenter />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-                                <Setter TargetName="SelectionBorder" Property="Background" Value="#122563EB" />
+                                <Setter TargetName="SelectionBorder" Property="Background" Value="#0D4F46E5" />
                             </Trigger>
                             <Trigger Property="IsKeyboardFocusWithin" Value="True">
                                 <Setter TargetName="SelectionBorder" Property="BorderThickness" Value="2" />
@@ -54,8 +134,8 @@
         </Style>
     </Window.Resources>
 
-    <DockPanel Background="#E2E8F0">
-        <Menu DockPanel.Dock="Top">
+    <DockPanel Background="{StaticResource CanvasWorkspaceBrush}">
+        <Menu DockPanel.Dock="Top" Background="#F8F9FB" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
             <MenuItem Header="_File">
                 <MenuItem Header="_New" Command="{Binding NewDocumentCommand}" InputGestureText="Ctrl+N" />
                 <MenuItem Header="_Open…" Command="{Binding OpenCommand}" InputGestureText="Ctrl+O" />
@@ -69,18 +149,96 @@
             </MenuItem>
         </Menu>
 
-        <ToolBarTray DockPanel.Dock="Top" Background="White">
-            <ToolBar>
-                <Button Command="{Binding NewDocumentCommand}" ToolTip="New label" Margin="0">New</Button>
-                <Button Command="{Binding OpenCommand}" ToolTip="Open template" Margin="0">Open</Button>
-                <Button Command="{Binding SaveCommand}" ToolTip="Save template" Margin="0">Save</Button>
-                <Button Command="{Binding PrintCommand}" ToolTip="Print label" Margin="0">Print</Button>
-                <Separator />
-                <Button Command="{Binding DeleteSelectedCommand}" ToolTip="Delete selected element" Margin="0">Delete</Button>
-            </ToolBar>
-        </ToolBarTray>
+        <Border DockPanel.Dock="Top" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+            <StackPanel>
+                <DockPanel Height="52" Margin="10,0">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="Delete" Command="{Binding DeleteSelectedCommand}" Style="{StaticResource TopActionButton}" />
+                        <Button Content="Print" Command="{Binding PrintCommand}" Style="{StaticResource PrimaryActionButton}" Margin="8,0,2,0" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="New" Command="{Binding NewDocumentCommand}" Style="{StaticResource TopActionButton}" />
+                        <Button Content="Open" Command="{Binding OpenCommand}" Style="{StaticResource TopActionButton}" />
+                        <Button Content="Save" Command="{Binding SaveCommand}" Style="{StaticResource TopActionButton}" />
+                        <Separator Margin="8,10" />
+                        <TextBlock Text="Label" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="4,0,6,0" />
+                        <TextBox Width="160" Text="{Binding DocumentName, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="W" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="14,0,5,0" />
+                        <TextBox Width="58" Text="{Binding LabelWidth, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
+                        <TextBlock Text="×" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="5,0" />
+                        <TextBox Width="58" Text="{Binding LabelHeight, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
+                        <TextBlock Text="mm" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="5,0,14,0" />
+                        <ComboBox Width="82" ItemsSource="{Binding SupportedDpi}" SelectedItem="{Binding PrinterDpi}" />
+                        <TextBlock Text="DPI" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="5,0" />
+                    </StackPanel>
+                </DockPanel>
 
-        <StatusBar DockPanel.Dock="Bottom">
+                <Border Height="48" Background="#FAFBFC" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+                    <Grid Margin="14,0">
+                        <TextBlock Text="Select a text element to show formatting controls"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   VerticalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasTextSelection}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <StackPanel Orientation="Horizontal"
+                                    VerticalAlignment="Center"
+                                    Visibility="{Binding HasTextSelection, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="TEXT" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,14,0" />
+                            <ComboBox Width="150"
+                                      ItemsSource="{Binding AvailableFontFamilies}"
+                                      SelectedItem="{Binding SelectedElement.FontFamily, UpdateSourceTrigger=PropertyChanged}" />
+                            <ComboBox Width="72"
+                                      Margin="8,0,6,0"
+                                      IsEditable="True"
+                                      ItemsSource="{Binding CommonFontSizes}"
+                                      Text="{Binding SelectedElement.FontSize, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
+                            <ToggleButton Content="B"
+                                          FontWeight="Bold"
+                                          Style="{StaticResource FormatToggle}"
+                                          IsChecked="{Binding SelectedElement.IsBold}" />
+                            <ToggleButton Content="I"
+                                          FontStyle="Italic"
+                                          Style="{StaticResource FormatToggle}"
+                                          IsChecked="{Binding SelectedElement.IsItalic}" />
+                            <ToggleButton Style="{StaticResource FormatToggle}"
+                                          IsChecked="{Binding SelectedElement.IsUnderlined}">
+                                <TextBlock Text="U" TextDecorations="Underline" />
+                            </ToggleButton>
+                            <Separator Margin="8,8" />
+                            <RadioButton ToolTip="Align left"
+                                         GroupName="TextAlignment"
+                                         Style="{StaticResource AlignmentOption}"
+                                         IsChecked="{Binding SelectedElement.TextAlignment, Converter={StaticResource EnumEquals}, ConverterParameter=Left}">
+                                <TextBlock Text="≡" Width="16" TextAlignment="Left" />
+                            </RadioButton>
+                            <RadioButton ToolTip="Align center"
+                                         GroupName="TextAlignment"
+                                         Style="{StaticResource AlignmentOption}"
+                                         IsChecked="{Binding SelectedElement.TextAlignment, Converter={StaticResource EnumEquals}, ConverterParameter=Center}">
+                                <TextBlock Text="≡" Width="16" TextAlignment="Center" />
+                            </RadioButton>
+                            <RadioButton ToolTip="Align right"
+                                         GroupName="TextAlignment"
+                                         Style="{StaticResource AlignmentOption}"
+                                         IsChecked="{Binding SelectedElement.TextAlignment, Converter={StaticResource EnumEquals}, ConverterParameter=Right}">
+                                <TextBlock Text="≡" Width="16" TextAlignment="Right" />
+                            </RadioButton>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <StatusBar DockPanel.Dock="Bottom" Background="#F8F9FB" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
             <StatusBarItem Content="{Binding StatusMessage}" />
             <Separator />
             <StatusBarItem>
@@ -93,59 +251,81 @@
 
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="190" />
+                <ColumnDefinition Width="220" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="280" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Padding="16" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+            <Border Grid.Column="0" Padding="16,20" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
                 <StackPanel>
                     <TextBlock Text="ELEMENTS" Style="{StaticResource SectionHeading}" />
-                    <Button Content="+  Text"
-                            Tag="{x:Static models:LabelElementKind.Text}"
+                    <TextBlock Text="Drag an element onto the label" Foreground="{StaticResource MutedTextBrush}" FontSize="12" Margin="0,0,0,16" />
+                    <Button Tag="{x:Static models:LabelElementKind.Text}"
                             Click="AddTextButton_Click"
                             PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown"
                             PreviewMouseMove="ToolboxItem_PreviewMouseMove"
-                            HorizontalContentAlignment="Left"
-                            ToolTip="Click to add, or drag onto the label" />
-                    <Button Content="▥  Barcode"
-                            Tag="{x:Static models:LabelElementKind.Barcode}"
+                            Style="{StaticResource PaletteButton}"
+                            ToolTip="Click to add, or drag onto the label">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="38" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <Border Width="30" Height="30" Background="#EEF2FF" CornerRadius="5">
+                                <TextBlock Text="T" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="Text" FontWeight="SemiBold" />
+                                <TextBlock Text="Headings and values" Foreground="{StaticResource MutedTextBrush}" FontSize="11" />
+                            </StackPanel>
+                        </Grid>
+                    </Button>
+                    <Button Tag="{x:Static models:LabelElementKind.Barcode}"
                             Command="{Binding AddBarcodeCommand}"
                             PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown"
                             PreviewMouseMove="ToolboxItem_PreviewMouseMove"
-                            HorizontalContentAlignment="Left"
-                            ToolTip="Click to add, or drag onto the label" />
-                    <Button Content="▦  QR code"
-                            Tag="{x:Static models:LabelElementKind.QrCode}"
+                            Style="{StaticResource PaletteButton}"
+                            ToolTip="Click to add, or drag onto the label">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="38" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <Border Width="30" Height="30" Background="#F0FDF4" CornerRadius="5">
+                                <TextBlock Text="▥" Foreground="#15803D" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="Barcode" FontWeight="SemiBold" />
+                                <TextBlock Text="Code 128" Foreground="{StaticResource MutedTextBrush}" FontSize="11" />
+                            </StackPanel>
+                        </Grid>
+                    </Button>
+                    <Button Tag="{x:Static models:LabelElementKind.QrCode}"
                             Command="{Binding AddQrCodeCommand}"
                             PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown"
                             PreviewMouseMove="ToolboxItem_PreviewMouseMove"
-                            HorizontalContentAlignment="Left"
-                            ToolTip="Click to add, or drag onto the label" />
-                    <Separator Margin="0,12" />
-                    <TextBlock Text="DOCUMENT" Style="{StaticResource SectionHeading}" />
-                    <TextBlock Text="Name" Style="{StaticResource FieldLabel}" />
-                    <TextBox Text="{Binding DocumentName, UpdateSourceTrigger=PropertyChanged}" />
-                    <TextBlock Text="Width (mm)" Style="{StaticResource FieldLabel}" />
-                    <TextBox Text="{Binding LabelWidth, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
-                    <TextBlock Text="Height (mm)" Style="{StaticResource FieldLabel}" />
-                    <TextBox Text="{Binding LabelHeight, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
-                    <TextBlock Text="Printer resolution" Style="{StaticResource FieldLabel}" />
-                    <ComboBox ItemsSource="{Binding SupportedDpi}" SelectedItem="{Binding PrinterDpi}" />
+                            Style="{StaticResource PaletteButton}"
+                            ToolTip="Click to add, or drag onto the label">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="38" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <Border Width="30" Height="30" Background="#FFF7ED" CornerRadius="5">
+                                <TextBlock Text="▦" Foreground="#C2410C" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="QR code" FontWeight="SemiBold" />
+                                <TextBlock Text="URLs and encoded data" Foreground="{StaticResource MutedTextBrush}" FontSize="11" />
+                            </StackPanel>
+                        </Grid>
+                    </Button>
                 </StackPanel>
             </Border>
 
-            <Grid Grid.Column="1" Background="#CBD5E1">
-                <ScrollViewer HorizontalScrollBarVisibility="Auto"
-                              VerticalScrollBarVisibility="Auto"
-                              Padding="48">
+            <Grid Grid.Column="1" Background="{StaticResource CanvasWorkspaceBrush}">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Padding="56">
                     <Border Width="{Binding LabelWidth, Converter={StaticResource MmToDip}}"
                             Height="{Binding LabelHeight, Converter={StaticResource MmToDip}}"
                             Background="White"
-                            BorderBrush="#94A3B8"
+                            BorderBrush="#AAB4C3"
                             BorderThickness="1"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="14" ShadowDepth="3" Opacity="0.16" />
+                        </Border.Effect>
                         <ListBox x:Name="DesignerCanvas"
                                  ItemsSource="{Binding Elements}"
                                  SelectedItem="{Binding SelectedElement}"
@@ -158,21 +338,22 @@
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
                             <ListBox.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <Canvas />
-                                </ItemsPanelTemplate>
+                                <ItemsPanelTemplate><Canvas /></ItemsPanelTemplate>
                             </ListBox.ItemsPanel>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <Grid ClipToBounds="True" ToolTip="{Binding DisplayName}">
                                         <TextBlock x:Name="PreviewText"
                                                    Text="{Binding Content}"
+                                                   FontFamily="{Binding FontFamily}"
                                                    FontSize="{Binding FontSize}"
                                                    TextTrimming="CharacterEllipsis"
+                                                   TextAlignment="Center"
                                                    VerticalAlignment="Center"
-                                                   HorizontalAlignment="Center" />
+                                                   HorizontalAlignment="Stretch" />
                                         <TextBox x:Name="InlineTextEditor"
                                                  Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontFamily="{Binding FontFamily}"
                                                  FontSize="{Binding FontSize}"
                                                  Padding="2,0"
                                                  BorderThickness="0"
@@ -182,11 +363,7 @@
                                                  Visibility="Collapsed"
                                                  LostKeyboardFocus="InlineTextEditor_LostKeyboardFocus"
                                                  PreviewKeyDown="InlineTextEditor_PreviewKeyDown" />
-                                        <Image x:Name="PreviewImage"
-                                               Stretch="Fill"
-                                               RenderOptions.BitmapScalingMode="HighQuality"
-                                               SnapsToDevicePixels="True"
-                                               Visibility="Collapsed">
+                                        <Image x:Name="PreviewImage" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality" SnapsToDevicePixels="True" Visibility="Collapsed">
                                             <Image.Source>
                                                 <MultiBinding Converter="{StaticResource ElementImage}">
                                                     <Binding Path="Content" />
@@ -200,46 +377,26 @@
                                             <Thumb.Style>
                                                 <Style TargetType="Thumb">
                                                     <Setter Property="Template">
-                                                        <Setter.Value>
-                                                            <ControlTemplate TargetType="Thumb">
-                                                                <Border Background="Transparent" />
-                                                            </ControlTemplate>
-                                                        </Setter.Value>
+                                                        <Setter.Value><ControlTemplate TargetType="Thumb"><Border Background="Transparent" /></ControlTemplate></Setter.Value>
                                                     </Setter>
                                                     <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsEditing}" Value="True">
-                                                            <Setter Property="Visibility" Value="Collapsed" />
-                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsEditing}" Value="True"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </Thumb.Style>
                                         </Thumb>
-                                        <Thumb Width="10"
-                                               Height="10"
-                                               Margin="0,0,-5,-5"
-                                               HorizontalAlignment="Right"
-                                               VerticalAlignment="Bottom"
-                                               Cursor="SizeNWSE"
-                                               DragDelta="DesignerItem_ResizeDelta">
+                                        <Thumb Width="10" Height="10" Margin="0,0,-5,-5" HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="SizeNWSE" DragDelta="DesignerItem_ResizeDelta">
                                             <Thumb.Style>
                                                 <Style TargetType="Thumb">
                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                     <Setter Property="Template">
                                                         <Setter.Value>
-                                                            <ControlTemplate TargetType="Thumb">
-                                                                <Border Background="{StaticResource AccentBrush}"
-                                                                        BorderBrush="White"
-                                                                        BorderThickness="1" />
-                                                            </ControlTemplate>
+                                                            <ControlTemplate TargetType="Thumb"><Border Background="{StaticResource AccentBrush}" BorderBrush="White" BorderThickness="1" CornerRadius="1" /></ControlTemplate>
                                                         </Setter.Value>
                                                     </Setter>
                                                     <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
-                                                            <Setter Property="Visibility" Value="Visible" />
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding IsEditing}" Value="True">
-                                                            <Setter Property="Visibility" Value="Collapsed" />
-                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsEditing}" Value="True"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </Thumb.Style>
@@ -249,6 +406,26 @@
                                         <DataTrigger Binding="{Binding IsEditing}" Value="True">
                                             <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
                                             <Setter TargetName="InlineTextEditor" Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsBold}" Value="True">
+                                            <Setter TargetName="PreviewText" Property="FontWeight" Value="Bold" />
+                                            <Setter TargetName="InlineTextEditor" Property="FontWeight" Value="Bold" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsItalic}" Value="True">
+                                            <Setter TargetName="PreviewText" Property="FontStyle" Value="Italic" />
+                                            <Setter TargetName="InlineTextEditor" Property="FontStyle" Value="Italic" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsUnderlined}" Value="True">
+                                            <Setter TargetName="PreviewText" Property="TextDecorations" Value="Underline" />
+                                            <Setter TargetName="InlineTextEditor" Property="TextDecorations" Value="Underline" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding TextAlignment}" Value="{x:Static models:TextAlignmentOption.Left}">
+                                            <Setter TargetName="PreviewText" Property="TextAlignment" Value="Left" />
+                                            <Setter TargetName="InlineTextEditor" Property="TextAlignment" Value="Left" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding TextAlignment}" Value="{x:Static models:TextAlignmentOption.Right}">
+                                            <Setter TargetName="PreviewText" Property="TextAlignment" Value="Right" />
+                                            <Setter TargetName="InlineTextEditor" Property="TextAlignment" Value="Right" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Barcode}">
                                             <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
@@ -268,69 +445,29 @@
                 </ScrollViewer>
             </Grid>
 
-            <Border Grid.Column="2" Padding="16" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,0,0,0">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel>
-                        <StackPanel.Style>
-                            <Style TargetType="StackPanel">
-                                <Setter Property="IsEnabled" Value="True" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding SelectedElement}" Value="{x:Null}">
-                                        <Setter Property="IsEnabled" Value="False" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </StackPanel.Style>
-                        <TextBlock Text="PROPERTIES" Style="{StaticResource SectionHeading}" />
-                        <TextBlock Text="Drag elements onto the label. Double-click text to edit it in place."
-                                   Foreground="{StaticResource MutedTextBrush}"
-                                   TextWrapping="Wrap"
-                                   Margin="0,0,0,12" />
-                        <TextBlock Text="Type" Style="{StaticResource FieldLabel}" />
-                        <TextBox Text="{Binding SelectedElement.DisplayName, Mode=OneWay}" IsReadOnly="True" />
-                        <TextBlock Text="Content" Style="{StaticResource FieldLabel}" />
-                        <TextBox Text="{Binding SelectedElement.Content, UpdateSourceTrigger=PropertyChanged}"
-                                 AcceptsReturn="True"
-                                 MinHeight="62"
-                                 VerticalContentAlignment="Top"
-                                 TextWrapping="Wrap" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="12" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <StackPanel>
-                                <TextBlock Text="X (mm)" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding SelectedElement.X, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="2">
-                                <TextBlock Text="Y (mm)" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding SelectedElement.Y, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
-                            </StackPanel>
-                        </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="12" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <StackPanel>
-                                <TextBlock Text="Width (mm)" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding SelectedElement.Width, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="2">
-                                <TextBlock Text="Height (mm)" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding SelectedElement.Height, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
-                            </StackPanel>
-                        </Grid>
-                        <TextBlock Text="Font size" Style="{StaticResource FieldLabel}" />
-                        <TextBox Text="{Binding SelectedElement.FontSize, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
-                        <Button Content="Delete element"
-                                Command="{Binding DeleteSelectedCommand}"
-                                Margin="0,18,0,0" />
-                    </StackPanel>
-                </ScrollViewer>
+            <Border Grid.Column="2"
+                    Width="320"
+                    Padding="20"
+                    Background="{StaticResource PanelBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1,0,0,0"
+                    Visibility="{Binding HasDataElementSelection, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel>
+                    <TextBlock Text="DATA" Style="{StaticResource SectionHeading}" />
+                    <TextBlock Text="{Binding SelectedElement.DisplayName, Mode=OneWay}" FontSize="18" FontWeight="SemiBold" />
+                    <TextBlock Text="Encoded content" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding SelectedElement.Content, UpdateSourceTrigger=PropertyChanged}"
+                             AcceptsReturn="True"
+                             MinHeight="110"
+                             Padding="9"
+                             VerticalContentAlignment="Top"
+                             TextWrapping="Wrap" />
+                    <TextBlock Text="The preview updates automatically as you type."
+                               Foreground="{StaticResource MutedTextBrush}"
+                               FontSize="12"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0" />
+                </StackPanel>
             </Border>
         </Grid>
     </DockPanel>
