@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:converters="clr-namespace:wLabelDesigner.Converters"
+        xmlns:controls="clr-namespace:wLabelDesigner.Controls"
         xmlns:models="clr-namespace:wLabelDesigner.Models"
         mc:Ignorable="d"
         Title="{Binding WindowTitle}"
@@ -240,6 +241,15 @@
                 <MenuItem Header="Deselect _all" Command="{Binding DeselectAllCommand}" InputGestureText="Esc" />
                 <MenuItem Header="_Delete selected" Command="{Binding DeleteSelectedCommand}" InputGestureText="Delete" />
             </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Header="Zoom _in" Command="{Binding ZoomInCommand}" InputGestureText="Ctrl++" />
+                <MenuItem Header="Zoom _out" Command="{Binding ZoomOutCommand}" InputGestureText="Ctrl+-" />
+                <MenuItem Header="_Actual size" Command="{Binding ResetZoomCommand}" InputGestureText="Ctrl+0" />
+                <Separator />
+                <MenuItem Header="Show _grid" IsCheckable="True" IsChecked="{Binding IsGridVisible}" />
+                <MenuItem Header="Enable _snapping" IsCheckable="True" IsChecked="{Binding IsSnappingEnabled}" />
+                <MenuItem Header="Show _rulers" IsCheckable="True" IsChecked="{Binding AreRulersVisible}" />
+            </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_User guide" InputGestureText="F1" Click="Help_Click" />
             </MenuItem>
@@ -372,6 +382,19 @@
                 </TextBlock>
             </StatusBarItem>
             <StatusBarItem Content="{Binding PrinterDpi, StringFormat={}{0} DPI}" />
+            <Separator />
+            <StatusBarItem>
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="−" Command="{Binding ZoomOutCommand}" MinWidth="28" MinHeight="24" Padding="5,0" ToolTip="Zoom out" />
+                    <Button Content="{Binding ZoomPercent, StringFormat={}{0:0}%}" Command="{Binding ResetZoomCommand}" MinWidth="56" MinHeight="24" Padding="5,0" ToolTip="Reset zoom to 100%" />
+                    <Button Content="+" Command="{Binding ZoomInCommand}" MinWidth="28" MinHeight="24" Padding="5,0" ToolTip="Zoom in" />
+                    <CheckBox Content="Grid" IsChecked="{Binding IsGridVisible}" VerticalAlignment="Center" Margin="14,0,4,0" />
+                    <ComboBox Width="62" MinHeight="24" IsEditable="True" ItemsSource="{Binding CommonGridSizes}" Text="{Binding GridSize, UpdateSourceTrigger=PropertyChanged, Delay=100}" ToolTip="Grid size in millimetres" />
+                    <TextBlock Text="mm" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="4,0,10,0" />
+                    <CheckBox Content="Snap" IsChecked="{Binding IsSnappingEnabled}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                    <CheckBox Content="Rulers" IsChecked="{Binding AreRulersVisible}" VerticalAlignment="Center" />
+                </StackPanel>
+            </StatusBarItem>
         </StatusBar>
 
         <Grid>
@@ -438,10 +461,87 @@
             </Border>
 
             <Grid Grid.Column="1"
-                  Background="{StaticResource CanvasWorkspaceBrush}"
+                  Background="White"
                   PreviewMouseLeftButtonDown="Workspace_PreviewMouseLeftButtonDown">
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Padding="56">
-                    <Border Width="{Binding LabelWidth, Converter={StaticResource MmToDip}}"
+                <ScrollViewer x:Name="WorkspaceScrollViewer"
+                              Background="White"
+                              HorizontalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Auto"
+                              Padding="56"
+                              PreviewMouseWheel="Workspace_PreviewMouseWheel"
+                              PreviewMouseDown="Workspace_PreviewMouseDown"
+                              PreviewMouseMove="Workspace_PreviewMouseMove"
+                              PreviewMouseUp="Workspace_PreviewMouseUp"
+                              LostMouseCapture="Workspace_LostMouseCapture">
+                    <Grid x:Name="ZoomSurface" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Grid.LayoutTransform>
+                            <ScaleTransform ScaleX="{Binding ZoomScale}" ScaleY="{Binding ZoomScale}" />
+                        </Grid.LayoutTransform>
+                        <Grid.RenderTransform>
+                            <TranslateTransform x:Name="CanvasPanTransform" />
+                        </Grid.RenderTransform>
+                        <Grid.RowDefinitions>
+                            <RowDefinition>
+                                <RowDefinition.Style>
+                                    <Style TargetType="RowDefinition">
+                                        <Setter Property="Height" Value="22" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding AreRulersVisible}" Value="False"><Setter Property="Height" Value="0" /></DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </RowDefinition.Style>
+                            </RowDefinition>
+                            <RowDefinition>
+                                <RowDefinition.Style>
+                                    <Style TargetType="RowDefinition">
+                                        <Setter Property="Height" Value="8" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding AreRulersVisible}" Value="False"><Setter Property="Height" Value="0" /></DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </RowDefinition.Style>
+                            </RowDefinition>
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition>
+                                <ColumnDefinition.Style>
+                                    <Style TargetType="ColumnDefinition">
+                                        <Setter Property="Width" Value="22" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding AreRulersVisible}" Value="False"><Setter Property="Width" Value="0" /></DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ColumnDefinition.Style>
+                            </ColumnDefinition>
+                            <ColumnDefinition>
+                                <ColumnDefinition.Style>
+                                    <Style TargetType="ColumnDefinition">
+                                        <Setter Property="Width" Value="8" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding AreRulersVisible}" Value="False"><Setter Property="Width" Value="0" /></DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ColumnDefinition.Style>
+                            </ColumnDefinition>
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Row="0" Grid.Column="0" Background="#F8F9FB" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,1"
+                                Visibility="{Binding AreRulersVisible, Converter={StaticResource BoolToVisibility}}" />
+                        <controls:DesignerRuler Grid.Row="0" Grid.Column="2"
+                                                Width="{Binding LabelWidth, Converter={StaticResource MmToDip}}"
+                                                Height="22"
+                                                Length="{Binding LabelWidth}"
+                                                Visibility="{Binding AreRulersVisible, Converter={StaticResource BoolToVisibility}}" />
+                        <controls:DesignerRuler Grid.Row="2" Grid.Column="0"
+                                                Width="22"
+                                                Height="{Binding LabelHeight, Converter={StaticResource MmToDip}}"
+                                                Length="{Binding LabelHeight}"
+                                                Orientation="Vertical"
+                                                Visibility="{Binding AreRulersVisible, Converter={StaticResource BoolToVisibility}}" />
+                    <Border Grid.Row="2"
+                            Grid.Column="2"
+                            Width="{Binding LabelWidth, Converter={StaticResource MmToDip}}"
                             Height="{Binding LabelHeight, Converter={StaticResource MmToDip}}"
                             Background="White"
                             BorderBrush="#AAB4C3"
@@ -451,6 +551,10 @@
                         <Border.Effect>
                             <DropShadowEffect BlurRadius="14" ShadowDepth="3" Opacity="0.16" />
                         </Border.Effect>
+                        <Grid ClipToBounds="True">
+                        <controls:DesignerGrid GridSize="{Binding GridSize}"
+                                               Visibility="{Binding IsGridVisible, Converter={StaticResource BoolToVisibility}}"
+                                               IsHitTestVisible="False" />
                         <ListBox x:Name="DesignerCanvas"
                                  ItemsSource="{Binding Elements}"
                                  SelectionChanged="DesignerCanvas_SelectionChanged"
@@ -519,7 +623,9 @@
                                         </Image>
                                         <Thumb Cursor="SizeAll"
                                                PreviewMouseLeftButtonDown="DesignerItem_PreviewMouseLeftButtonDown"
-                                               DragDelta="DesignerItem_DragDelta">
+                                               DragStarted="DesignerItem_DragStarted"
+                                               DragDelta="DesignerItem_DragDelta"
+                                               DragCompleted="DesignerItem_DragCompleted">
                                             <Thumb.Style>
                                                 <Style TargetType="Thumb">
                                                     <Setter Property="Template">
@@ -598,7 +704,13 @@
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
+                        <Canvas IsHitTestVisible="False" ClipToBounds="True">
+                            <Line x:Name="VerticalAlignmentGuide" Y1="0" Y2="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Canvas}}" Stroke="#E11D48" StrokeThickness="0.8" Visibility="Collapsed" />
+                            <Line x:Name="HorizontalAlignmentGuide" X1="0" X2="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Canvas}}" Stroke="#E11D48" StrokeThickness="0.8" Visibility="Collapsed" />
+                        </Canvas>
+                        </Grid>
                     </Border>
+                    </Grid>
                 </ScrollViewer>
             </Grid>
 

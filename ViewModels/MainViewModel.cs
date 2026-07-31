@@ -52,6 +52,8 @@ public sealed partial class MainViewModel : ObservableObject
 
     public IReadOnlyList<double> CommonStrokeWidths { get; } = [0.5, 0.75, 1, 1.5, 2, 3, 4, 6];
 
+    public IReadOnlyList<double> CommonGridSizes { get; } = [1, 2, 2.5, 5, 10, 20];
+
     public IReadOnlyList<LabelElementViewModel> SelectedElements => selectedElements;
 
     public bool HasMultipleSelection => selectedElements.Count > 1;
@@ -122,6 +124,29 @@ public sealed partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private string statusMessage = "Ready";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ZoomScale))]
+    private double zoomPercent = 100;
+
+    public double ZoomScale => ZoomPercent / 100d;
+
+    [ObservableProperty]
+    private bool isGridVisible = true;
+
+    [ObservableProperty]
+    private bool isSnappingEnabled = true;
+
+    [ObservableProperty]
+    private bool areRulersVisible = true;
+
+    private double gridSize = 5;
+
+    public double GridSize
+    {
+        get => gridSize;
+        set => SetProperty(ref gridSize, NormalizeGridSize(value));
+    }
 
     partial void OnDocumentNameChanged(string value) => MarkDirty("document:name");
 
@@ -239,6 +264,21 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     private bool CanRedo() => history.CanRedo;
+
+    [RelayCommand]
+    private void ZoomIn() => SetZoom(NextZoomLevel(ZoomPercent, increase: true));
+
+    [RelayCommand]
+    private void ZoomOut() => SetZoom(NextZoomLevel(ZoomPercent, increase: false));
+
+    [RelayCommand]
+    private void ResetZoom() => SetZoom(100);
+
+    public void SetZoom(double percent)
+    {
+        ZoomPercent = Math.Clamp(Math.Round(percent), 25, 400);
+        StatusMessage = $"Zoom {ZoomPercent:0}%";
+    }
 
     public void SetSelectionFromView(
         IEnumerable<LabelElementViewModel> elements,
@@ -826,4 +866,15 @@ public sealed partial class MainViewModel : ObservableObject
 
     private static double NormalizeDimension(double value) =>
         double.IsFinite(value) ? Math.Clamp(value, 1, 1000) : 1;
+
+    private static double NormalizeGridSize(double value) =>
+        double.IsFinite(value) ? Math.Clamp(value, 0.5, 100) : 5;
+
+    private static double NextZoomLevel(double current, bool increase)
+    {
+        double[] levels = [25, 33, 50, 67, 75, 100, 125, 150, 200, 300, 400];
+        return increase
+            ? levels.FirstOrDefault(level => level > current, 400)
+            : levels.LastOrDefault(level => level < current, 25);
+    }
 }

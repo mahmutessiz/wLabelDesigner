@@ -5,7 +5,7 @@
 - [x] Add undo and redo for edits, movement, resizing, deletion, and styling.
 - [x] Add copy, paste, duplicate, and keyboard nudging.
 - [x] Add multi-selection with alignment and distribution tools.
-- [ ] Add zoom, pan, rulers, grid, snapping, and alignment guides.
+- [x] Add zoom, pan, rulers, grid, snapping, and alignment guides.
 - [ ] Add rotation handles for text, shapes, barcodes, QR codes, and images.
 - [ ] Add layer ordering, locking, and visibility controls.
 - [ ] Add an image/logo element.
@@ -19,12 +19,12 @@
 - [x] Support multi-selection using Shift-click.
 - [x] Align selected elements to the left, center, right, top, middle, or bottom.
 - [x] Distribute selected elements horizontally or vertically.
-- [ ] Add zoom controls and mouse-wheel zooming.
-- [ ] Add canvas panning.
-- [ ] Add horizontal and vertical rulers.
-- [ ] Add configurable grid visibility and grid size.
-- [ ] Snap elements to the grid, label edges, and other elements.
-- [ ] Display temporary alignment guides while moving elements.
+- [x] Add zoom controls and mouse-wheel zooming.
+- [x] Add canvas panning.
+- [x] Add horizontal and vertical rulers.
+- [x] Add configurable grid visibility and grid size.
+- [x] Snap elements to the grid, label edges, and other elements.
+- [x] Display temporary alignment guides while moving elements.
 - [ ] Add rotation handles and precise rotation values.
 - [ ] Add bring forward, send backward, bring to front, and send to back.
 - [ ] Allow elements to be locked and hidden.

@@ -17,6 +17,18 @@ public partial class MainWindow : Window
     private LabelElementViewModel? inlineEditingElement;
     private string? inlineEditOriginalContent;
     private bool isSynchronizingCanvasSelection;
+    private bool isPanning;
+    private Point panStart;
+    private double panHorizontalOffset;
+    private double panVerticalOffset;
+    private double panTranslateX;
+    private double panTranslateY;
+    private DesignerBounds? dragInitialBounds;
+    private DesignerBounds[] dragOtherBounds = [];
+    private double dragRawHorizontalChange;
+    private double dragRawVerticalChange;
+    private double dragAppliedHorizontalChange;
+    private double dragAppliedVerticalChange;
 
     public MainWindow()
     {
@@ -46,6 +58,25 @@ public partial class MainWindow : Window
 
         var controlPressed = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
         var shiftPressed = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+
+        if (controlPressed && e.Key is Key.OemPlus or Key.Add or Key.OemMinus or Key.Subtract or Key.D0 or Key.NumPad0)
+        {
+            if (e.Key is Key.OemPlus or Key.Add)
+            {
+                viewModel.ZoomInCommand.Execute(null);
+            }
+            else if (e.Key is Key.OemMinus or Key.Subtract)
+            {
+                viewModel.ZoomOutCommand.Execute(null);
+            }
+            else
+            {
+                viewModel.ResetZoomCommand.Execute(null);
+            }
+
+            e.Handled = true;
+            return;
+        }
 
         if (e.Key == Key.Tab && viewModel.Elements.Count > 0)
         {
@@ -274,6 +305,30 @@ public partial class MainWindow : Window
         }
     }
 
+    private void DesignerItem_DragStarted(object sender, DragStartedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel || viewModel.SelectedElements.Count == 0)
+        {
+            return;
+        }
+
+        var selection = viewModel.SelectedElements;
+        dragInitialBounds = new DesignerBounds(
+            selection.Min(candidate => candidate.X),
+            selection.Min(candidate => candidate.Y),
+            selection.Max(candidate => candidate.X + candidate.Width) - selection.Min(candidate => candidate.X),
+            selection.Max(candidate => candidate.Y + candidate.Height) - selection.Min(candidate => candidate.Y));
+        var selectedIds = selection.Select(candidate => candidate.Id).ToHashSet();
+        dragOtherBounds = viewModel.Elements
+            .Where(candidate => !selectedIds.Contains(candidate.Id))
+            .Select(candidate => new DesignerBounds(candidate.X, candidate.Y, candidate.Width, candidate.Height))
+            .ToArray();
+        dragRawHorizontalChange = 0;
+        dragRawVerticalChange = 0;
+        dragAppliedHorizontalChange = 0;
+        dragAppliedVerticalChange = 0;
+    }
+
     private void DesignerItem_DragDelta(object sender, DragDeltaEventArgs e)
     {
         if (sender is not Thumb { DataContext: LabelElementViewModel element } ||
@@ -283,9 +338,148 @@ public partial class MainWindow : Window
         }
 
         const double millimetersPerDeviceIndependentPixel = 25.4d / 96d;
+        dragRawHorizontalChange += e.HorizontalChange * millimetersPerDeviceIndependentPixel;
+        dragRawVerticalChange += e.VerticalChange * millimetersPerDeviceIndependentPixel;
+        var desiredHorizontalChange = dragRawHorizontalChange;
+        var desiredVerticalChange = dragRawVerticalChange;
+
+        if (viewModel.IsSnappingEnabled && dragInitialBounds is DesignerBounds selectionBounds)
+        {
+            var snap = DesignerSnapEngine.SnapMovement(
+                selectionBounds,
+                dragRawHorizontalChange,
+                dragRawVerticalChange,
+                viewModel.LabelWidth,
+                viewModel.LabelHeight,
+                viewModel.GridSize,
+                5 * millimetersPerDeviceIndependentPixel / viewModel.ZoomScale,
+                dragOtherBounds);
+            desiredHorizontalChange = snap.HorizontalChange;
+            desiredVerticalChange = snap.VerticalChange;
+            ShowAlignmentGuides(snap);
+        }
+        else
+        {
+            HideAlignmentGuides();
+        }
+
         viewModel.MoveSelectedElements(
-            e.HorizontalChange * millimetersPerDeviceIndependentPixel,
-            e.VerticalChange * millimetersPerDeviceIndependentPixel);
+            desiredHorizontalChange - dragAppliedHorizontalChange,
+            desiredVerticalChange - dragAppliedVerticalChange);
+        if (dragInitialBounds is DesignerBounds initialBounds)
+        {
+            dragAppliedHorizontalChange = viewModel.SelectedElements.Min(candidate => candidate.X) - initialBounds.X;
+            dragAppliedVerticalChange = viewModel.SelectedElements.Min(candidate => candidate.Y) - initialBounds.Y;
+        }
+        e.Handled = true;
+    }
+
+    private void DesignerItem_DragCompleted(object sender, DragCompletedEventArgs e)
+    {
+        dragInitialBounds = null;
+        dragOtherBounds = [];
+        HideAlignmentGuides();
+    }
+
+    private void ShowAlignmentGuides(SnapResult snap)
+    {
+        const double pixelsPerMillimeter = 96d / 25.4d;
+        VerticalAlignmentGuide.Visibility = snap.VerticalGuide is null ? Visibility.Collapsed : Visibility.Visible;
+        HorizontalAlignmentGuide.Visibility = snap.HorizontalGuide is null ? Visibility.Collapsed : Visibility.Visible;
+        if (snap.VerticalGuide is double x)
+        {
+            VerticalAlignmentGuide.X1 = VerticalAlignmentGuide.X2 = x * pixelsPerMillimeter;
+        }
+
+        if (snap.HorizontalGuide is double y)
+        {
+            HorizontalAlignmentGuide.Y1 = HorizontalAlignmentGuide.Y2 = y * pixelsPerMillimeter;
+        }
+    }
+
+    private void HideAlignmentGuides()
+    {
+        VerticalAlignmentGuide.Visibility = Visibility.Collapsed;
+        HorizontalAlignmentGuide.Visibility = Visibility.Collapsed;
+    }
+
+    private void Workspace_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (!Keyboard.Modifiers.HasFlag(ModifierKeys.Control) || DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var pointer = e.GetPosition(WorkspaceScrollViewer);
+        var oldScale = viewModel.ZoomScale;
+        viewModel.SetZoom(viewModel.ZoomPercent * (e.Delta > 0 ? 1.1 : 1 / 1.1));
+        var scaleRatio = viewModel.ZoomScale / oldScale;
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
+        {
+            WorkspaceScrollViewer.ScrollToHorizontalOffset(
+                ((WorkspaceScrollViewer.HorizontalOffset + pointer.X) * scaleRatio) - pointer.X);
+            WorkspaceScrollViewer.ScrollToVerticalOffset(
+                ((WorkspaceScrollViewer.VerticalOffset + pointer.Y) * scaleRatio) - pointer.Y);
+        });
+        e.Handled = true;
+    }
+
+    private void Workspace_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        var spacePressed = Keyboard.IsKeyDown(Key.Space);
+        if (e.ChangedButton != MouseButton.Middle && !(e.ChangedButton == MouseButton.Left && spacePressed))
+        {
+            return;
+        }
+
+        isPanning = true;
+        panStart = e.GetPosition(WorkspaceScrollViewer);
+        panHorizontalOffset = WorkspaceScrollViewer.HorizontalOffset;
+        panVerticalOffset = WorkspaceScrollViewer.VerticalOffset;
+        panTranslateX = CanvasPanTransform.X;
+        panTranslateY = CanvasPanTransform.Y;
+        WorkspaceScrollViewer.Cursor = Cursors.Hand;
+        WorkspaceScrollViewer.CaptureMouse();
+        e.Handled = true;
+    }
+
+    private void Workspace_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!isPanning)
+        {
+            return;
+        }
+
+        var current = e.GetPosition(WorkspaceScrollViewer);
+        var horizontalChange = current.X - panStart.X;
+        var verticalChange = current.Y - panStart.Y;
+        WorkspaceScrollViewer.ScrollToHorizontalOffset(panHorizontalOffset - horizontalChange);
+        WorkspaceScrollViewer.ScrollToVerticalOffset(panVerticalOffset - verticalChange);
+
+        CanvasPanTransform.X = panTranslateX + horizontalChange +
+            WorkspaceScrollViewer.HorizontalOffset - panHorizontalOffset;
+        CanvasPanTransform.Y = panTranslateY + verticalChange +
+            WorkspaceScrollViewer.VerticalOffset - panVerticalOffset;
+        e.Handled = true;
+    }
+
+    private void Workspace_PreviewMouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!isPanning)
+        {
+            return;
+        }
+
+        isPanning = false;
+        WorkspaceScrollViewer.ReleaseMouseCapture();
+        WorkspaceScrollViewer.Cursor = Cursors.Arrow;
+        e.Handled = true;
+    }
+
+    private void Workspace_LostMouseCapture(object sender, MouseEventArgs e)
+    {
+        isPanning = false;
+        WorkspaceScrollViewer.Cursor = Cursors.Arrow;
     }
 
     private void DesignerItem_ResizeDelta(object sender, DragDeltaEventArgs e)

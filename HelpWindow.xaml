@@ -62,6 +62,10 @@
                 <TextBlock Style="{StaticResource HelpBody}" Margin="0,8,0,0"
                            Text="Double-click text to edit it directly. Enter creates a new line, Ctrl+Enter commits, Escape cancels, and clicking away commits. Barcode and QR data is edited in the contextual panel on the right." />
 
+                <TextBlock Text="Canvas navigation and snapping" Style="{StaticResource HelpHeading}" />
+                <TextBlock Style="{StaticResource HelpBody}"
+                           Text="Use the controls in the bottom bar to zoom, show or hide the millimetre grid and rulers, choose the grid size, and enable snapping. While snapping is enabled, moved elements snap to grid intersections, label edges and centres, and the edges and centres of other elements. Pink guides appear temporarily for aligned edges and centres." />
+
                 <TextBlock Text="Keyboard shortcuts" Style="{StaticResource HelpHeading}" />
 
                 <TextBlock Text="Files and application" Style="{StaticResource HelpSubheading}" />
@@ -85,6 +89,11 @@
                 <Grid Margin="0,3"><Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Arrow keys" Style="{StaticResource ShortcutKey}"/><TextBlock Grid.Column="1" Text="Move the selection by 0.5 mm" Style="{StaticResource ShortcutDescription}"/></Grid>
                 <Grid Margin="0,3"><Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Shift+arrows" Style="{StaticResource ShortcutKey}"/><TextBlock Grid.Column="1" Text="Move the selection by 5 mm" Style="{StaticResource ShortcutDescription}"/></Grid>
                 <Grid Margin="0,3"><Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Shift+click" Style="{StaticResource ShortcutKey}"/><TextBlock Grid.Column="1" Text="Add or remove an element from the selection" Style="{StaticResource ShortcutDescription}"/></Grid>
+                <Grid Margin="0,3"><Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Ctrl+wheel" Style="{StaticResource ShortcutKey}"/><TextBlock Grid.Column="1" Text="Zoom around the mouse pointer" Style="{StaticResource ShortcutDescription}"/></Grid>
+                <Grid Margin="0,3"><Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Ctrl++ / Ctrl+-" Style="{StaticResource ShortcutKey}"/><TextBlock Grid.Column="1" Text="Zoom in or out" Style="{StaticResource ShortcutDescription}"/></Grid>
+                <Grid Margin="0,3"><Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Ctrl+0" Style="{StaticResource ShortcutKey}"/><TextBlock Grid.Column="1" Text="Reset zoom to 100%" Style="{StaticResource ShortcutDescription}"/></Grid>
+                <Grid Margin="0,3"><Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Middle-drag" Style="{StaticResource ShortcutKey}"/><TextBlock Grid.Column="1" Text="Pan the canvas" Style="{StaticResource ShortcutDescription}"/></Grid>
+                <Grid Margin="0,3"><Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Space+drag" Style="{StaticResource ShortcutKey}"/><TextBlock Grid.Column="1" Text="Pan the canvas with the left mouse button" Style="{StaticResource ShortcutDescription}"/></Grid>
 
                 <TextBlock Text="Text editing" Style="{StaticResource HelpSubheading}" />
                 <Grid Margin="0,3"><Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Double-click" Style="{StaticResource ShortcutKey}"/><TextBlock Grid.Column="1" Text="Edit a text element in place" Style="{StaticResource ShortcutDescription}"/></Grid>

@@ -15,4 +15,10 @@
     <PackageReference Include="QRCoder" Version="1.4.*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="wLabelDesigner.Tests\**\*.cs" />
+    <EmbeddedResource Remove="wLabelDesigner.Tests\**\*" />
+    <None Remove="wLabelDesigner.Tests\**\*" />
+  </ItemGroup>
+
 </Project>
