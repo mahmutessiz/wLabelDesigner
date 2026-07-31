@@ -23,6 +23,7 @@ public sealed partial class LabelElementViewModel : ObservableObject
         strokeThickness = double.IsFinite(data.StrokeThickness)
             ? Math.Clamp(data.StrokeThickness, 0.25, 20)
             : 1;
+        isLineDirectionReversed = data.IsLineDirectionReversed;
     }
 
     public Guid Id { get; }
@@ -109,6 +110,9 @@ public sealed partial class LabelElementViewModel : ObservableObject
         set => SetProperty(ref strokeThickness, Normalize(value, 0.25, 20));
     }
 
+    [ObservableProperty]
+    private bool isLineDirectionReversed;
+
     public LabelElementData ToData() => new()
     {
         Id = Id,
@@ -124,7 +128,8 @@ public sealed partial class LabelElementViewModel : ObservableObject
         IsItalic = IsItalic,
         IsUnderlined = IsUnderlined,
         TextAlignment = TextAlignment,
-        StrokeThickness = StrokeThickness
+        StrokeThickness = StrokeThickness,
+        IsLineDirectionReversed = IsLineDirectionReversed
     };
 
     private static double Normalize(double value, double minimum, double maximum) =>

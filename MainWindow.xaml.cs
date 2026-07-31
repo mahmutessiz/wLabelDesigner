@@ -114,26 +114,99 @@ public partial class MainWindow : Window
 
     private void DesignerItem_ResizeDelta(object sender, DragDeltaEventArgs e)
     {
-        if (sender is not Thumb { DataContext: LabelElementViewModel element } ||
+        if (sender is not Thumb { DataContext: LabelElementViewModel element } resizeThumb ||
             DataContext is not MainViewModel viewModel)
         {
             return;
         }
 
         const double millimetersPerDeviceIndependentPixel = 25.4d / 96d;
-        var maximumWidth = Math.Max(1, viewModel.LabelWidth - element.X);
-        var maximumHeight = Math.Max(1, viewModel.LabelHeight - element.Y);
+        var direction = resizeThumb.Tag as string ?? "SE";
+        var horizontalChange = e.HorizontalChange * millimetersPerDeviceIndependentPixel;
+        var verticalChange = e.VerticalChange * millimetersPerDeviceIndependentPixel;
 
-        element.Width = Math.Clamp(
-            element.Width + (e.HorizontalChange * millimetersPerDeviceIndependentPixel),
-            1,
-            maximumWidth);
-        element.Height = Math.Clamp(
-            element.Height + (e.VerticalChange * millimetersPerDeviceIndependentPixel),
-            1,
-            maximumHeight);
+        if (element.Kind == LabelElementKind.Line && direction is "LineStart" or "LineEnd")
+        {
+            ResizeLineEndpoint(
+                element,
+                direction,
+                horizontalChange,
+                verticalChange,
+                viewModel.LabelWidth,
+                viewModel.LabelHeight);
+            viewModel.SelectedElement = element;
+            e.Handled = true;
+            return;
+        }
+
+        var minimumWidth = element.Kind == LabelElementKind.Line ? 0.25 : 1;
+        var minimumHeight = element.Kind == LabelElementKind.Line ? 0.1 : 1;
+
+        var left = element.X;
+        var top = element.Y;
+        var right = element.X + element.Width;
+        var bottom = element.Y + element.Height;
+
+        if (direction.Contains('W'))
+        {
+            left = Math.Clamp(left + horizontalChange, 0, right - minimumWidth);
+        }
+        else if (direction.Contains('E'))
+        {
+            right = Math.Clamp(right + horizontalChange, left + minimumWidth, viewModel.LabelWidth);
+        }
+
+        if (direction.Contains('N'))
+        {
+            top = Math.Clamp(top + verticalChange, 0, bottom - minimumHeight);
+        }
+        else if (direction.Contains('S'))
+        {
+            bottom = Math.Clamp(bottom + verticalChange, top + minimumHeight, viewModel.LabelHeight);
+        }
+
+        element.X = left;
+        element.Y = top;
+        element.Width = right - left;
+        element.Height = bottom - top;
         viewModel.SelectedElement = element;
         e.Handled = true;
+    }
+
+    private static void ResizeLineEndpoint(
+        LabelElementViewModel element,
+        string endpoint,
+        double horizontalChange,
+        double verticalChange,
+        double labelWidth,
+        double labelHeight)
+    {
+        const double minimumLineSpan = 0.1;
+        var left = element.X;
+        var right = element.X + element.Width;
+        var leftY = element.IsLineDirectionReversed
+            ? element.Y + element.Height
+            : element.Y;
+        var rightY = element.IsLineDirectionReversed
+            ? element.Y
+            : element.Y + element.Height;
+
+        if (endpoint == "LineStart")
+        {
+            left = Math.Clamp(left + horizontalChange, 0, right - minimumLineSpan);
+            leftY = Math.Clamp(leftY + verticalChange, 0, labelHeight);
+        }
+        else
+        {
+            right = Math.Clamp(right + horizontalChange, left + minimumLineSpan, labelWidth);
+            rightY = Math.Clamp(rightY + verticalChange, 0, labelHeight);
+        }
+
+        element.X = left;
+        element.Y = Math.Min(leftY, rightY);
+        element.Width = right - left;
+        element.Height = Math.Max(minimumLineSpan, Math.Abs(rightY - leftY));
+        element.IsLineDirectionReversed = leftY > rightY;
     }
 
     private void InlineTextEditor_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)

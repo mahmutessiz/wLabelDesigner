@@ -67,10 +67,12 @@ public static class LabelDrawingRenderer
 
         if (element.Kind == LabelElementKind.Line)
         {
+            var start = element.IsLineDirectionReversed ? bounds.BottomLeft : bounds.TopLeft;
+            var end = element.IsLineDirectionReversed ? bounds.TopRight : bounds.BottomRight;
             drawingContext.DrawLine(
                 new Pen(Brushes.Black, element.StrokeThickness),
-                bounds.TopLeft,
-                bounds.BottomRight);
+                start,
+                end);
             return;
         }
 

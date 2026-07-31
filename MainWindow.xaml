@@ -106,6 +106,84 @@
             </Setter>
         </Style>
 
+        <Style x:Key="ResizeThumbStyle" TargetType="Thumb">
+            <Setter Property="Width" Value="9" />
+            <Setter Property="Height" Value="9" />
+            <Setter Property="Panel.ZIndex" Value="20" />
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border Background="White"
+                                BorderBrush="{StaticResource AccentBrush}"
+                                BorderThickness="1.5"
+                                CornerRadius="1" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="NonLineResizeThumbStyle" TargetType="Thumb" BasedOn="{StaticResource ResizeThumbStyle}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Line}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="LineResizeThumbStyle" TargetType="Thumb">
+            <Setter Property="Width" Value="11" />
+            <Setter Property="Height" Value="11" />
+            <Setter Property="Margin" Value="-5" />
+            <Setter Property="Panel.ZIndex" Value="21" />
+            <Setter Property="Cursor" Value="Cross" />
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Ellipse Fill="White" Stroke="{StaticResource AccentBrush}" StrokeThickness="2" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Line}" />
+                        <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="LineStartThumbStyle" TargetType="Thumb" BasedOn="{StaticResource LineResizeThumbStyle}">
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsLineDirectionReversed}" Value="True">
+                    <Setter Property="VerticalAlignment" Value="Bottom" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="LineEndThumbStyle" TargetType="Thumb" BasedOn="{StaticResource LineResizeThumbStyle}">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="VerticalAlignment" Value="Bottom" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsLineDirectionReversed}" Value="True">
+                    <Setter Property="VerticalAlignment" Value="Top" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <Style x:Key="DesignerItemStyle" TargetType="ListBoxItem">
             <Setter Property="Canvas.Left" Value="{Binding X, Converter={StaticResource MmToDip}}" />
             <Setter Property="Canvas.Top" Value="{Binding Y, Converter={StaticResource MmToDip}}" />
@@ -352,7 +430,7 @@
                             </ListBox.ItemsPanel>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid ClipToBounds="True" ToolTip="{Binding DisplayName}">
+                                    <Grid ClipToBounds="False" ToolTip="{Binding DisplayName}">
                                         <TextBlock x:Name="PreviewText"
                                                    Text="{Binding Content}"
                                                    FontFamily="{Binding FontFamily}"
@@ -411,22 +489,16 @@
                                                 </Style>
                                             </Thumb.Style>
                                         </Thumb>
-                                        <Thumb Width="10" Height="10" Margin="0,0,-5,-5" HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="SizeNWSE" DragDelta="DesignerItem_ResizeDelta">
-                                            <Thumb.Style>
-                                                <Style TargetType="Thumb">
-                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                    <Setter Property="Template">
-                                                        <Setter.Value>
-                                                            <ControlTemplate TargetType="Thumb"><Border Background="{StaticResource AccentBrush}" BorderBrush="White" BorderThickness="1" CornerRadius="1" /></ControlTemplate>
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger>
-                                                        <DataTrigger Binding="{Binding IsEditing}" Value="True"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Thumb.Style>
-                                        </Thumb>
+                                        <Thumb Tag="NW" Margin="-4,-4,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Cursor="SizeNWSE" Style="{StaticResource NonLineResizeThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
+                                        <Thumb Tag="N" Margin="0,-4,0,0" HorizontalAlignment="Center" VerticalAlignment="Top" Cursor="SizeNS" Style="{StaticResource NonLineResizeThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
+                                        <Thumb Tag="NE" Margin="0,-4,-4,0" HorizontalAlignment="Right" VerticalAlignment="Top" Cursor="SizeNESW" Style="{StaticResource NonLineResizeThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
+                                        <Thumb Tag="E" Margin="0,0,-4,0" HorizontalAlignment="Right" VerticalAlignment="Center" Cursor="SizeWE" Style="{StaticResource NonLineResizeThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
+                                        <Thumb Tag="SE" Margin="0,0,-4,-4" HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="SizeNWSE" Style="{StaticResource NonLineResizeThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
+                                        <Thumb Tag="S" Margin="0,0,0,-4" HorizontalAlignment="Center" VerticalAlignment="Bottom" Cursor="SizeNS" Style="{StaticResource NonLineResizeThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
+                                        <Thumb Tag="SW" Margin="-4,0,0,-4" HorizontalAlignment="Left" VerticalAlignment="Bottom" Cursor="SizeNESW" Style="{StaticResource NonLineResizeThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
+                                        <Thumb Tag="W" Margin="-4,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Cursor="SizeWE" Style="{StaticResource NonLineResizeThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
+                                        <Thumb Tag="LineStart" Style="{StaticResource LineStartThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
+                                        <Thumb Tag="LineEnd" Style="{StaticResource LineEndThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
                                     </Grid>
                                     <DataTemplate.Triggers>
                                         <DataTrigger Binding="{Binding IsEditing}" Value="True">
@@ -475,6 +547,10 @@
                                         <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Line}">
                                             <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
                                             <Setter TargetName="LinePreview" Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsLineDirectionReversed}" Value="True">
+                                            <Setter TargetName="LinePreview" Property="Y1" Value="100" />
+                                            <Setter TargetName="LinePreview" Property="Y2" Value="0" />
                                         </DataTrigger>
                                     </DataTemplate.Triggers>
                                 </DataTemplate>

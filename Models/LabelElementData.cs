@@ -29,4 +29,6 @@ public sealed class LabelElementData
     public TextAlignmentOption TextAlignment { get; set; } = TextAlignmentOption.Center;
 
     public double StrokeThickness { get; set; } = 1;
+
+    public bool IsLineDirectionReversed { get; set; }
 }
