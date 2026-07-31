@@ -27,4 +27,6 @@ public sealed class LabelElementData
     public bool IsUnderlined { get; set; }
 
     public TextAlignmentOption TextAlignment { get; set; } = TextAlignmentOption.Center;
+
+    public double StrokeThickness { get; set; } = 1;
 }

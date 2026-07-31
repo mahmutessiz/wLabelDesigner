@@ -40,9 +40,16 @@ public sealed partial class MainViewModel : ObservableObject
 
     public IReadOnlyList<double> CommonFontSizes { get; } = [8, 9, 10, 11, 12, 14, 16, 18, 24, 32, 48, 64, 72];
 
+    public IReadOnlyList<double> CommonStrokeWidths { get; } = [0.5, 0.75, 1, 1.5, 2, 3, 4, 6];
+
     public bool HasTextSelection => SelectedElement?.Kind == LabelElementKind.Text;
 
     public bool HasDataElementSelection => SelectedElement?.Kind is LabelElementKind.Barcode or LabelElementKind.QrCode;
+
+    public bool HasShapeSelection => SelectedElement?.Kind is
+        LabelElementKind.Rectangle or LabelElementKind.RoundedRectangle or LabelElementKind.Line;
+
+    public bool HasFormattingSelection => HasTextSelection || HasShapeSelection;
 
     public string WindowTitle => $"{DocumentName}{(IsDirty ? " *" : string.Empty)} — FckBarTender";
 
@@ -85,6 +92,8 @@ public sealed partial class MainViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(DeleteSelectedCommand))]
     [NotifyPropertyChangedFor(nameof(HasTextSelection))]
     [NotifyPropertyChangedFor(nameof(HasDataElementSelection))]
+    [NotifyPropertyChangedFor(nameof(HasShapeSelection))]
+    [NotifyPropertyChangedFor(nameof(HasFormattingSelection))]
     private LabelElementViewModel? selectedElement;
 
     [ObservableProperty]
@@ -125,6 +134,15 @@ public sealed partial class MainViewModel : ObservableObject
 
     [RelayCommand]
     private void AddQrCode() => AddElementAt(LabelElementKind.QrCode, 5, 5);
+
+    [RelayCommand]
+    private void AddRectangle() => AddElementAt(LabelElementKind.Rectangle, 5, 5);
+
+    [RelayCommand]
+    private void AddRoundedRectangle() => AddElementAt(LabelElementKind.RoundedRectangle, 5, 5);
+
+    [RelayCommand]
+    private void AddLine() => AddElementAt(LabelElementKind.Line, 5, 5);
 
     [RelayCommand(CanExecute = nameof(CanDeleteSelected))]
     private void DeleteSelected()
@@ -219,6 +237,9 @@ public sealed partial class MainViewModel : ObservableObject
             LabelElementKind.Text => ("Text", 40d, 10d),
             LabelElementKind.Barcode => ("123456789012", 50d, 16d),
             LabelElementKind.QrCode => ("https://example.com", 22d, 22d),
+            LabelElementKind.Rectangle => (string.Empty, 35d, 20d),
+            LabelElementKind.RoundedRectangle => (string.Empty, 35d, 20d),
+            LabelElementKind.Line => (string.Empty, 35d, 1d),
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unsupported label element type.")
         };
 

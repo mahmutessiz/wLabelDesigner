@@ -20,6 +20,9 @@ public sealed partial class LabelElementViewModel : ObservableObject
         isItalic = data.IsItalic;
         isUnderlined = data.IsUnderlined;
         textAlignment = data.TextAlignment;
+        strokeThickness = double.IsFinite(data.StrokeThickness)
+            ? Math.Clamp(data.StrokeThickness, 0.25, 20)
+            : 1;
     }
 
     public Guid Id { get; }
@@ -31,6 +34,9 @@ public sealed partial class LabelElementViewModel : ObservableObject
         LabelElementKind.Text => "Text",
         LabelElementKind.Barcode => "Barcode",
         LabelElementKind.QrCode => "QR code",
+        LabelElementKind.Rectangle => "Box",
+        LabelElementKind.RoundedRectangle => "Rounded box",
+        LabelElementKind.Line => "Line",
         _ => Kind.ToString()
     };
 
@@ -95,6 +101,14 @@ public sealed partial class LabelElementViewModel : ObservableObject
     [ObservableProperty]
     private TextAlignmentOption textAlignment;
 
+    private double strokeThickness;
+
+    public double StrokeThickness
+    {
+        get => strokeThickness;
+        set => SetProperty(ref strokeThickness, Normalize(value, 0.25, 20));
+    }
+
     public LabelElementData ToData() => new()
     {
         Id = Id,
@@ -109,7 +123,8 @@ public sealed partial class LabelElementViewModel : ObservableObject
         IsBold = IsBold,
         IsItalic = IsItalic,
         IsUnderlined = IsUnderlined,
-        TextAlignment = TextAlignment
+        TextAlignment = TextAlignment,
+        StrokeThickness = StrokeThickness
     };
 
     private static double Normalize(double value, double minimum, double maximum) =>

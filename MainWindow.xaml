@@ -40,10 +40,11 @@
         </Style>
 
         <Style x:Key="PaletteButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Height" Value="58" />
-            <Setter Property="Margin" Value="0,0,0,10" />
-            <Setter Property="Padding" Value="12,8" />
-            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Width" Value="44" />
+            <Setter Property="Height" Value="44" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
 
@@ -175,14 +176,14 @@
 
                 <Border Height="48" Background="#FAFBFC" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
                     <Grid Margin="14,0">
-                        <TextBlock Text="Select a text element to show formatting controls"
+                        <TextBlock Text="Select an element to show formatting controls"
                                    Foreground="{StaticResource MutedTextBrush}"
                                    VerticalAlignment="Center">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="Visible" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HasTextSelection}" Value="True">
+                                        <DataTrigger Binding="{Binding HasFormattingSelection}" Value="True">
                                             <Setter Property="Visibility" Value="Collapsed" />
                                         </DataTrigger>
                                     </Style.Triggers>
@@ -233,6 +234,17 @@
                                 <TextBlock Text="≡" Width="16" TextAlignment="Right" />
                             </RadioButton>
                         </StackPanel>
+                        <StackPanel Orientation="Horizontal"
+                                    VerticalAlignment="Center"
+                                    Visibility="{Binding HasShapeSelection, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="SHAPE" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,14,0" />
+                            <TextBlock Text="Stroke" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,7,0" />
+                            <ComboBox Width="76"
+                                      IsEditable="True"
+                                      ItemsSource="{Binding CommonStrokeWidths}"
+                                      Text="{Binding SelectedElement.StrokeThickness, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
+                            <TextBlock Text="px" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="6,0,0,0" />
+                        </StackPanel>
                     </Grid>
                 </Border>
             </StackPanel>
@@ -251,65 +263,63 @@
 
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="220" />
+                <ColumnDefinition Width="68" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Padding="16,20" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+            <Border Grid.Column="0" Padding="12,16" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
                 <StackPanel>
-                    <TextBlock Text="ELEMENTS" Style="{StaticResource SectionHeading}" />
-                    <TextBlock Text="Drag an element onto the label" Foreground="{StaticResource MutedTextBrush}" FontSize="12" Margin="0,0,0,16" />
                     <Button Tag="{x:Static models:LabelElementKind.Text}"
                             Click="AddTextButton_Click"
                             PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown"
                             PreviewMouseMove="ToolboxItem_PreviewMouseMove"
                             Style="{StaticResource PaletteButton}"
-                            ToolTip="Click to add, or drag onto the label">
-                        <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="38" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                            <Border Width="30" Height="30" Background="#EEF2FF" CornerRadius="5">
-                                <TextBlock Text="T" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock Text="Text" FontWeight="SemiBold" />
-                                <TextBlock Text="Headings and values" Foreground="{StaticResource MutedTextBrush}" FontSize="11" />
-                            </StackPanel>
-                        </Grid>
+                            ToolTip="Text — click to add or drag onto the label">
+                        <TextBlock Text="T" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" FontSize="18" />
                     </Button>
                     <Button Tag="{x:Static models:LabelElementKind.Barcode}"
                             Command="{Binding AddBarcodeCommand}"
                             PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown"
                             PreviewMouseMove="ToolboxItem_PreviewMouseMove"
                             Style="{StaticResource PaletteButton}"
-                            ToolTip="Click to add, or drag onto the label">
-                        <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="38" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                            <Border Width="30" Height="30" Background="#F0FDF4" CornerRadius="5">
-                                <TextBlock Text="▥" Foreground="#15803D" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock Text="Barcode" FontWeight="SemiBold" />
-                                <TextBlock Text="Code 128" Foreground="{StaticResource MutedTextBrush}" FontSize="11" />
-                            </StackPanel>
-                        </Grid>
+                            ToolTip="Barcode — click to add or drag onto the label">
+                        <TextBlock Text="▥" Foreground="#15803D" FontSize="20" />
                     </Button>
                     <Button Tag="{x:Static models:LabelElementKind.QrCode}"
                             Command="{Binding AddQrCodeCommand}"
                             PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown"
                             PreviewMouseMove="ToolboxItem_PreviewMouseMove"
                             Style="{StaticResource PaletteButton}"
-                            ToolTip="Click to add, or drag onto the label">
-                        <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="38" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                            <Border Width="30" Height="30" Background="#FFF7ED" CornerRadius="5">
-                                <TextBlock Text="▦" Foreground="#C2410C" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock Text="QR code" FontWeight="SemiBold" />
-                                <TextBlock Text="URLs and encoded data" Foreground="{StaticResource MutedTextBrush}" FontSize="11" />
-                            </StackPanel>
-                        </Grid>
+                            ToolTip="QR code — click to add or drag onto the label">
+                        <TextBlock Text="▦" Foreground="#C2410C" FontSize="20" />
+                    </Button>
+                    <Separator Margin="0,4,0,12" />
+                    <Button Tag="{x:Static models:LabelElementKind.Rectangle}"
+                            Command="{Binding AddRectangleCommand}"
+                            PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown"
+                            PreviewMouseMove="ToolboxItem_PreviewMouseMove"
+                            Style="{StaticResource PaletteButton}"
+                            ToolTip="Box — click to add or drag onto the label">
+                        <Border Width="20" Height="15" BorderBrush="{StaticResource TextBrush}" BorderThickness="1.5" />
+                    </Button>
+                    <Button Tag="{x:Static models:LabelElementKind.RoundedRectangle}"
+                            Command="{Binding AddRoundedRectangleCommand}"
+                            PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown"
+                            PreviewMouseMove="ToolboxItem_PreviewMouseMove"
+                            Style="{StaticResource PaletteButton}"
+                            ToolTip="Rounded box — click to add or drag onto the label">
+                        <Border Width="20" Height="15" BorderBrush="{StaticResource TextBrush}" BorderThickness="1.5" CornerRadius="4" />
+                    </Button>
+                    <Button Tag="{x:Static models:LabelElementKind.Line}"
+                            Command="{Binding AddLineCommand}"
+                            PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown"
+                            PreviewMouseMove="ToolboxItem_PreviewMouseMove"
+                            Style="{StaticResource PaletteButton}"
+                            ToolTip="Line — click to add or drag onto the label">
+                        <Border Width="22" Height="1.5" Background="{StaticResource TextBrush}" RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform><RotateTransform Angle="-20" /></Border.RenderTransform>
+                        </Border>
                     </Button>
                 </StackPanel>
             </Border>
@@ -363,6 +373,22 @@
                                                  Visibility="Collapsed"
                                                  LostKeyboardFocus="InlineTextEditor_LostKeyboardFocus"
                                                  PreviewKeyDown="InlineTextEditor_PreviewKeyDown" />
+                                        <Border x:Name="ShapePreview"
+                                                Margin="1"
+                                                Background="Transparent"
+                                                BorderBrush="Black"
+                                                BorderThickness="{Binding StrokeThickness}"
+                                                Visibility="Collapsed" />
+                                        <Line x:Name="LinePreview"
+                                              X1="0"
+                                              Y1="0"
+                                              X2="100"
+                                              Y2="100"
+                                              Stretch="Fill"
+                                              Stroke="Black"
+                                              StrokeThickness="{Binding StrokeThickness}"
+                                              SnapsToDevicePixels="True"
+                                              Visibility="Collapsed" />
                                         <Image x:Name="PreviewImage" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality" SnapsToDevicePixels="True" Visibility="Collapsed">
                                             <Image.Source>
                                                 <MultiBinding Converter="{StaticResource ElementImage}">
@@ -436,6 +462,19 @@
                                             <Setter TargetName="PreviewImage" Property="Visibility" Value="Visible" />
                                             <Setter TargetName="PreviewImage" Property="Stretch" Value="Uniform" />
                                             <Setter TargetName="PreviewImage" Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Rectangle}">
+                                            <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="ShapePreview" Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.RoundedRectangle}">
+                                            <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="ShapePreview" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="ShapePreview" Property="CornerRadius" Value="8" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Line}">
+                                            <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="LinePreview" Property="Visibility" Value="Visible" />
                                         </DataTrigger>
                                     </DataTemplate.Triggers>
                                 </DataTemplate>

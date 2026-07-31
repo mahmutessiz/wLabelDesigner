@@ -49,6 +49,31 @@ public static class LabelDrawingRenderer
             element.Width * DeviceIndependentPixelsPerMillimeter,
             element.Height * DeviceIndependentPixelsPerMillimeter);
 
+        if (element.Kind is LabelElementKind.Rectangle or LabelElementKind.RoundedRectangle)
+        {
+            var pen = new Pen(Brushes.Black, element.StrokeThickness);
+            var inset = pen.Thickness / 2;
+            var strokeBounds = new Rect(
+                bounds.Left + inset,
+                bounds.Top + inset,
+                Math.Max(0, bounds.Width - pen.Thickness),
+                Math.Max(0, bounds.Height - pen.Thickness));
+            var radius = element.Kind == LabelElementKind.RoundedRectangle
+                ? 3 * DeviceIndependentPixelsPerMillimeter
+                : 0;
+            drawingContext.DrawRoundedRectangle(null, pen, strokeBounds, radius, radius);
+            return;
+        }
+
+        if (element.Kind == LabelElementKind.Line)
+        {
+            drawingContext.DrawLine(
+                new Pen(Brushes.Black, element.StrokeThickness),
+                bounds.TopLeft,
+                bounds.BottomRight);
+            return;
+        }
+
         if (element.Kind == LabelElementKind.Text)
         {
             drawingContext.PushClip(new RectangleGeometry(bounds));

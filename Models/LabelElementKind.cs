@@ -4,5 +4,8 @@ public enum LabelElementKind
 {
     Text,
     Barcode,
-    QrCode
+    QrCode,
+    Rectangle,
+    RoundedRectangle,
+    Line
 }
