@@ -288,6 +288,19 @@
                 <Separator />
                 <MenuItem Header="Show _grid" IsCheckable="True" IsChecked="{Binding IsGridVisible}" />
                 <MenuItem Header="Show _rulers" IsCheckable="True" IsChecked="{Binding AreRulersVisible}" />
+                <Separator />
+                <MenuItem Header="Language">
+                    <MenuItem Header="English"
+                              IsCheckable="True"
+                              IsChecked="{Binding IsEnglish, Mode=OneWay}"
+                              Command="{Binding SetLanguageCommand}"
+                              CommandParameter="en" />
+                    <MenuItem Header="Turkish"
+                              IsCheckable="True"
+                              IsChecked="{Binding IsTurkish, Mode=OneWay}"
+                              Command="{Binding SetLanguageCommand}"
+                              CommandParameter="tr" />
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="_Arrange">
                 <MenuItem Header="Bring to _front" Command="{Binding BringToFrontCommand}" />

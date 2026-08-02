@@ -61,6 +61,10 @@
 - [x] Export labels to PNG.
 - [x] Export labels to PDF.
 
+## Localization
+
+- [x] Add Turkish language support.
+
 ## Reliability and document workflow
 
 - [x] Warn before closing or replacing a document with unsaved changes.

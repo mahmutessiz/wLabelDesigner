@@ -19,6 +19,7 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly IImageImportService? imageImportService;
     private readonly ILabelExportService? labelExportService;
     private readonly IUnsavedChangesPromptService? unsavedChangesPromptService;
+    private readonly ILanguageService? languageService;
     private readonly UndoHistory history = new();
     private readonly List<LabelElementViewModel> selectedElements = [];
     private string? currentPath;
@@ -44,7 +45,8 @@ public sealed partial class MainViewModel : ObservableObject
         IElementClipboard elementClipboard,
         IImageImportService? imageImportService = null,
         ILabelExportService? labelExportService = null,
-        IUnsavedChangesPromptService? unsavedChangesPromptService = null)
+        IUnsavedChangesPromptService? unsavedChangesPromptService = null,
+        ILanguageService? languageService = null)
     {
         this.documentStore = documentStore;
         this.fileDialogService = fileDialogService;
@@ -53,7 +55,9 @@ public sealed partial class MainViewModel : ObservableObject
         this.imageImportService = imageImportService;
         this.labelExportService = labelExportService;
         this.unsavedChangesPromptService = unsavedChangesPromptService;
+        this.languageService = languageService;
         InitializeNewDocument();
+        RefreshLocalization();
     }
 
     public ObservableCollection<LabelElementViewModel> Elements { get; } = [];
@@ -86,6 +90,10 @@ public sealed partial class MainViewModel : ObservableObject
         LabelElementKind.Rectangle or LabelElementKind.RoundedRectangle or LabelElementKind.Line;
 
     public bool HasFormattingSelection => selectedElements.Count > 0;
+
+    public bool IsEnglish => languageService?.IsTurkish != true;
+
+    public bool IsTurkish => languageService?.IsTurkish == true;
 
     public string WindowTitle => $"{DocumentName}{(IsDirty ? " *" : string.Empty)} — wLabel Designer";
 
@@ -168,6 +176,29 @@ public sealed partial class MainViewModel : ObservableObject
     partial void OnDocumentNameChanged(string value) => MarkDirty("document:name");
 
     partial void OnPrinterDpiChanged(int value) => MarkDirty("document:dpi");
+
+    [RelayCommand]
+    private void SetLanguage(string? language)
+    {
+        languageService?.SetLanguage(language ?? "en");
+        RefreshLocalization();
+    }
+
+    public void RefreshLocalization()
+    {
+        OnPropertyChanged(nameof(IsEnglish));
+        OnPropertyChanged(nameof(IsTurkish));
+        OnPropertyChanged(nameof(WindowTitle));
+        foreach (var element in Elements)
+        {
+            element.SetLanguage(languageService);
+        }
+
+        if (languageService is not null)
+        {
+            StatusMessage = languageService.Translate(StatusMessage);
+        }
+    }
 
     partial void OnSelectedElementChanged(LabelElementViewModel? value)
     {
@@ -819,6 +850,7 @@ public sealed partial class MainViewModel : ObservableObject
         {
             IsEditing = false
         };
+        element.SetLanguage(languageService);
 
         element.PropertyChanged += OnElementPropertyChanged;
         Elements.Add(element);
@@ -912,6 +944,7 @@ public sealed partial class MainViewModel : ObservableObject
         foreach (var data in document.Elements)
         {
             var element = new LabelElementViewModel(data);
+            element.SetLanguage(languageService);
             element.PropertyChanged += OnElementPropertyChanged;
             Elements.Add(element);
         }

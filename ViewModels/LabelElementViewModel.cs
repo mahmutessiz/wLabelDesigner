@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using wLabelDesigner.Models;
+using wLabelDesigner.Services;
 
 namespace wLabelDesigner.ViewModels;
 
@@ -33,7 +34,11 @@ public sealed partial class LabelElementViewModel : ObservableObject
 
     public LabelElementKind Kind { get; }
 
-    public string DisplayName => Kind switch
+    private string? localizedDisplayName;
+
+    public string DisplayName => localizedDisplayName ?? GetDefaultDisplayName();
+
+    private string GetDefaultDisplayName() => Kind switch
     {
         LabelElementKind.Text => "Text",
         LabelElementKind.Barcode => "Barcode",
@@ -44,6 +49,12 @@ public sealed partial class LabelElementViewModel : ObservableObject
         LabelElementKind.Image => "Image",
         _ => Kind.ToString()
     };
+
+    public void SetLanguage(ILanguageService? languageService)
+    {
+        localizedDisplayName = languageService?.Translate(GetDefaultDisplayName());
+        OnPropertyChanged(nameof(DisplayName));
+    }
 
     [ObservableProperty]
     private string content;

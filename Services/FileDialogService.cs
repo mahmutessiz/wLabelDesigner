@@ -13,7 +13,7 @@ public sealed class FileDialogService : IFileDialogService
             CheckFileExists = true,
             DefaultExt = ".fckbartndr",
             Filter = TemplateFilter,
-            Title = "Open label template"
+            Title = WpfLanguageService.Instance.IsTurkish ? "Etiket şablonu aç" : "Open label template"
         };
 
         return dialog.ShowDialog() == true ? dialog.FileName : null;
@@ -28,7 +28,7 @@ public sealed class FileDialogService : IFileDialogService
             FileName = suggestedFileName,
             Filter = TemplateFilter,
             OverwritePrompt = true,
-            Title = "Save label template"
+            Title = WpfLanguageService.Instance.IsTurkish ? "Etiket şablonunu kaydet" : "Save label template"
         };
 
         return dialog.ShowDialog() == true ? dialog.FileName : null;

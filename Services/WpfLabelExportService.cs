@@ -19,7 +19,7 @@ public sealed class WpfLabelExportService : ILabelExportService
             FileName = MakeSafeFileName(document.Name),
             Filter = "PNG image (*.png)|*.png",
             OverwritePrompt = true,
-            Title = "Export label as PNG"
+            Title = WpfLanguageService.Instance.IsTurkish ? "Etiketi PNG olarak dışa aktar" : "Export label as PNG"
         };
 
         if (dialog.ShowDialog() != true)
@@ -45,7 +45,7 @@ public sealed class WpfLabelExportService : ILabelExportService
             FileName = MakeSafeFileName(document.Name),
             Filter = "PDF document (*.pdf)|*.pdf",
             OverwritePrompt = true,
-            Title = "Export label as PDF"
+            Title = WpfLanguageService.Instance.IsTurkish ? "Etiketi PDF olarak dışa aktar" : "Export label as PDF"
         };
 
         if (dialog.ShowDialog() != true)

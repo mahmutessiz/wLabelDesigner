@@ -16,7 +16,7 @@ public sealed class WpfImageImportService : IImageImportService
         {
             CheckFileExists = true,
             Filter = ImageFilter,
-            Title = "Choose an image or logo"
+            Title = WpfLanguageService.Instance.IsTurkish ? "Görsel veya logo seç" : "Choose an image or logo"
         };
 
         if (dialog.ShowDialog() != true)

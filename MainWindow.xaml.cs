@@ -13,6 +13,7 @@ namespace wLabelDesigner;
 
 public partial class MainWindow : Window
 {
+    private readonly WpfLanguageService languageService = WpfLanguageService.Instance;
     private Point toolboxDragStart;
     private LabelElementViewModel? inlineEditingElement;
     private string? inlineEditOriginalContent;
@@ -45,9 +46,22 @@ public partial class MainWindow : Window
             new WpfElementClipboard(),
             new WpfImageImportService(),
             new WpfLabelExportService(),
-            new WpfUnsavedChangesPromptService());
+            new WpfUnsavedChangesPromptService(),
+            languageService);
         viewModel.PropertyChanged += MainViewModel_PropertyChanged;
         DataContext = viewModel;
+        languageService.LanguageChanged += LanguageService_LanguageChanged;
+        Loaded += (_, _) => languageService.Apply(this);
+        Closed += (_, _) => languageService.LanguageChanged -= LanguageService_LanguageChanged;
+    }
+
+    private void LanguageService_LanguageChanged(object? sender, EventArgs e)
+    {
+        languageService.Apply(this);
+        if (DataContext is MainViewModel viewModel)
+        {
+            viewModel.RefreshLocalization();
+        }
     }
 
     private void MainWindow_KeyDown(object sender, KeyEventArgs e)
@@ -795,7 +809,7 @@ public partial class MainWindow : Window
             if (await viewModel.ConfirmCloseAsync())
             {
                 isCloseApproved = true;
-                Close();
+                _ = Dispatcher.BeginInvoke(Close, DispatcherPriority.Normal);
             }
         }
         finally
