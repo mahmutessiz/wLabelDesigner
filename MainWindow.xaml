@@ -263,6 +263,8 @@
                 <MenuItem Header="_Save" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S" />
                 <MenuItem Header="_Print…" Command="{Binding PrintCommand}" InputGestureText="Ctrl+P" />
                 <Separator />
+                <MenuItem Header="Export as _PNG…" Command="{Binding ExportPngCommand}" />
+                <Separator />
                 <MenuItem Header="E_xit" Click="Exit_Click" />
             </MenuItem>
             <MenuItem Header="_Edit">

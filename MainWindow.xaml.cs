@@ -41,7 +41,8 @@ public partial class MainWindow : Window
             new FileDialogService(),
             new WpfLabelPrintService(),
             new WpfElementClipboard(),
-            new WpfImageImportService());
+            new WpfImageImportService(),
+            new WpfLabelExportService());
         viewModel.PropertyChanged += MainViewModel_PropertyChanged;
         DataContext = viewModel;
     }

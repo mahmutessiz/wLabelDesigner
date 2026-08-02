@@ -17,6 +17,7 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly ILabelPrintService printService;
     private readonly IElementClipboard elementClipboard;
     private readonly IImageImportService? imageImportService;
+    private readonly ILabelExportService? labelExportService;
     private readonly UndoHistory history = new();
     private readonly List<LabelElementViewModel> selectedElements = [];
     private string? currentPath;
@@ -40,13 +41,15 @@ public sealed partial class MainViewModel : ObservableObject
         IFileDialogService fileDialogService,
         ILabelPrintService printService,
         IElementClipboard elementClipboard,
-        IImageImportService? imageImportService = null)
+        IImageImportService? imageImportService = null,
+        ILabelExportService? labelExportService = null)
     {
         this.documentStore = documentStore;
         this.fileDialogService = fileDialogService;
         this.printService = printService;
         this.elementClipboard = elementClipboard;
         this.imageImportService = imageImportService;
+        this.labelExportService = labelExportService;
         NewDocument();
     }
 
@@ -622,6 +625,32 @@ public sealed partial class MainViewModel : ObservableObject
         finally
         {
             ApplyPrintSettings(document.PrintSettings);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ExportPngAsync(CancellationToken cancellationToken)
+    {
+        if (labelExportService is null)
+        {
+            StatusMessage = "PNG export is not available";
+            return;
+        }
+
+        try
+        {
+            var path = await labelExportService.ExportPngAsync(CreateDocument(), cancellationToken);
+            StatusMessage = path is null
+                ? "PNG export cancelled"
+                : $"PNG exported to {Path.GetFileName(path)}";
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "PNG export cancelled";
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidOperationException or NotSupportedException)
+        {
+            StatusMessage = $"Could not export PNG: {exception.Message}";
         }
     }
 
