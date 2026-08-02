@@ -259,6 +259,8 @@
     <DockPanel Background="{StaticResource CanvasWorkspaceBrush}">
         <Menu DockPanel.Dock="Top" Background="#F8F9FB" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
             <MenuItem Header="_File">
+                <MenuItem Header="_Welcome screen" Click="WelcomeScreen_Click" />
+                <Separator />
                 <MenuItem Header="_New" Command="{Binding NewDocumentCommand}" InputGestureText="Ctrl+N" />
                 <MenuItem Header="_Open…" Command="{Binding OpenCommand}" InputGestureText="Ctrl+O" />
                 <MenuItem Header="_Save" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S" />
@@ -321,12 +323,14 @@
                         <Button Content="Print" Command="{Binding PrintCommand}" Style="{StaticResource PrimaryActionButton}" Margin="8,0,2,0" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="🏠" Click="WelcomeScreen_Click" Style="{StaticResource TopActionButton}" ToolTip="Return to the welcome screen" />
+                        <Separator Margin="8,10" />
                         <Button Content="New" Command="{Binding NewDocumentCommand}" Style="{StaticResource TopActionButton}" />
                         <Button Content="Open" Command="{Binding OpenCommand}" Style="{StaticResource TopActionButton}" />
                         <Button Content="Save" Command="{Binding SaveCommand}" Style="{StaticResource TopActionButton}" />
                         <Separator Margin="8,10" />
-                        <Button Content="Undo" Command="{Binding UndoCommand}" Style="{StaticResource TopActionButton}" ToolTip="Undo (Ctrl+Z)" />
-                        <Button Content="Redo" Command="{Binding RedoCommand}" Style="{StaticResource TopActionButton}" ToolTip="Redo (Ctrl+Y)" />
+                        <Button Content="↶" Command="{Binding UndoCommand}" Style="{StaticResource TopActionButton}" ToolTip="Undo (Ctrl+Z)" />
+                        <Button Content="↷" Command="{Binding RedoCommand}" Style="{StaticResource TopActionButton}" ToolTip="Redo (Ctrl+Y)" />
                         <Separator Margin="8,10" />
                         <TextBlock Text="Label" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="4,0,6,0" />
                         <TextBox Width="160" Text="{Binding DocumentName, UpdateSourceTrigger=PropertyChanged}" />

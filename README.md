@@ -6,7 +6,7 @@ The application is built with .NET 10, WPF, and MVVM.
 
 ## Current features
 
-- Welcome screen with shipping, product, shelf, and QR contact starter layouts.
+- Welcome screen with cheese-pallet shipping, general shipping, product, shelf, and QR contact starter layouts.
 - Canvas-based label editor using physical millimetre dimensions.
 - Text, Code 128 barcode, QR code, box, rounded-box, and line elements.
 - Drag-to-place element palette.
@@ -62,6 +62,8 @@ Close any running copy of the application before rebuilding the normal output pa
 9. Press Print to review the label, select a printer, choose the copy count, and print.
 
 Click empty workspace or press Escape to clear the current selection. Selected elements are temporarily displayed above overlapping elements while editing without changing the saved or printed layer order.
+
+Use **Welcome** in the main toolbar or **File → Welcome screen** to return to the starter layouts. If the current label has unsaved changes, the application asks whether to save it before replacing the document.
 
 ## Keyboard shortcuts
 

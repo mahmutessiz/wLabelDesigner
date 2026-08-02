@@ -5,6 +5,27 @@ public static class PredefinedLabelLayouts
     public static IReadOnlyList<PredefinedLabelLayout> All { get; } =
     [
         new(
+            "Cheese pallet · Standard",
+            "100 × 100 mm pallet label with destination, carton count, lot, weight, and SSCC.",
+            100,
+            100,
+            203,
+            CreateStandardCheesePalletLabel),
+        new(
+            "Cheese pallet · Export",
+            "Export shipping layout with consignee, origin, dates, carton count, and pallet ID.",
+            100,
+            100,
+            203,
+            CreateExportCheesePalletLabel),
+        new(
+            "Cheese pallet · Cold chain",
+            "Cold-storage pallet layout with handling notice, destination, cartons, lot, and QR traceability.",
+            100,
+            100,
+            203,
+            CreateColdChainCheesePalletLabel),
+        new(
             "Shipping label",
             "Recipient, address, tracking barcode, and order reference.",
             100,
@@ -33,6 +54,74 @@ public static class PredefinedLabelLayouts
             300,
             CreateQrContactCard)
     ];
+
+    private static LabelDocument CreateStandardCheesePalletLabel() => new()
+    {
+        Name = "Cheese pallet · Standard",
+        WidthMillimeters = 100,
+        HeightMillimeters = 100,
+        PrinterDpi = 203,
+        Elements =
+        [
+            Text("YOUR COMPANY NAME", 4, 4, 92, 8, 16, bold: true, alignment: TextAlignmentOption.Left),
+            Line(4, 13, 92),
+            Text("SHIP TO", 4, 16, 19, 6, 9, bold: true, alignment: TextAlignmentOption.Left),
+            Text("Customer / warehouse name\nStreet, city, postal code\nCountry", 24, 16, 72, 18, 10, alignment: TextAlignmentOption.Left),
+            Line(4, 36, 92),
+            Text("CHEESE PRODUCT NAME", 4, 39, 58, 8, 13, bold: true, alignment: TextAlignmentOption.Left),
+            Text("CARTONS\n48", 65, 39, 31, 17, 15, bold: true),
+            Text("LOT: LOT-0001\nNET WT: 480 kg\nPALLET: 1 OF 1", 4, 49, 58, 18, 10, alignment: TextAlignmentOption.Left),
+            Barcode("003761234567890123", 9, 70, 82, 17),
+            Text("SSCC 003761234567890123", 4, 88, 92, 6, 9),
+            Rectangle(2, 2, 96, 96, 1.2)
+        ]
+    };
+
+    private static LabelDocument CreateExportCheesePalletLabel() => new()
+    {
+        Name = "Cheese pallet · Export",
+        WidthMillimeters = 100,
+        HeightMillimeters = 100,
+        PrinterDpi = 203,
+        Elements =
+        [
+            Text("YOUR COMPANY NAME · EXPORT", 4, 4, 92, 8, 15, bold: true, alignment: TextAlignmentOption.Left),
+            Line(4, 13, 92),
+            Text("CONSIGNEE / DESTINATION", 4, 16, 92, 6, 9, bold: true, alignment: TextAlignmentOption.Left),
+            Text("Importer or distribution center\nStreet, city, postal code · COUNTRY", 4, 23, 92, 13, 10, alignment: TextAlignmentOption.Left),
+            Line(4, 38, 92),
+            Text("PRODUCT: CHEESE TYPE / FORMAT\nORIGIN: COUNTRY OF ORIGIN\nLOT: LOT-0001", 4, 41, 58, 18, 9, alignment: TextAlignmentOption.Left),
+            Text("CARTONS\n60", 66, 41, 30, 17, 15, bold: true),
+            Text("PRODUCED: 2026-01-01\nBEST BEFORE: 2026-12-31\nNET / GROSS: 600 / 625 kg", 4, 61, 92, 15, 9, alignment: TextAlignmentOption.Left),
+            Barcode("003761234567890130", 9, 78, 82, 13),
+            Text("PALLET ID / SSCC: 003761234567890130", 4, 92, 92, 5, 8),
+            Rectangle(2, 2, 96, 96, 1.2)
+        ]
+    };
+
+    private static LabelDocument CreateColdChainCheesePalletLabel() => new()
+    {
+        Name = "Cheese pallet · Cold chain",
+        WidthMillimeters = 100,
+        HeightMillimeters = 100,
+        PrinterDpi = 203,
+        Elements =
+        [
+            Text("YOUR COMPANY NAME", 4, 4, 92, 7, 14, bold: true, alignment: TextAlignmentOption.Left),
+            Text("KEEP REFRIGERATED · +2 °C TO +6 °C", 4, 13, 92, 9, 12, bold: true),
+            Rectangle(3, 12, 94, 11, 1.5),
+            Text("DESTINATION", 4, 26, 22, 6, 9, bold: true, alignment: TextAlignmentOption.Left),
+            Text("Customer / cold store\nStreet, city, postal code", 27, 26, 69, 13, 9, alignment: TextAlignmentOption.Left),
+            Line(4, 41, 92),
+            Text("CHEESE PRODUCT NAME\nLOT: LOT-0001\nPACK: 10 kg", 4, 44, 55, 18, 10, bold: true, alignment: TextAlignmentOption.Left),
+            Text("CARTONS\n48", 63, 44, 25, 17, 15, bold: true),
+            QrCode("PALLET:003761234567890147|LOT:LOT-0001|CARTONS:48", 76, 64, 20),
+            Text("PALLET 1 OF 1\nNET WT: 480 kg\nDISPATCH: 2026-01-01", 4, 65, 68, 16, 9, alignment: TextAlignmentOption.Left),
+            Barcode("003761234567890147", 8, 83, 64, 12),
+            Text("SSCC 003761234567890147", 4, 95, 68, 3, 7),
+            Rectangle(2, 2, 96, 96, 1.2)
+        ]
+    };
 
     private static LabelDocument CreateShippingLabel() => new()
     {

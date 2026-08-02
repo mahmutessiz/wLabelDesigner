@@ -10,7 +10,7 @@ public sealed class PredefinedLabelLayoutTests
     [Fact]
     public void StarterLayouts_HaveSupportedDimensionsAndBoundedElements()
     {
-        Assert.Equal(4, PredefinedLabelLayouts.All.Count);
+        Assert.Equal(7, PredefinedLabelLayouts.All.Count);
 
         foreach (var layout in PredefinedLabelLayouts.All)
         {
@@ -30,6 +30,30 @@ public sealed class PredefinedLabelLayoutTests
                 Assert.True(element.Y + element.Height <= document.HeightMillimeters);
             });
         }
+    }
+
+    [Fact]
+    public void CheesePalletLayouts_AreSquareAndContainRequiredShippingFields()
+    {
+        var cheesePalletLayouts = PredefinedLabelLayouts.All
+            .Where(layout => layout.Name.StartsWith("Cheese pallet", StringComparison.Ordinal))
+            .ToArray();
+
+        Assert.Equal(3, cheesePalletLayouts.Length);
+        Assert.All(cheesePalletLayouts, layout =>
+        {
+            var document = layout.CreateDocument();
+            var text = string.Join('\n', document.Elements.Select(element => element.Content));
+
+            Assert.Equal(100, document.WidthMillimeters);
+            Assert.Equal(100, document.HeightMillimeters);
+            Assert.Contains("COMPANY", text, StringComparison.OrdinalIgnoreCase);
+            Assert.True(
+                text.Contains("DESTINATION", StringComparison.OrdinalIgnoreCase) ||
+                text.Contains("SHIP TO", StringComparison.OrdinalIgnoreCase));
+            Assert.Contains("CARTONS", text, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(document.Elements, element => element.Kind == LabelElementKind.Barcode);
+        });
     }
 
     [Fact]

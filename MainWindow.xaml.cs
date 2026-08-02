@@ -36,6 +36,8 @@ public partial class MainWindow : Window
     private bool isCloseApproved;
     private bool isClosePromptActive;
 
+    public event EventHandler? WelcomeScreenRequested;
+
     public MainWindow()
         : this(new MainViewModel(
             new JsonLabelDocumentStore(),
@@ -164,6 +166,9 @@ public partial class MainWindow : Window
     }
 
     private void Help_Click(object sender, RoutedEventArgs e) => ShowHelp();
+
+    private void WelcomeScreen_Click(object sender, RoutedEventArgs e) =>
+        WelcomeScreenRequested?.Invoke(this, EventArgs.Empty);
 
     private void ShowHelp()
     {
@@ -793,6 +798,12 @@ public partial class MainWindow : Window
     }
 
     private void Exit_Click(object sender, RoutedEventArgs e) => Close();
+
+    internal void CloseWithoutPrompt()
+    {
+        isCloseApproved = true;
+        Close();
+    }
 
     private async void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
