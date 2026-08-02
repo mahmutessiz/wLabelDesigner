@@ -7,5 +7,6 @@ public enum LabelElementKind
     QrCode,
     Rectangle,
     RoundedRectangle,
-    Line
+    Line,
+    Image
 }

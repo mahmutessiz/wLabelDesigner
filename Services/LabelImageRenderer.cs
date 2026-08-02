@@ -8,6 +8,8 @@ namespace wLabelDesigner.Services;
 
 public static class LabelImageRenderer
 {
+    private const int MaximumEmbeddedImageBytes = 25 * 1024 * 1024;
+
     public static BitmapSource? Render(LabelElementKind kind, string content)
     {
         if (string.IsNullOrWhiteSpace(content))
@@ -19,6 +21,7 @@ public static class LabelImageRenderer
         {
             LabelElementKind.Barcode => CreateBarcode(content),
             LabelElementKind.QrCode => CreateQrCode(content),
+            LabelElementKind.Image => DecodeEmbeddedImage(content),
             _ => null
         };
 
@@ -51,15 +54,53 @@ public static class LabelImageRenderer
         return qrCode.GetGraphic(pixelsPerModule: 12, drawQuietZones: true);
     }
 
-    private static BitmapImage CreateBitmap(byte[] imageBytes)
+    private static byte[]? DecodeEmbeddedImage(string content)
     {
-        using var stream = new MemoryStream(imageBytes, writable: false);
-        var bitmap = new BitmapImage();
-        bitmap.BeginInit();
-        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-        bitmap.StreamSource = stream;
-        bitmap.EndInit();
-        bitmap.Freeze();
-        return bitmap;
+        const string marker = ";base64,";
+        if (!content.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        var markerIndex = content.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+        if (markerIndex < 0)
+        {
+            return null;
+        }
+
+        var encoded = content[(markerIndex + marker.Length)..];
+        if (encoded.Length > ((MaximumEmbeddedImageBytes + 2L) / 3L) * 4L)
+        {
+            return null;
+        }
+
+        try
+        {
+            var bytes = Convert.FromBase64String(encoded);
+            return bytes.Length <= MaximumEmbeddedImageBytes ? bytes : null;
+        }
+        catch (FormatException)
+        {
+            return null;
+        }
+    }
+
+    private static BitmapImage? CreateBitmap(byte[] imageBytes)
+    {
+        try
+        {
+            using var stream = new MemoryStream(imageBytes, writable: false);
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.StreamSource = stream;
+            bitmap.EndInit();
+            bitmap.Freeze();
+            return bitmap;
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or NotSupportedException)
+        {
+            return null;
+        }
     }
 }

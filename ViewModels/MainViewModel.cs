@@ -16,6 +16,7 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly IFileDialogService fileDialogService;
     private readonly ILabelPrintService printService;
     private readonly IElementClipboard elementClipboard;
+    private readonly IImageImportService? imageImportService;
     private readonly UndoHistory history = new();
     private readonly List<LabelElementViewModel> selectedElements = [];
     private string? currentPath;
@@ -32,12 +33,14 @@ public sealed partial class MainViewModel : ObservableObject
         ILabelDocumentStore documentStore,
         IFileDialogService fileDialogService,
         ILabelPrintService printService,
-        IElementClipboard elementClipboard)
+        IElementClipboard elementClipboard,
+        IImageImportService? imageImportService = null)
     {
         this.documentStore = documentStore;
         this.fileDialogService = fileDialogService;
         this.printService = printService;
         this.elementClipboard = elementClipboard;
+        this.imageImportService = imageImportService;
         NewDocument();
     }
 
@@ -212,6 +215,9 @@ public sealed partial class MainViewModel : ObservableObject
 
     [RelayCommand]
     private void AddLine() => AddElementAt(LabelElementKind.Line, 5, 5);
+
+    [RelayCommand]
+    private void AddImage() => AddImageAt(5, 5);
 
     [RelayCommand(CanExecute = nameof(CanDeleteSelected))]
     private void DeleteSelected()
@@ -642,6 +648,51 @@ public sealed partial class MainViewModel : ObservableObject
         }} added");
         element.IsEditing = beginEditing;
         return element;
+    }
+
+    public LabelElementViewModel? AddImageAt(double x, double y)
+    {
+        if (imageImportService is null)
+        {
+            StatusMessage = "Image importing is not available";
+            return null;
+        }
+
+        try
+        {
+            var importedImage = imageImportService.ImportImage();
+            if (importedImage is null)
+            {
+                StatusMessage = "Image import cancelled";
+                return null;
+            }
+
+            var aspectRatio = (double)importedImage.PixelWidth / importedImage.PixelHeight;
+            var maximumWidth = Math.Min(40, LabelWidth);
+            var maximumHeight = Math.Min(30, LabelHeight);
+            var width = maximumWidth;
+            var height = width / aspectRatio;
+            if (height > maximumHeight)
+            {
+                height = maximumHeight;
+                width = height * aspectRatio;
+            }
+
+            return AddElementData(new LabelElementData
+            {
+                Kind = LabelElementKind.Image,
+                Content = importedImage.DataUri,
+                X = Math.Clamp(x, 0, Math.Max(0, LabelWidth - width)),
+                Y = Math.Clamp(y, 0, Math.Max(0, LabelHeight - height)),
+                Width = width,
+                Height = height
+            }, "Image added");
+        }
+        catch (Exception exception) when (exception is IOException or InvalidDataException or NotSupportedException or UnauthorizedAccessException)
+        {
+            StatusMessage = $"Could not import image: {exception.Message}";
+            return null;
+        }
     }
 
     private LabelElementViewModel AddElementData(LabelElementData data, string statusMessage)

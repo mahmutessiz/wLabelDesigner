@@ -40,7 +40,8 @@ public partial class MainWindow : Window
             new JsonLabelDocumentStore(),
             new FileDialogService(),
             new WpfLabelPrintService(),
-            new WpfElementClipboard());
+            new WpfElementClipboard(),
+            new WpfImageImportService());
         viewModel.PropertyChanged += MainViewModel_PropertyChanged;
         DataContext = viewModel;
     }
@@ -258,11 +259,18 @@ public partial class MainWindow : Window
 
         const double millimetersPerDeviceIndependentPixel = 25.4d / 96d;
         var dropPosition = e.GetPosition(DesignerCanvas);
-        var element = viewModel.AddElementAt(
-            kind,
-            dropPosition.X * millimetersPerDeviceIndependentPixel,
-            dropPosition.Y * millimetersPerDeviceIndependentPixel,
-            beginEditing: kind == LabelElementKind.Text);
+        var x = dropPosition.X * millimetersPerDeviceIndependentPixel;
+        var y = dropPosition.Y * millimetersPerDeviceIndependentPixel;
+        var element = kind == LabelElementKind.Image
+            ? viewModel.AddImageAt(x, y)
+            : viewModel.AddElementAt(kind, x, y, beginEditing: kind == LabelElementKind.Text);
+
+        if (element is null)
+        {
+            e.Effects = DragDropEffects.None;
+            e.Handled = true;
+            return;
+        }
 
         if (kind == LabelElementKind.Text)
         {

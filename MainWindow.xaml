@@ -516,6 +516,18 @@
                             ToolTip="QR code — click to add or drag onto the label">
                         <TextBlock Text="⚄" Foreground="#C2410C" FontSize="20" />
                     </Button>
+                    <Button Tag="{x:Static models:LabelElementKind.Image}"
+                            Command="{Binding AddImageCommand}"
+                            PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown"
+                            PreviewMouseMove="ToolboxItem_PreviewMouseMove"
+                            Style="{StaticResource PaletteButton}"
+                            ToolTip="Image or logo — click to import or drag onto the label">
+                        <Grid Width="22" Height="18">
+                            <Border BorderBrush="#0369A1" BorderThickness="1.5" CornerRadius="2" />
+                            <Path Data="M 3,14 L 8,9 L 11,12 L 14,8 L 19,14 Z" Fill="#0EA5E9" />
+                            <Ellipse Width="4" Height="4" Fill="#F59E0B" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,3,3,0" />
+                        </Grid>
+                    </Button>
                     <Separator Margin="0,4,0,12" />
                     <Button Tag="{x:Static models:LabelElementKind.Rectangle}"
                             Command="{Binding AddRectangleCommand}"
@@ -774,6 +786,12 @@
                                             <Setter TargetName="PreviewImage" Property="Visibility" Value="Visible" />
                                             <Setter TargetName="PreviewImage" Property="Stretch" Value="Uniform" />
                                             <Setter TargetName="PreviewImage" Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Image}">
+                                            <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="PreviewImage" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="PreviewImage" Property="Stretch" Value="Uniform" />
+                                            <Setter TargetName="PreviewImage" Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Rectangle}">
                                             <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
