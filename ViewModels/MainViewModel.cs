@@ -70,7 +70,7 @@ public sealed partial class MainViewModel : ObservableObject
     public bool HasShapeSelection => selectedElements.Count == 1 && SelectedElement?.Kind is
         LabelElementKind.Rectangle or LabelElementKind.RoundedRectangle or LabelElementKind.Line;
 
-    public bool HasFormattingSelection => HasTextSelection || HasShapeSelection || HasMultipleSelection;
+    public bool HasFormattingSelection => selectedElements.Count > 0;
 
     public string WindowTitle => $"{DocumentName}{(IsDirty ? " *" : string.Empty)} — wLabel Designer";
 

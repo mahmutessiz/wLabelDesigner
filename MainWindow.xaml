@@ -43,6 +43,14 @@
             <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
         </Style>
 
+        <Style x:Key="LockSensitiveToolbarPanel" TargetType="StackPanel">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding SelectedElement.IsLocked}" Value="True">
+                    <Setter Property="IsEnabled" Value="False" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <Style x:Key="PaletteButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="Width" Value="44" />
             <Setter Property="Height" Value="44" />
@@ -334,15 +342,12 @@
 
                 <Border Height="48" Background="#FAFBFC" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
                     <Grid Margin="14,0">
-                        <Grid.Style>
-                            <Style TargetType="Grid">
-                                <Setter Property="IsEnabled" Value="True" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding SelectedElement.IsLocked}" Value="True"><Setter Property="IsEnabled" Value="False" /></DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Grid.Style>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
                         <TextBlock Text="Select an element to show formatting controls"
+                                   Grid.ColumnSpan="2"
                                    Foreground="{StaticResource MutedTextBrush}"
                                    VerticalAlignment="Center">
                             <TextBlock.Style>
@@ -357,6 +362,8 @@
                             </TextBlock.Style>
                         </TextBlock>
                         <StackPanel Orientation="Horizontal"
+                                    Grid.Column="0"
+                                    Style="{StaticResource LockSensitiveToolbarPanel}"
                                     VerticalAlignment="Center"
                                     Visibility="{Binding HasTextSelection, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="TEXT" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,14,0" />
@@ -401,6 +408,8 @@
                             </RadioButton>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal"
+                                    Grid.Column="0"
+                                    Style="{StaticResource LockSensitiveToolbarPanel}"
                                     VerticalAlignment="Center"
                                     Visibility="{Binding HasShapeSelection, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="SHAPE" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,14,0" />
@@ -412,6 +421,7 @@
                             <TextBlock Text="px" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="6,0,0,0" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal"
+                                    Grid.Column="0"
                                     VerticalAlignment="Center"
                                     Visibility="{Binding HasMultipleSelection, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="MULTI" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,14,0" />
@@ -425,6 +435,61 @@
                             <Separator Margin="6,8" />
                             <Button Content="Space H" Command="{Binding DistributeSelectionCommand}" CommandParameter="Horizontal" Style="{StaticResource TopActionButton}" ToolTip="Distribute horizontally (3 or more)" />
                             <Button Content="Space V" Command="{Binding DistributeSelectionCommand}" CommandParameter="Vertical" Style="{StaticResource TopActionButton}" ToolTip="Distribute vertically (3 or more)" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="0"
+                                    Orientation="Horizontal"
+                                    Style="{StaticResource LockSensitiveToolbarPanel}"
+                                    VerticalAlignment="Center"
+                                    Visibility="{Binding HasDataElementSelection, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="DATA" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,14,0" />
+                            <TextBlock Text="Content" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,7,0" />
+                            <TextBox Width="300"
+                                     Text="{Binding SelectedElement.Content, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Barcode or QR code content" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    VerticalAlignment="Center"
+                                    Margin="16,0,0,0"
+                                    Visibility="{Binding HasSingleSelection, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="{Binding SelectedElement.DisplayName, Mode=OneWay}"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,12,0" />
+                            <CheckBox Content="Visible" IsChecked="{Binding SelectedElement.IsVisible}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                            <CheckBox Content="Locked" IsChecked="{Binding SelectedElement.IsLocked}" VerticalAlignment="Center" Margin="0,0,14,0" />
+                            <TextBlock Text="Rotate" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                            <TextBox Width="58"
+                                     Text="{Binding SelectedElement.RotationDegrees, UpdateSourceTrigger=LostFocus}"
+                                     ToolTip="Rotation in degrees">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedElement.IsLocked}" Value="True">
+                                                <Setter Property="IsEnabled" Value="False" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                            <TextBlock Text="°" VerticalAlignment="Center" Margin="4,0,6,0" />
+                            <Slider Width="110"
+                                    Minimum="-180"
+                                    Maximum="180"
+                                    Value="{Binding SelectedElement.RotationDegrees}"
+                                    TickFrequency="15"
+                                    IsSnapToTickEnabled="False"
+                                    ToolTip="Rotate selected element">
+                                <Slider.Style>
+                                    <Style TargetType="Slider" BasedOn="{StaticResource {x:Type Slider}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedElement.IsLocked}" Value="True">
+                                                <Setter Property="IsEnabled" Value="False" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Slider.Style>
+                            </Slider>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -784,49 +849,6 @@
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1,0,0,0">
                 <DockPanel>
-                <StackPanel DockPanel.Dock="Top" Visibility="{Binding HasSingleSelection, Converter={StaticResource BoolToVisibility}}">
-                    <TextBlock Text="ELEMENT" Style="{StaticResource SectionHeading}" />
-                    <TextBlock Text="{Binding SelectedElement.DisplayName, Mode=OneWay}" FontSize="18" FontWeight="SemiBold" />
-                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                        <CheckBox Content="Visible" IsChecked="{Binding SelectedElement.IsVisible}" Margin="0,0,16,0" />
-                        <CheckBox Content="Locked" IsChecked="{Binding SelectedElement.IsLocked}" />
-                    </StackPanel>
-                    <StackPanel>
-                        <StackPanel.Style>
-                            <Style TargetType="StackPanel">
-                                <Setter Property="IsEnabled" Value="True" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding SelectedElement.IsLocked}" Value="True"><Setter Property="IsEnabled" Value="False" /></DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </StackPanel.Style>
-                    <TextBlock Text="Rotation" Style="{StaticResource FieldLabel}" />
-                    <DockPanel>
-                        <TextBlock DockPanel.Dock="Right" Text="°" VerticalAlignment="Center" Margin="5,0,0,0" />
-                        <TextBox Text="{Binding SelectedElement.RotationDegrees, UpdateSourceTrigger=LostFocus}" />
-                    </DockPanel>
-                    <Slider Minimum="-180" Maximum="180"
-                            Value="{Binding SelectedElement.RotationDegrees}"
-                            TickFrequency="15"
-                            IsSnapToTickEnabled="False"
-                            Margin="0,8,0,4" />
-                    <StackPanel Visibility="{Binding HasDataElementSelection, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="Encoded content" Style="{StaticResource FieldLabel}" />
-                        <TextBox Text="{Binding SelectedElement.Content, UpdateSourceTrigger=PropertyChanged}"
-                                 AcceptsReturn="True"
-                                 MinHeight="110"
-                                 Padding="9"
-                                 VerticalContentAlignment="Top"
-                                 TextWrapping="Wrap" />
-                        <TextBlock Text="The preview updates automatically as you type."
-                                   Foreground="{StaticResource MutedTextBrush}"
-                                   FontSize="12"
-                                   TextWrapping="Wrap"
-                                   Margin="0,8,0,0" />
-                    </StackPanel>
-                    </StackPanel>
-                </StackPanel>
-                <DockPanel Margin="0,18,0,0">
                     <TextBlock DockPanel.Dock="Top" Text="LAYERS · FRONT TO BACK" Style="{StaticResource SectionHeading}" />
                     <UniformGrid DockPanel.Dock="Bottom" Columns="4" Margin="0,10,0,0">
                         <Button Content="Front" Command="{Binding BringToFrontCommand}" ToolTip="Bring to front" Margin="2" Padding="4" />
@@ -854,7 +876,6 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                </DockPanel>
                 </DockPanel>
             </Border>
         </Grid>
