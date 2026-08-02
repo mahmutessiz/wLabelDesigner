@@ -98,7 +98,7 @@ public static class LabelImageRenderer
             bitmap.Freeze();
             return bitmap;
         }
-        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or NotSupportedException)
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or NotSupportedException or IOException)
         {
             return null;
         }

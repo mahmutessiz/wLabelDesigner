@@ -41,7 +41,7 @@
 
 ## Elements
 
-- [ ] Add an image/logo element.
+- [x] Add an image/logo element.
 - [ ] Support image crop, contain, cover, and stretch modes.
 - [ ] Allow image aspect ratio to be locked.
 - [ ] Add more basic shapes as required.
@@ -57,20 +57,9 @@
 - [ ] Add barcode and QR foreground/background colors.
 - [ ] Allow a logo to be embedded in QR codes.
 
-## Data and batch printing
-
-- [ ] Import CSV files as data sources.
-- [ ] Add variable fields such as `{ProductName}`, `{Price}`, and `{Barcode}`.
-- [ ] Preview a label using any selected CSV row.
-- [ ] Print one label per CSV row.
-- [ ] Support configurable copies per row.
-- [ ] Report invalid or missing variable values before printing.
-
 ## Printing and export
 
-- [ ] Add printer margin and X/Y offset calibration.
-- [ ] Add thermal-printer darkness and speed settings where supported.
-- [ ] Add a calibration and test-print workflow.
+- [x] Add printer margin and X/Y offset calibration.
 - [ ] Export labels to PNG.
 - [ ] Export labels to PDF.
 

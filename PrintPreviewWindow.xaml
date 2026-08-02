@@ -16,6 +16,10 @@
             <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
             <Setter Property="Foreground" Value="White" />
         </Style>
+        <Style x:Key="CalibrationTextBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Width" Value="112" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
     </Window.Resources>
 
     <Grid Background="White">
@@ -48,15 +52,23 @@
                         <Border.Effect>
                             <DropShadowEffect BlurRadius="18" ShadowDepth="4" Opacity="0.2" />
                         </Border.Effect>
-                        <Image Source="{Binding PreviewImage}"
-                               Stretch="Fill"
-                               SnapsToDevicePixels="True"
-                               RenderOptions.BitmapScalingMode="HighQuality" />
+                        <Grid>
+                            <Image Source="{Binding PreviewImage}"
+                                   Stretch="Fill"
+                                   SnapsToDevicePixels="True"
+                                   RenderOptions.BitmapScalingMode="HighQuality" />
+                            <Rectangle Margin="{Binding PreviewMargin}"
+                                       Stroke="#7C3AED"
+                                       StrokeThickness="1"
+                                       StrokeDashArray="4,3"
+                                       IsHitTestVisible="False" />
+                        </Grid>
                     </Border>
                 </Viewbox>
             </Grid>
 
             <Border Grid.Column="1" Padding="24" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,0,0,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel>
                     <TextBlock Text="PRINT SETTINGS" Style="{StaticResource SectionHeading}" />
                     <TextBlock Text="Printer" Style="{StaticResource FieldLabel}" />
@@ -101,7 +113,50 @@
                                 Command="{Binding IncreaseCopiesCommand}" />
                     </Grid>
 
-                    <Border Margin="0,28,0,0" Padding="14" Background="#F8F9FB" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="5">
+                    <TextBlock Text="Printer margins (mm)" Style="{StaticResource FieldLabel}" Margin="0,22,0,6" />
+                    <UniformGrid Columns="2" Rows="2">
+                        <StackPanel Margin="0,0,8,10">
+                            <TextBlock Text="Left" Foreground="{StaticResource MutedTextBrush}" FontSize="12" Margin="0,0,0,4" />
+                            <TextBox Style="{StaticResource CalibrationTextBox}"
+                                     Text="{Binding MarginLeftMillimeters, UpdateSourceTrigger=PropertyChanged, Delay=100}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,0,10">
+                            <TextBlock Text="Top" Foreground="{StaticResource MutedTextBrush}" FontSize="12" Margin="0,0,0,4" />
+                            <TextBox Style="{StaticResource CalibrationTextBox}"
+                                     Text="{Binding MarginTopMillimeters, UpdateSourceTrigger=PropertyChanged, Delay=100}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,8,0">
+                            <TextBlock Text="Right" Foreground="{StaticResource MutedTextBrush}" FontSize="12" Margin="0,0,0,4" />
+                            <TextBox Style="{StaticResource CalibrationTextBox}"
+                                     Text="{Binding MarginRightMillimeters, UpdateSourceTrigger=PropertyChanged, Delay=100}" />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="Bottom" Foreground="{StaticResource MutedTextBrush}" FontSize="12" Margin="0,0,0,4" />
+                            <TextBox Style="{StaticResource CalibrationTextBox}"
+                                     Text="{Binding MarginBottomMillimeters, UpdateSourceTrigger=PropertyChanged, Delay=100}" />
+                        </StackPanel>
+                    </UniformGrid>
+
+                    <TextBlock Text="Calibration offset (mm)" Style="{StaticResource FieldLabel}" Margin="0,22,0,6" />
+                    <UniformGrid Columns="2">
+                        <StackPanel Margin="0,0,8,0">
+                            <TextBlock Text="X · horizontal" Foreground="{StaticResource MutedTextBrush}" FontSize="12" Margin="0,0,0,4" />
+                            <TextBox Style="{StaticResource CalibrationTextBox}"
+                                     Text="{Binding OffsetXMillimeters, UpdateSourceTrigger=PropertyChanged, Delay=100}" />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="Y · vertical" Foreground="{StaticResource MutedTextBrush}" FontSize="12" Margin="0,0,0,4" />
+                            <TextBox Style="{StaticResource CalibrationTextBox}"
+                                     Text="{Binding OffsetYMillimeters, UpdateSourceTrigger=PropertyChanged, Delay=100}" />
+                        </StackPanel>
+                    </UniformGrid>
+                    <TextBlock Text="Positive X moves content right; positive Y moves it down. The dashed outline shows the printable area."
+                               Foreground="{StaticResource MutedTextBrush}"
+                               FontSize="12"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0" />
+
+                    <Border Margin="0,22,0,0" Padding="14" Background="#F8F9FB" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="5">
                         <StackPanel>
                             <TextBlock Text="Document defaults" FontWeight="SemiBold" />
                             <TextBlock Text="The selected printer and number of copies are stored in this label template when you save it."
@@ -112,6 +167,7 @@
                         </StackPanel>
                     </Border>
                 </StackPanel>
+                </ScrollViewer>
             </Border>
         </Grid>
 

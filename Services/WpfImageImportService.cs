@@ -31,12 +31,21 @@ public sealed class WpfImageImportService : IImageImportService
         }
 
         var bytes = File.ReadAllBytes(file.FullName);
-        using var stream = new MemoryStream(bytes, writable: false);
-        var decoder = BitmapDecoder.Create(
-            stream,
-            BitmapCreateOptions.PreservePixelFormat,
-            BitmapCacheOption.OnLoad);
-        var frame = decoder.Frames.FirstOrDefault();
+        BitmapFrame? frame;
+        try
+        {
+            using var stream = new MemoryStream(bytes, writable: false);
+            var decoder = BitmapDecoder.Create(
+                stream,
+                BitmapCreateOptions.PreservePixelFormat,
+                BitmapCacheOption.OnLoad);
+            frame = decoder.Frames.FirstOrDefault();
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or NotSupportedException or IOException)
+        {
+            throw new InvalidDataException("The selected file is not a supported image.", exception);
+        }
+
         if (frame is null || frame.PixelWidth <= 0 || frame.PixelHeight <= 0)
         {
             throw new InvalidDataException("The selected file does not contain a readable image.");

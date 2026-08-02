@@ -5,6 +5,14 @@ using wLabelDesigner.Models;
 
 namespace wLabelDesigner.Services;
 
+public readonly record struct PrintLayout(
+    double PrintableX,
+    double PrintableY,
+    double PrintableWidth,
+    double PrintableHeight,
+    double ContentOffsetX,
+    double ContentOffsetY);
+
 public static class LabelDrawingRenderer
 {
     public const double DeviceIndependentPixelsPerMillimeter = 96d / 25.4d;
@@ -16,6 +24,65 @@ public static class LabelDrawingRenderer
         var image = new DrawingImage(drawing);
         image.Freeze();
         return image;
+    }
+
+    public static DrawingImage CreatePrintImage(LabelDocument document, LabelPrintSettings settings)
+    {
+        var drawing = CreatePrintDrawing(document, settings);
+        drawing.Freeze();
+        var image = new DrawingImage(drawing);
+        image.Freeze();
+        return image;
+    }
+
+    public static DrawingGroup CreatePrintDrawing(LabelDocument document, LabelPrintSettings settings)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(settings);
+
+        var pageWidth = document.WidthMillimeters * DeviceIndependentPixelsPerMillimeter;
+        var pageHeight = document.HeightMillimeters * DeviceIndependentPixelsPerMillimeter;
+        var layout = CalculatePrintLayout(document, settings);
+        var printableBounds = new Rect(
+            layout.PrintableX * DeviceIndependentPixelsPerMillimeter,
+            layout.PrintableY * DeviceIndependentPixelsPerMillimeter,
+            layout.PrintableWidth * DeviceIndependentPixelsPerMillimeter,
+            layout.PrintableHeight * DeviceIndependentPixelsPerMillimeter);
+
+        var drawing = new DrawingGroup();
+        using var context = drawing.Open();
+        context.DrawRectangle(Brushes.White, null, new Rect(0, 0, pageWidth, pageHeight));
+        if (printableBounds.IsEmpty || printableBounds.Width <= 0 || printableBounds.Height <= 0)
+        {
+            return drawing;
+        }
+
+        context.PushClip(new RectangleGeometry(printableBounds));
+        context.PushTransform(new TranslateTransform(
+            layout.ContentOffsetX * DeviceIndependentPixelsPerMillimeter,
+            layout.ContentOffsetY * DeviceIndependentPixelsPerMillimeter));
+        context.DrawDrawing(CreateDrawing(document));
+        context.Pop();
+        context.Pop();
+        return drawing;
+    }
+
+    public static PrintLayout CalculatePrintLayout(LabelDocument document, LabelPrintSettings settings)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(settings);
+
+        var left = NormalizeMargin(settings.MarginLeftMillimeters, document.WidthMillimeters);
+        var top = NormalizeMargin(settings.MarginTopMillimeters, document.HeightMillimeters);
+        var right = NormalizeMargin(settings.MarginRightMillimeters, Math.Max(0, document.WidthMillimeters - left));
+        var bottom = NormalizeMargin(settings.MarginBottomMillimeters, Math.Max(0, document.HeightMillimeters - top));
+        return new PrintLayout(
+            left,
+            top,
+            Math.Max(0, document.WidthMillimeters - left - right),
+            Math.Max(0, document.HeightMillimeters - top - bottom),
+            left + NormalizeOffset(settings.OffsetXMillimeters),
+            top + NormalizeOffset(settings.OffsetYMillimeters));
     }
 
     public static DrawingGroup CreateDrawing(LabelDocument document)
@@ -149,4 +216,10 @@ public static class LabelDrawingRenderer
             drawingContext.DrawImage(image, bounds);
         }
     }
+
+    private static double NormalizeMargin(double value, double maximum) =>
+        double.IsFinite(value) ? Math.Clamp(value, 0, Math.Max(0, maximum)) : 0;
+
+    private static double NormalizeOffset(double value) =>
+        double.IsFinite(value) ? Math.Clamp(value, -1000, 1000) : 0;
 }

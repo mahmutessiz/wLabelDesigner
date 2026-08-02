@@ -27,6 +27,12 @@ public sealed class WpfLabelPrintService : ILabelPrintService
 
         document.PrintSettings.Copies = viewModel.Copies;
         document.PrintSettings.PrinterName = viewModel.SelectedPrinter;
+        document.PrintSettings.MarginLeftMillimeters = viewModel.MarginLeftMillimeters;
+        document.PrintSettings.MarginTopMillimeters = viewModel.MarginTopMillimeters;
+        document.PrintSettings.MarginRightMillimeters = viewModel.MarginRightMillimeters;
+        document.PrintSettings.MarginBottomMillimeters = viewModel.MarginBottomMillimeters;
+        document.PrintSettings.OffsetXMillimeters = viewModel.OffsetXMillimeters;
+        document.PrintSettings.OffsetYMillimeters = viewModel.OffsetYMillimeters;
         PrintToSelectedPrinter(document);
         return true;
     }
@@ -79,7 +85,7 @@ public sealed class WpfLabelPrintService : ILabelPrintService
         var visual = new DrawingVisual();
         using (var context = visual.RenderOpen())
         {
-            context.DrawDrawing(LabelDrawingRenderer.CreateDrawing(document));
+            context.DrawDrawing(LabelDrawingRenderer.CreatePrintDrawing(document, document.PrintSettings));
         }
 
         dialog.PrintVisual(visual, document.Name);

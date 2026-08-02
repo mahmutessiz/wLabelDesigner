@@ -27,6 +27,12 @@ public sealed partial class MainViewModel : ObservableObject
     private string savedDocumentFingerprint = string.Empty;
     private int printCopies = 1;
     private string? printPrinterName;
+    private double printMarginLeft;
+    private double printMarginTop;
+    private double printMarginRight;
+    private double printMarginBottom;
+    private double printOffsetX;
+    private double printOffsetY;
     private int pasteSequence = 1;
 
     public MainViewModel(
@@ -189,6 +195,12 @@ public sealed partial class MainViewModel : ObservableObject
         PrinterDpi = 203;
         printCopies = 1;
         printPrinterName = null;
+        printMarginLeft = 0;
+        printMarginTop = 0;
+        printMarginRight = 0;
+        printMarginBottom = 0;
+        printOffsetX = 0;
+        printOffsetY = 0;
         pasteSequence = 1;
         currentPath = null;
         SelectedElement = null;
@@ -754,7 +766,13 @@ public sealed partial class MainViewModel : ObservableObject
         PrintSettings = new LabelPrintSettings
         {
             Copies = Math.Clamp(printCopies, 1, 999),
-            PrinterName = printPrinterName
+            PrinterName = printPrinterName,
+            MarginLeftMillimeters = printMarginLeft,
+            MarginTopMillimeters = printMarginTop,
+            MarginRightMillimeters = printMarginRight,
+            MarginBottomMillimeters = printMarginBottom,
+            OffsetXMillimeters = printOffsetX,
+            OffsetYMillimeters = printOffsetY
         },
         Elements = Elements.Select(element => element.ToData()).ToList()
     };
@@ -778,6 +796,12 @@ public sealed partial class MainViewModel : ObservableObject
         printPrinterName = string.IsNullOrWhiteSpace(printSettings.PrinterName)
             ? null
             : printSettings.PrinterName;
+        printMarginLeft = NormalizePrintMargin(printSettings.MarginLeftMillimeters, LabelWidth);
+        printMarginTop = NormalizePrintMargin(printSettings.MarginTopMillimeters, LabelHeight);
+        printMarginRight = NormalizePrintMargin(printSettings.MarginRightMillimeters, LabelWidth);
+        printMarginBottom = NormalizePrintMargin(printSettings.MarginBottomMillimeters, LabelHeight);
+        printOffsetX = NormalizePrintOffset(printSettings.OffsetXMillimeters);
+        printOffsetY = NormalizePrintOffset(printSettings.OffsetYMillimeters);
 
         foreach (var data in document.Elements)
         {
@@ -847,11 +871,29 @@ public sealed partial class MainViewModel : ObservableObject
     {
         var copies = Math.Clamp(settings.Copies, 1, 999);
         var printerName = string.IsNullOrWhiteSpace(settings.PrinterName) ? null : settings.PrinterName;
+        var marginLeft = NormalizePrintMargin(settings.MarginLeftMillimeters, LabelWidth);
+        var marginTop = NormalizePrintMargin(settings.MarginTopMillimeters, LabelHeight);
+        var marginRight = NormalizePrintMargin(settings.MarginRightMillimeters, LabelWidth);
+        var marginBottom = NormalizePrintMargin(settings.MarginBottomMillimeters, LabelHeight);
+        var offsetX = NormalizePrintOffset(settings.OffsetXMillimeters);
+        var offsetY = NormalizePrintOffset(settings.OffsetYMillimeters);
         var settingsChanged = printCopies != copies ||
-            !string.Equals(printPrinterName, printerName, StringComparison.Ordinal);
+            !string.Equals(printPrinterName, printerName, StringComparison.Ordinal) ||
+            printMarginLeft != marginLeft ||
+            printMarginTop != marginTop ||
+            printMarginRight != marginRight ||
+            printMarginBottom != marginBottom ||
+            printOffsetX != offsetX ||
+            printOffsetY != offsetY;
 
         printCopies = copies;
         printPrinterName = printerName;
+        printMarginLeft = marginLeft;
+        printMarginTop = marginTop;
+        printMarginRight = marginRight;
+        printMarginBottom = marginBottom;
+        printOffsetX = offsetX;
+        printOffsetY = offsetY;
         if (settingsChanged)
         {
             MarkDirty("document:print-settings");
@@ -987,6 +1029,12 @@ public sealed partial class MainViewModel : ObservableObject
 
     private static double NormalizeGridSize(double value) =>
         double.IsFinite(value) ? Math.Clamp(value, 0.5, 100) : 5;
+
+    private static double NormalizePrintMargin(double value, double maximum) =>
+        double.IsFinite(value) ? Math.Clamp(value, 0, maximum) : 0;
+
+    private static double NormalizePrintOffset(double value) =>
+        double.IsFinite(value) ? Math.Clamp(value, -1000, 1000) : 0;
 
     private static double NextZoomLevel(double current, bool increase)
     {
