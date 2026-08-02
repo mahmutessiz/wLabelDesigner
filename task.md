@@ -61,7 +61,7 @@
 
 - [x] Add printer margin and X/Y offset calibration.
 - [x] Export labels to PNG.
-- [ ] Export labels to PDF.
+- [x] Export labels to PDF.
 
 ## Reliability and document workflow
 

@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using wLabelDesigner.Models;
 
 namespace wLabelDesigner.Services;
