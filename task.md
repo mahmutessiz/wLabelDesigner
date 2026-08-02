@@ -42,8 +42,6 @@
 ## Elements
 
 - [x] Add an image/logo element.
-- [ ] Support image crop, contain, cover, and stretch modes.
-- [ ] Allow image aspect ratio to be locked.
 - [ ] Add more basic shapes as required.
 
 ## Barcode and QR options
@@ -65,7 +63,7 @@
 
 ## Reliability and document workflow
 
-- [ ] Warn before closing or replacing a document with unsaved changes.
+- [x] Warn before closing or replacing a document with unsaved changes.
 - [ ] Add autosave and crash recovery.
 - [ ] Add a recent-files list.
 - [ ] Validate imported template files and report actionable errors.

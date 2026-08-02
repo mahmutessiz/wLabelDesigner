@@ -32,6 +32,8 @@ public partial class MainWindow : Window
     private LabelElementViewModel? rotatingElement;
     private double rotationStartAngle;
     private double rotationPointerStartAngle;
+    private bool isCloseApproved;
+    private bool isClosePromptActive;
 
     public MainWindow()
     {
@@ -42,7 +44,8 @@ public partial class MainWindow : Window
             new WpfLabelPrintService(),
             new WpfElementClipboard(),
             new WpfImageImportService(),
-            new WpfLabelExportService());
+            new WpfLabelExportService(),
+            new WpfUnsavedChangesPromptService());
         viewModel.PropertyChanged += MainViewModel_PropertyChanged;
         DataContext = viewModel;
     }
@@ -772,4 +775,32 @@ public partial class MainWindow : Window
     }
 
     private void Exit_Click(object sender, RoutedEventArgs e) => Close();
+
+    private async void MainWindow_Closing(object? sender, CancelEventArgs e)
+    {
+        if (isCloseApproved)
+        {
+            return;
+        }
+
+        e.Cancel = true;
+        if (isClosePromptActive || DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        isClosePromptActive = true;
+        try
+        {
+            if (await viewModel.ConfirmCloseAsync())
+            {
+                isCloseApproved = true;
+                Close();
+            }
+        }
+        finally
+        {
+            isClosePromptActive = false;
+        }
+    }
 }

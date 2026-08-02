@@ -18,6 +18,7 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly IElementClipboard elementClipboard;
     private readonly IImageImportService? imageImportService;
     private readonly ILabelExportService? labelExportService;
+    private readonly IUnsavedChangesPromptService? unsavedChangesPromptService;
     private readonly UndoHistory history = new();
     private readonly List<LabelElementViewModel> selectedElements = [];
     private string? currentPath;
@@ -42,7 +43,8 @@ public sealed partial class MainViewModel : ObservableObject
         ILabelPrintService printService,
         IElementClipboard elementClipboard,
         IImageImportService? imageImportService = null,
-        ILabelExportService? labelExportService = null)
+        ILabelExportService? labelExportService = null,
+        IUnsavedChangesPromptService? unsavedChangesPromptService = null)
     {
         this.documentStore = documentStore;
         this.fileDialogService = fileDialogService;
@@ -50,7 +52,8 @@ public sealed partial class MainViewModel : ObservableObject
         this.elementClipboard = elementClipboard;
         this.imageImportService = imageImportService;
         this.labelExportService = labelExportService;
-        NewDocument();
+        this.unsavedChangesPromptService = unsavedChangesPromptService;
+        InitializeNewDocument();
     }
 
     public ObservableCollection<LabelElementViewModel> Elements { get; } = [];
@@ -186,7 +189,15 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void NewDocument()
+    private async Task NewDocumentAsync(CancellationToken cancellationToken)
+    {
+        if (await ConfirmDiscardUnsavedChangesAsync(cancellationToken))
+        {
+            InitializeNewDocument();
+        }
+    }
+
+    private void InitializeNewDocument()
     {
         UnsubscribeFromElements();
         Elements.Clear();
@@ -573,6 +584,11 @@ public sealed partial class MainViewModel : ObservableObject
         try
         {
             var document = await documentStore.LoadAsync(path);
+            if (!await ConfirmDiscardUnsavedChangesAsync(CancellationToken.None))
+            {
+                return;
+            }
+
             LoadDocument(document);
             currentPath = path;
             ResetHistory(markAsSaved: true);
@@ -586,26 +602,61 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task SaveAsync()
+    private async Task SaveAsync(CancellationToken cancellationToken) =>
+        await SaveDocumentAsync(cancellationToken);
+
+    private async Task<bool> SaveDocumentAsync(CancellationToken cancellationToken)
     {
         var suggestedName = MakeSafeFileName(DocumentName) + ".fckbartndr";
         var path = currentPath ?? fileDialogService.ChooseTemplateToSave(suggestedName);
         if (path is null)
         {
-            return;
+            StatusMessage = "Save cancelled";
+            return false;
         }
 
         try
         {
-            await documentStore.SaveAsync(path, CreateDocument());
+            await documentStore.SaveAsync(path, CreateDocument(), cancellationToken);
             currentPath = path;
             savedDocumentFingerprint = CreateFingerprint(CreateDocument());
             IsDirty = false;
             StatusMessage = $"Saved {Path.GetFileName(path)}";
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "Save cancelled";
+            return false;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             StatusMessage = $"Could not save template: {exception.Message}";
+            return false;
+        }
+    }
+
+    public Task<bool> ConfirmCloseAsync(CancellationToken cancellationToken = default) =>
+        ConfirmDiscardUnsavedChangesAsync(cancellationToken);
+
+    private async Task<bool> ConfirmDiscardUnsavedChangesAsync(CancellationToken cancellationToken)
+    {
+        if (!IsDirty)
+        {
+            return true;
+        }
+
+        var choice = unsavedChangesPromptService?.ConfirmSaveChanges(DocumentName)
+            ?? UnsavedChangesChoice.Cancel;
+        switch (choice)
+        {
+            case UnsavedChangesChoice.Discard:
+                return true;
+            case UnsavedChangesChoice.Save:
+                return await SaveDocumentAsync(cancellationToken);
+            default:
+                StatusMessage = "Action cancelled";
+                return false;
         }
     }
 

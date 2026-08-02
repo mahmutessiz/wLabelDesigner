@@ -12,6 +12,7 @@
         Height="850"
         MinWidth="1080"
         MinHeight="680"
+        Closing="MainWindow_Closing"
         PreviewKeyDown="MainWindow_KeyDown"
         WindowStartupLocation="CenterScreen">
     <Window.InputBindings>
