@@ -25,6 +25,21 @@ public static class LabelPngRenderer
     {
         ArgumentNullException.ThrowIfNull(document);
 
+        return RenderBitmap(document, LabelDrawingRenderer.CreateDrawing(document));
+    }
+
+    public static BitmapSource RenderPrintBitmap(LabelDocument document, LabelPrintSettings settings)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(settings);
+
+        return RenderBitmap(document, LabelDrawingRenderer.CreatePrintDrawing(document, settings));
+    }
+
+    private static BitmapSource RenderBitmap(LabelDocument document, Drawing drawing)
+    {
+        ArgumentNullException.ThrowIfNull(drawing);
+
         var dpi = document.PrinterDpi is 203 or 300 ? document.PrinterDpi : 203;
         var widthMillimeters = NormalizeDimension(document.WidthMillimeters);
         var heightMillimeters = NormalizeDimension(document.HeightMillimeters);
@@ -38,7 +53,7 @@ public static class LabelPngRenderer
         var visual = new DrawingVisual();
         using (var context = visual.RenderOpen())
         {
-            context.DrawDrawing(LabelDrawingRenderer.CreateDrawing(document));
+            context.DrawDrawing(drawing);
         }
 
         var bitmap = new RenderTargetBitmap(

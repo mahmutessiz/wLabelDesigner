@@ -82,10 +82,19 @@ public sealed class WpfLabelPrintService : ILabelPrintService
             document.WidthMillimeters * LabelDrawingRenderer.DeviceIndependentPixelsPerMillimeter,
             document.HeightMillimeters * LabelDrawingRenderer.DeviceIndependentPixelsPerMillimeter);
 
+        // Submit one bounded, printer-resolution bitmap instead of a complex WPF
+        // drawing. Many thermal-printer drivers otherwise rasterize every vector,
+        // font, barcode, and image inside the spooler process, causing CPU spikes.
+        var printBitmap = LabelPngRenderer.RenderPrintBitmap(document, document.PrintSettings);
+        var pageBounds = new Rect(
+            0,
+            0,
+            document.WidthMillimeters * LabelDrawingRenderer.DeviceIndependentPixelsPerMillimeter,
+            document.HeightMillimeters * LabelDrawingRenderer.DeviceIndependentPixelsPerMillimeter);
         var visual = new DrawingVisual();
         using (var context = visual.RenderOpen())
         {
-            context.DrawDrawing(LabelDrawingRenderer.CreatePrintDrawing(document, document.PrintSettings));
+            context.DrawImage(printBitmap, pageBounds);
         }
 
         dialog.PrintVisual(visual, document.Name);

@@ -1,3 +1,4 @@
+using System.Windows.Media;
 using wLabelDesigner.Models;
 using wLabelDesigner.Services;
 using wLabelDesigner.ViewModels;
@@ -54,5 +55,68 @@ public sealed class PrintCalibrationTests
         Assert.Equal(0, viewModel.MarginTopMillimeters);
         Assert.Equal(1000, viewModel.OffsetXMillimeters);
         Assert.NotSame(originalPreview, viewModel.PreviewImage);
+    }
+
+    [Theory]
+    [InlineData(203, 203, 102)]
+    [InlineData(300, 300, 150)]
+    public void RenderPrintBitmap_UsesConfiguredPrinterResolution(
+        int dpi,
+        int expectedWidth,
+        int expectedHeight)
+    {
+        var document = new LabelDocument
+        {
+            WidthMillimeters = 25.4,
+            HeightMillimeters = 12.7,
+            PrinterDpi = dpi
+        };
+
+        var bitmap = LabelPngRenderer.RenderPrintBitmap(document, new LabelPrintSettings());
+
+        Assert.Equal(expectedWidth, bitmap.PixelWidth);
+        Assert.Equal(expectedHeight, bitmap.PixelHeight);
+        Assert.Equal(dpi, bitmap.DpiX, precision: 6);
+        Assert.True(bitmap.IsFrozen);
+    }
+
+    [Fact]
+    public void RenderPrintBitmap_AppliesCalibrationBeforeFlattening()
+    {
+        var document = new LabelDocument
+        {
+            WidthMillimeters = 25.4,
+            HeightMillimeters = 25.4,
+            PrinterDpi = 203,
+            Elements =
+            {
+                new LabelElementData
+                {
+                    Kind = LabelElementKind.Rectangle,
+                    X = 0,
+                    Y = 0,
+                    Width = 5,
+                    Height = 5,
+                    StrokeThickness = 2
+                }
+            }
+        };
+
+        var bitmap = LabelPngRenderer.RenderPrintBitmap(document, new LabelPrintSettings
+        {
+            MarginLeftMillimeters = 10
+        });
+
+        var stride = bitmap.PixelWidth * 4;
+        var pixels = new byte[stride * bitmap.PixelHeight];
+        bitmap.CopyPixels(pixels, stride, 0);
+
+        for (var row = 0; row < bitmap.PixelHeight; row++)
+        {
+            Assert.All(pixels.AsSpan((row * stride), 70 * 4).ToArray(), value => Assert.Equal(255, value));
+        }
+
+        Assert.Contains(pixels, value => value < 255);
+        Assert.Equal(PixelFormats.Pbgra32, bitmap.Format);
     }
 }
