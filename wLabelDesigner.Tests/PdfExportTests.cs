@@ -1,5 +1,4 @@
-using System.IO;
-using System.Windows.Media.Imaging;
+using System.Text;
 using wLabelDesigner.Models;
 using wLabelDesigner.Services;
 using wLabelDesigner.ViewModels;
@@ -7,10 +6,10 @@ using Xunit;
 
 namespace wLabelDesigner.Tests;
 
-public sealed class PngExportTests
+public sealed class PdfExportTests
 {
     [Fact]
-    public void Render_UsesLabelDimensionsAndConfiguredDpi()
+    public void Render_CreatesExactSizeSinglePagePdfWithValidCrossReference()
     {
         var document = new LabelDocument
         {
@@ -22,29 +21,34 @@ public sealed class PngExportTests
                 new LabelElementData
                 {
                     Kind = LabelElementKind.Text,
-                    Content = "PNG",
+                    Content = "PDF",
                     Width = 20,
                     Height = 8
                 }
             ]
         };
 
-        var png = LabelPngRenderer.Render(document);
-        using var stream = new MemoryStream(png, writable: false);
-        var decoder = new PngBitmapDecoder(
-            stream,
-            BitmapCreateOptions.PreservePixelFormat,
-            BitmapCacheOption.OnLoad);
+        var pdf = LabelPdfRenderer.Render(document);
+        var text = Encoding.ASCII.GetString(pdf);
 
-        Assert.Equal([137, 80, 78, 71, 13, 10, 26, 10], png[..8]);
-        Assert.Equal(203, decoder.Frames[0].PixelWidth);
-        Assert.Equal(102, decoder.Frames[0].PixelHeight);
+        Assert.StartsWith("%PDF-1.4\n", text);
+        Assert.Contains("/Count 1", text);
+        Assert.Contains("/MediaBox [0 0 72 36]", text);
+        Assert.Contains("/Subtype /Image /Width 203 /Height 102", text);
+        Assert.EndsWith("%%EOF\n", text);
+
+        var markerIndex = text.LastIndexOf("startxref\n", StringComparison.Ordinal);
+        Assert.True(markerIndex >= 0);
+        var offsetStart = markerIndex + "startxref\n".Length;
+        var offsetEnd = text.IndexOf('\n', offsetStart);
+        var crossReferenceOffset = int.Parse(text[offsetStart..offsetEnd]);
+        Assert.Equal("xref\n", Encoding.ASCII.GetString(pdf, crossReferenceOffset, 5));
     }
 
     [Fact]
-    public async Task ExportPngCommand_ReportsExportedFile()
+    public async Task ExportPdfCommand_ReportsExportedFile()
     {
-        var exportService = new StubExportService("C:\\Exports\\shipping-label.png");
+        var exportService = new StubExportService("C:\\Exports\\shipping-label.pdf");
         var viewModel = new MainViewModel(
             new StubDocumentStore(),
             new StubFileDialogService(),
@@ -52,10 +56,10 @@ public sealed class PngExportTests
             new StubClipboard(),
             labelExportService: exportService);
 
-        await viewModel.ExportPngCommand.ExecuteAsync(null);
+        await viewModel.ExportPdfCommand.ExecuteAsync(null);
 
         Assert.NotNull(exportService.Document);
-        Assert.Equal("PNG exported to shipping-label.png", viewModel.StatusMessage);
+        Assert.Equal("PDF exported to shipping-label.pdf", viewModel.StatusMessage);
     }
 
     private sealed class StubExportService(string? result) : ILabelExportService
@@ -64,16 +68,16 @@ public sealed class PngExportTests
 
         public Task<string?> ExportPngAsync(
             LabelDocument document,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult<string?>(null);
+
+        public Task<string?> ExportPdfAsync(
+            LabelDocument document,
             CancellationToken cancellationToken = default)
         {
             Document = document;
             return Task.FromResult(result);
         }
-
-        public Task<string?> ExportPdfAsync(
-            LabelDocument document,
-            CancellationToken cancellationToken = default) =>
-            Task.FromResult<string?>(null);
     }
 
     private sealed class StubDocumentStore : ILabelDocumentStore

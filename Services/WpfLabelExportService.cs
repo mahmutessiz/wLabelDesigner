@@ -32,6 +32,32 @@ public sealed class WpfLabelExportService : ILabelExportService
         return dialog.FileName;
     }
 
+    public async Task<string?> ExportPdfAsync(
+        LabelDocument document,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+
+        var dialog = new SaveFileDialog
+        {
+            AddExtension = true,
+            DefaultExt = ".pdf",
+            FileName = MakeSafeFileName(document.Name),
+            Filter = "PDF document (*.pdf)|*.pdf",
+            OverwritePrompt = true,
+            Title = "Export label as PDF"
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return null;
+        }
+
+        var pdf = LabelPdfRenderer.Render(document);
+        await File.WriteAllBytesAsync(dialog.FileName, pdf, cancellationToken);
+        return dialog.FileName;
+    }
+
     private static string MakeSafeFileName(string name)
     {
         var invalidCharacters = Path.GetInvalidFileNameChars();

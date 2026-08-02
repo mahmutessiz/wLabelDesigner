@@ -12,6 +12,17 @@ public static class LabelPngRenderer
 
     public static byte[] Render(LabelDocument document)
     {
+        var bitmap = RenderBitmap(document);
+
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        using var stream = new MemoryStream();
+        encoder.Save(stream);
+        return stream.ToArray();
+    }
+
+    public static BitmapSource RenderBitmap(LabelDocument document)
+    {
         ArgumentNullException.ThrowIfNull(document);
 
         var dpi = document.PrinterDpi is 203 or 300 ? document.PrinterDpi : 203;
@@ -21,7 +32,7 @@ public static class LabelPngRenderer
         var pixelHeight = Math.Max(1, (int)Math.Ceiling(heightMillimeters / 25.4d * dpi));
         if ((long)pixelWidth * pixelHeight > MaximumPixelCount)
         {
-            throw new InvalidOperationException("The label is too large to export as a PNG at the selected DPI.");
+            throw new InvalidOperationException("The label is too large to export at the selected DPI.");
         }
 
         var visual = new DrawingVisual();
@@ -38,12 +49,7 @@ public static class LabelPngRenderer
             PixelFormats.Pbgra32);
         bitmap.Render(visual);
         bitmap.Freeze();
-
-        var encoder = new PngBitmapEncoder();
-        encoder.Frames.Add(BitmapFrame.Create(bitmap));
-        using var stream = new MemoryStream();
-        encoder.Save(stream);
-        return stream.ToArray();
+        return bitmap;
     }
 
     private static double NormalizeDimension(double value) =>

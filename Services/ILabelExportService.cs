@@ -5,4 +5,6 @@ namespace wLabelDesigner.Services;
 public interface ILabelExportService
 {
     Task<string?> ExportPngAsync(LabelDocument document, CancellationToken cancellationToken = default);
+
+    Task<string?> ExportPdfAsync(LabelDocument document, CancellationToken cancellationToken = default);
 }

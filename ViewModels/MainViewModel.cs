@@ -654,6 +654,32 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private async Task ExportPdfAsync(CancellationToken cancellationToken)
+    {
+        if (labelExportService is null)
+        {
+            StatusMessage = "PDF export is not available";
+            return;
+        }
+
+        try
+        {
+            var path = await labelExportService.ExportPdfAsync(CreateDocument(), cancellationToken);
+            StatusMessage = path is null
+                ? "PDF export cancelled"
+                : $"PDF exported to {Path.GetFileName(path)}";
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "PDF export cancelled";
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidOperationException or NotSupportedException)
+        {
+            StatusMessage = $"Could not export PDF: {exception.Message}";
+        }
+    }
+
     public LabelElementViewModel AddElementAt(
         LabelElementKind kind,
         double x,
