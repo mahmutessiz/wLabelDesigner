@@ -87,7 +87,8 @@ public sealed partial class MainViewModel : ObservableObject
         SelectedElement?.Kind is LabelElementKind.Barcode or LabelElementKind.QrCode;
 
     public bool HasShapeSelection => selectedElements.Count == 1 && SelectedElement?.Kind is
-        LabelElementKind.Rectangle or LabelElementKind.RoundedRectangle or LabelElementKind.Line;
+        LabelElementKind.Rectangle or LabelElementKind.RoundedRectangle or LabelElementKind.Line or
+        LabelElementKind.Ellipse or LabelElementKind.Triangle or LabelElementKind.Diamond;
 
     public bool HasFormattingSelection => selectedElements.Count > 0;
 
@@ -272,6 +273,15 @@ public sealed partial class MainViewModel : ObservableObject
 
     [RelayCommand]
     private void AddLine() => AddElementAt(LabelElementKind.Line, 5, 5);
+
+    [RelayCommand]
+    private void AddEllipse() => AddElementAt(LabelElementKind.Ellipse, 5, 5);
+
+    [RelayCommand]
+    private void AddTriangle() => AddElementAt(LabelElementKind.Triangle, 5, 5);
+
+    [RelayCommand]
+    private void AddDiamond() => AddElementAt(LabelElementKind.Diamond, 5, 5);
 
     [RelayCommand]
     private void AddImage() => AddImageAt(5, 5);
@@ -776,6 +786,9 @@ public sealed partial class MainViewModel : ObservableObject
             LabelElementKind.Rectangle => (string.Empty, 35d, 20d),
             LabelElementKind.RoundedRectangle => (string.Empty, 35d, 20d),
             LabelElementKind.Line => (string.Empty, 35d, 1d),
+            LabelElementKind.Ellipse => (string.Empty, 30d, 20d),
+            LabelElementKind.Triangle => (string.Empty, 30d, 24d),
+            LabelElementKind.Diamond => (string.Empty, 30d, 24d),
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unsupported label element type.")
         };
 
@@ -793,6 +806,9 @@ public sealed partial class MainViewModel : ObservableObject
             LabelElementKind.QrCode => "QR code",
             LabelElementKind.RoundedRectangle => "Rounded box",
             LabelElementKind.Rectangle => "Box",
+            LabelElementKind.Ellipse => "Ellipse",
+            LabelElementKind.Triangle => "Triangle",
+            LabelElementKind.Diamond => "Diamond",
             _ => kind.ToString()
         }} added");
         element.IsEditing = beginEditing;

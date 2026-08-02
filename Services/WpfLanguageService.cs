@@ -75,6 +75,10 @@ public sealed class WpfLanguageService : ILanguageService
                 "wLabelDesigner, termal etiket tasarlamak ve yazdırmak için geliştirilmiş; yaygın 203 ve 300 DPI Windows etiket yazıcıları için iyileştirilmiş hafif bir .NET 10 WPF uygulamasıdır.",
             ["Text"] = "Metin", ["Barcode"] = "Barkod", ["QR code"] = "QR kodu", ["Box"] = "Kutu",
             ["Rounded box"] = "Yuvarlatılmış kutu", ["Line"] = "Çizgi", ["Image"] = "Görsel",
+            ["Ellipse"] = "Elips", ["Triangle"] = "Üçgen", ["Diamond"] = "Eşkenar dörtgen",
+            ["Ellipse — click to add or drag onto the label"] = "Elips — eklemek için tıklayın veya etiketin üzerine sürükleyin",
+            ["Triangle — click to add or drag onto the label"] = "Üçgen — eklemek için tıklayın veya etiketin üzerine sürükleyin",
+            ["Diamond — click to add or drag onto the label"] = "Eşkenar dörtgen — eklemek için tıklayın veya etiketin üzerine sürükleyin",
             ["Ready"] = "Hazır", ["Selection cleared"] = "Seçim temizlendi", ["Action cancelled"] = "İşlem iptal edildi",
             ["Save cancelled"] = "Kaydetme iptal edildi", ["Printing cancelled"] = "Yazdırma iptal edildi",
             ["Image import cancelled"] = "Görsel içe aktarma iptal edildi", ["PNG export cancelled"] = "PNG dışa aktarma iptal edildi",
@@ -84,7 +88,8 @@ public sealed class WpfLanguageService : ILanguageService
             ["Label sent to printer"] = "Etiket yazıcıya gönderildi",
             ["Image added"] = "Görsel eklendi", ["Text added"] = "Metin eklendi", ["Barcode added"] = "Barkod eklendi",
             ["QR code added"] = "QR kodu eklendi", ["Box added"] = "Kutu eklendi", ["Rounded box added"] = "Yuvarlatılmış kutu eklendi",
-            ["Line added"] = "Çizgi eklendi"
+            ["Line added"] = "Çizgi eklendi",
+            ["Ellipse added"] = "Elips eklendi", ["Triangle added"] = "Üçgen eklendi", ["Diamond added"] = "Eşkenar dörtgen eklendi"
         };
 
     private readonly IReadOnlyDictionary<string, string> turkishToEnglish =

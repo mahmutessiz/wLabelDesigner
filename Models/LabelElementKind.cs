@@ -8,5 +8,8 @@ public enum LabelElementKind
     Rectangle,
     RoundedRectangle,
     Line,
-    Image
+    Image,
+    Ellipse,
+    Triangle,
+    Diamond
 }

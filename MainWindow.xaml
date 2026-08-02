@@ -562,6 +562,30 @@
                             ToolTip="Rounded box — click to add or drag onto the label">
                         <Border Width="20" Height="15" BorderBrush="{StaticResource TextBrush}" BorderThickness="1.5" CornerRadius="4" />
                     </Button>
+                    <Button Tag="{x:Static models:LabelElementKind.Ellipse}"
+                            Command="{Binding AddEllipseCommand}"
+                            PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown"
+                            PreviewMouseMove="ToolboxItem_PreviewMouseMove"
+                            Style="{StaticResource PaletteButton}"
+                            ToolTip="Ellipse — click to add or drag onto the label">
+                        <Ellipse Width="21" Height="16" Stroke="{StaticResource TextBrush}" StrokeThickness="1.5" />
+                    </Button>
+                    <Button Tag="{x:Static models:LabelElementKind.Triangle}"
+                            Command="{Binding AddTriangleCommand}"
+                            PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown"
+                            PreviewMouseMove="ToolboxItem_PreviewMouseMove"
+                            Style="{StaticResource PaletteButton}"
+                            ToolTip="Triangle — click to add or drag onto the label">
+                        <Polygon Width="21" Height="18" Points="10.5,1 20,17 1,17" Stretch="Fill" Stroke="{StaticResource TextBrush}" StrokeThickness="1.5" />
+                    </Button>
+                    <Button Tag="{x:Static models:LabelElementKind.Diamond}"
+                            Command="{Binding AddDiamondCommand}"
+                            PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown"
+                            PreviewMouseMove="ToolboxItem_PreviewMouseMove"
+                            Style="{StaticResource PaletteButton}"
+                            ToolTip="Diamond — click to add or drag onto the label">
+                        <Polygon Width="21" Height="18" Points="10.5,1 20,9 10.5,17 1,9" Stretch="Fill" Stroke="{StaticResource TextBrush}" StrokeThickness="1.5" />
+                    </Button>
                     <Button Tag="{x:Static models:LabelElementKind.Line}"
                             Command="{Binding AddLineCommand}"
                             PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown"
@@ -728,6 +752,19 @@
                                               StrokeThickness="{Binding StrokeThickness}"
                                               SnapsToDevicePixels="True"
                                               Visibility="Collapsed" />
+                                        <Ellipse x:Name="EllipsePreview"
+                                                 Margin="1"
+                                                 Stroke="Black"
+                                                 StrokeThickness="{Binding StrokeThickness}"
+                                                 Visibility="Collapsed" />
+                                        <Polygon x:Name="PolygonPreview"
+                                                 Margin="1"
+                                                 Points="50,0 100,100 0,100"
+                                                 Stretch="Fill"
+                                                 Stroke="Black"
+                                                 StrokeThickness="{Binding StrokeThickness}"
+                                                 StrokeLineJoin="Round"
+                                                 Visibility="Collapsed" />
                                         <Image x:Name="PreviewImage" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality" SnapsToDevicePixels="True" Visibility="Collapsed">
                                             <Image.Source>
                                                 <MultiBinding Converter="{StaticResource ElementImage}">
@@ -822,6 +859,19 @@
                                         <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Line}">
                                             <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
                                             <Setter TargetName="LinePreview" Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Ellipse}">
+                                            <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="EllipsePreview" Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Triangle}">
+                                            <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="PolygonPreview" Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Diamond}">
+                                            <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="PolygonPreview" Property="Points" Value="50,0 100,50 50,100 0,50" />
+                                            <Setter TargetName="PolygonPreview" Property="Visibility" Value="Visible" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding IsLineDirectionReversed}" Value="True">
                                             <Setter TargetName="LinePreview" Property="Y1" Value="100" />

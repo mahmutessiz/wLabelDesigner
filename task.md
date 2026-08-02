@@ -42,7 +42,7 @@
 ## Elements
 
 - [x] Add an image/logo element.
-- [ ] Add more basic shapes as required.
+- [x] Add more basic shapes as required.
 
 ## Barcode and QR options
 

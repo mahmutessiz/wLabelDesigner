@@ -47,6 +47,9 @@ public sealed partial class LabelElementViewModel : ObservableObject
         LabelElementKind.RoundedRectangle => "Rounded box",
         LabelElementKind.Line => "Line",
         LabelElementKind.Image => "Image",
+        LabelElementKind.Ellipse => "Ellipse",
+        LabelElementKind.Triangle => "Triangle",
+        LabelElementKind.Diamond => "Diamond",
         _ => Kind.ToString()
     };
 

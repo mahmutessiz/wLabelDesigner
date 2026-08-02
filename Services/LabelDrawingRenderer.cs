@@ -163,6 +163,47 @@ public static class LabelDrawingRenderer
             return;
         }
 
+        if (element.Kind is LabelElementKind.Ellipse or LabelElementKind.Triangle or LabelElementKind.Diamond)
+        {
+            var pen = new Pen(Brushes.Black, element.StrokeThickness);
+            var inset = pen.Thickness / 2;
+            var strokeBounds = new Rect(
+                bounds.Left + inset,
+                bounds.Top + inset,
+                Math.Max(0, bounds.Width - pen.Thickness),
+                Math.Max(0, bounds.Height - pen.Thickness));
+
+            if (element.Kind == LabelElementKind.Ellipse)
+            {
+                drawingContext.DrawEllipse(
+                    null,
+                    pen,
+                    new Point(strokeBounds.Left + (strokeBounds.Width / 2), strokeBounds.Top + (strokeBounds.Height / 2)),
+                    strokeBounds.Width / 2,
+                    strokeBounds.Height / 2);
+                return;
+            }
+
+            var points = element.Kind == LabelElementKind.Triangle
+                ? new[] { new Point(strokeBounds.Left + (strokeBounds.Width / 2), strokeBounds.Top), strokeBounds.BottomRight, strokeBounds.BottomLeft }
+                : new[]
+                {
+                    new Point(strokeBounds.Left + (strokeBounds.Width / 2), strokeBounds.Top),
+                    new Point(strokeBounds.Right, strokeBounds.Top + (strokeBounds.Height / 2)),
+                    new Point(strokeBounds.Left + (strokeBounds.Width / 2), strokeBounds.Bottom),
+                    new Point(strokeBounds.Left, strokeBounds.Top + (strokeBounds.Height / 2))
+                };
+            var geometry = new StreamGeometry();
+            using (var geometryContext = geometry.Open())
+            {
+                geometryContext.BeginFigure(points[0], isFilled: false, isClosed: true);
+                geometryContext.PolyLineTo(points[1..], isStroked: true, isSmoothJoin: true);
+            }
+            geometry.Freeze();
+            drawingContext.DrawGeometry(null, pen, geometry);
+            return;
+        }
+
         if (element.Kind == LabelElementKind.Line)
         {
             var start = element.IsLineDirectionReversed ? bounds.BottomLeft : bounds.TopLeft;
