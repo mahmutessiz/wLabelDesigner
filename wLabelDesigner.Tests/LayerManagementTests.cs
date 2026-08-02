@@ -23,7 +23,7 @@ public sealed class LayerManagementTests
     }
 
     [Fact]
-    public void LockedElement_CannotMoveDeleteOrChangeLayerOrder()
+    public void PositionLockedElement_CannotMoveButCanDeleteAndChangeLayerOrder()
     {
         var viewModel = CreateViewModel();
         var locked = viewModel.AddElementAt(LabelElementKind.Text, 5, 5);
@@ -35,8 +35,16 @@ public sealed class LayerManagementTests
 
         Assert.Equal(5, locked.X);
         Assert.Equal(5, locked.Y);
-        Assert.False(viewModel.DeleteSelectedCommand.CanExecute(null));
-        Assert.False(viewModel.BringForwardCommand.CanExecute(null));
+        Assert.True(viewModel.DeleteSelectedCommand.CanExecute(null));
+        Assert.True(viewModel.BringForwardCommand.CanExecute(null));
+
+        viewModel.BringForwardCommand.Execute(null);
+
+        Assert.Same(locked, viewModel.Elements[^1]);
+
+        viewModel.DeleteSelectedCommand.Execute(null);
+
+        Assert.DoesNotContain(locked, viewModel.Elements);
     }
 
     [Fact]

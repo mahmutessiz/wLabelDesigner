@@ -221,11 +221,7 @@ public sealed partial class MainViewModel : ObservableObject
             return;
         }
 
-        var elementsToDelete = selectedElements.Where(element => !element.IsLocked).ToArray();
-        if (elementsToDelete.Length == 0)
-        {
-            return;
-        }
+        var elementsToDelete = selectedElements.ToArray();
         foreach (var element in elementsToDelete)
         {
             element.PropertyChanged -= OnElementPropertyChanged;
@@ -240,7 +236,7 @@ public sealed partial class MainViewModel : ObservableObject
             : $"{elementsToDelete.Length} elements deleted";
     }
 
-    private bool CanDeleteSelected() => selectedElements.Any(element => !element.IsLocked);
+    private bool CanDeleteSelected() => selectedElements.Count > 0;
 
     [RelayCommand(CanExecute = nameof(CanDeselectAll))]
     private void DeselectAll()
@@ -431,13 +427,13 @@ public sealed partial class MainViewModel : ObservableObject
     private void BringForward() => MoveSelectedLayer(Elements.IndexOf(SelectedElement!) + 1, "Brought element forward");
 
     private bool CanMoveLayerForward() =>
-        SelectedElement is { IsLocked: false } element && Elements.IndexOf(element) < Elements.Count - 1;
+        SelectedElement is { } element && Elements.IndexOf(element) < Elements.Count - 1;
 
     [RelayCommand(CanExecute = nameof(CanMoveLayerBackward))]
     private void SendBackward() => MoveSelectedLayer(Elements.IndexOf(SelectedElement!) - 1, "Sent element backward");
 
     private bool CanMoveLayerBackward() =>
-        SelectedElement is { IsLocked: false } element && Elements.IndexOf(element) > 0;
+        SelectedElement is { } element && Elements.IndexOf(element) > 0;
 
     [RelayCommand(CanExecute = nameof(CanMoveLayerForward))]
     private void BringToFront() => MoveSelectedLayer(Elements.Count - 1, "Brought element to front");
@@ -512,7 +508,7 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     private bool CanManipulateSelectedElement() =>
-        selectedElements.Count == 1 && SelectedElement is { IsEditing: false, IsLocked: false };
+        selectedElements.Count == 1 && SelectedElement is { IsEditing: false };
 
     [RelayCommand(CanExecute = nameof(CanNudge))]
     private void Nudge(string? direction)
@@ -898,7 +894,7 @@ public sealed partial class MainViewModel : ObservableObject
 
     private void MoveSelectedLayer(int targetIndex, string statusMessage)
     {
-        if (SelectedElement is not { IsLocked: false } element)
+        if (SelectedElement is not { } element)
         {
             return;
         }

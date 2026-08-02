@@ -300,7 +300,7 @@ public partial class MainWindow : Window
                 container.IsSelected = true;
             }
 
-            if (e.ClickCount == 2 && !element.IsLocked && element.Kind == LabelElementKind.Text)
+            if (e.ClickCount == 2 && element.Kind == LabelElementKind.Text)
             {
                 BeginInlineEdit(element);
                 e.Handled = true;
@@ -486,7 +486,7 @@ public partial class MainWindow : Window
 
     private void DesignerItem_ResizeDelta(object sender, DragDeltaEventArgs e)
     {
-        if (sender is not Thumb { DataContext: LabelElementViewModel { IsLocked: false } element } resizeThumb ||
+        if (sender is not Thumb { DataContext: LabelElementViewModel element } resizeThumb ||
             DataContext is not MainViewModel viewModel)
         {
             return;
@@ -547,7 +547,7 @@ public partial class MainWindow : Window
 
     private void DesignerItem_RotationStarted(object sender, DragStartedEventArgs e)
     {
-        if (sender is not Thumb { DataContext: LabelElementViewModel { IsLocked: false } element })
+        if (sender is not Thumb { DataContext: LabelElementViewModel element })
         {
             return;
         }
@@ -675,7 +675,7 @@ public partial class MainWindow : Window
 
     private void BeginInlineEdit(LabelElementViewModel element)
     {
-        if (DataContext is not MainViewModel viewModel || element.IsLocked || element.Kind != LabelElementKind.Text)
+        if (DataContext is not MainViewModel viewModel || element.Kind != LabelElementKind.Text)
         {
             return;
         }

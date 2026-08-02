@@ -43,14 +43,6 @@
             <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
         </Style>
 
-        <Style x:Key="LockSensitiveToolbarPanel" TargetType="StackPanel">
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding SelectedElement.IsLocked}" Value="True">
-                    <Setter Property="IsEnabled" Value="False" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-
         <Style x:Key="PaletteButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="Width" Value="44" />
             <Setter Property="Height" Value="44" />
@@ -140,9 +132,6 @@
                 <DataTrigger Binding="{Binding IsEditing}" Value="True">
                     <Setter Property="Visibility" Value="Collapsed" />
                 </DataTrigger>
-                <DataTrigger Binding="{Binding IsLocked}" Value="True">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                </DataTrigger>
             </Style.Triggers>
         </Style>
 
@@ -176,9 +165,6 @@
                     </MultiDataTrigger.Conditions>
                     <Setter Property="Visibility" Value="Visible" />
                 </MultiDataTrigger>
-                <DataTrigger Binding="{Binding IsLocked}" Value="True">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                </DataTrigger>
             </Style.Triggers>
         </Style>
 
@@ -226,9 +212,6 @@
                     <Setter Property="Visibility" Value="Visible" />
                 </DataTrigger>
                 <DataTrigger Binding="{Binding IsEditing}" Value="True">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding IsLocked}" Value="True">
                     <Setter Property="Visibility" Value="Collapsed" />
                 </DataTrigger>
             </Style.Triggers>
@@ -363,7 +346,6 @@
                         </TextBlock>
                         <StackPanel Orientation="Horizontal"
                                     Grid.Column="0"
-                                    Style="{StaticResource LockSensitiveToolbarPanel}"
                                     VerticalAlignment="Center"
                                     Visibility="{Binding HasTextSelection, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="TEXT" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,14,0" />
@@ -409,7 +391,6 @@
                         </StackPanel>
                         <StackPanel Orientation="Horizontal"
                                     Grid.Column="0"
-                                    Style="{StaticResource LockSensitiveToolbarPanel}"
                                     VerticalAlignment="Center"
                                     Visibility="{Binding HasShapeSelection, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="SHAPE" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,14,0" />
@@ -438,7 +419,6 @@
                         </StackPanel>
                         <StackPanel Grid.Column="0"
                                     Orientation="Horizontal"
-                                    Style="{StaticResource LockSensitiveToolbarPanel}"
                                     VerticalAlignment="Center"
                                     Visibility="{Binding HasDataElementSelection, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="DATA" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,14,0" />
@@ -457,21 +437,15 @@
                                        VerticalAlignment="Center"
                                        Margin="0,0,12,0" />
                             <CheckBox Content="Visible" IsChecked="{Binding SelectedElement.IsVisible}" VerticalAlignment="Center" Margin="0,0,10,0" />
-                            <CheckBox Content="Locked" IsChecked="{Binding SelectedElement.IsLocked}" VerticalAlignment="Center" Margin="0,0,14,0" />
+                            <CheckBox Content="Lock position"
+                                      IsChecked="{Binding SelectedElement.IsLocked}"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,14,0"
+                                      ToolTip="Prevent the element from being moved" />
                             <TextBlock Text="Rotate" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
                             <TextBox Width="58"
                                      Text="{Binding SelectedElement.RotationDegrees, UpdateSourceTrigger=LostFocus}"
-                                     ToolTip="Rotation in degrees">
-                                <TextBox.Style>
-                                    <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding SelectedElement.IsLocked}" Value="True">
-                                                <Setter Property="IsEnabled" Value="False" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBox.Style>
-                            </TextBox>
+                                     ToolTip="Rotation in degrees" />
                             <TextBlock Text="°" VerticalAlignment="Center" Margin="4,0,6,0" />
                             <Slider Width="110"
                                     Minimum="-180"
@@ -479,17 +453,7 @@
                                     Value="{Binding SelectedElement.RotationDegrees}"
                                     TickFrequency="15"
                                     IsSnapToTickEnabled="False"
-                                    ToolTip="Rotate selected element">
-                                <Slider.Style>
-                                    <Style TargetType="Slider" BasedOn="{StaticResource {x:Type Slider}}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding SelectedElement.IsLocked}" Value="True">
-                                                <Setter Property="IsEnabled" Value="False" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Slider.Style>
-                            </Slider>
+                                    ToolTip="Rotate selected element" />
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -755,7 +719,7 @@
                                                     </Setter>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsEditing}" Value="True"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
-                                                        <DataTrigger Binding="{Binding IsLocked}" Value="True"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsLocked}" Value="True"><Setter Property="Cursor" Value="Arrow" /></DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </Thumb.Style>
@@ -871,7 +835,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                                     <CheckBox Grid.Column="1" Content="Show" IsChecked="{Binding IsVisible}" Margin="8,0" ToolTip="Show or hide element" />
-                                    <CheckBox Grid.Column="2" Content="Lock" IsChecked="{Binding IsLocked}" ToolTip="Lock or unlock element" />
+                                    <CheckBox Grid.Column="2" Content="Lock" IsChecked="{Binding IsLocked}" ToolTip="Lock or unlock element position" />
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>

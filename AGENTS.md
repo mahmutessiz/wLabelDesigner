@@ -13,6 +13,7 @@
 - Apply dependency inversion at external boundaries such as storage, printing, dialogs, and device integration.
 - Favor composition and focused types over inheritance and large multipurpose classes.
 - Keep public APIs minimal and make invalid state difficult to represent.
+- if the app currently running, simply ask the user to run the build. dont try anything else.
 
 ## C# conventions
 
