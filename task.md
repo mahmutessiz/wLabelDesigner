@@ -8,8 +8,7 @@
 - [x] Add zoom, pan, rulers, grid, and alignment guides.
 - [x] Add rotation handles for text, shapes, barcodes, QR codes, and images.
 - [x] Add layer ordering, locking, and visibility controls.
-- [ ] Add an image/logo element.
-- [ ] Add CSV variables and batch printing.
+- [x] Add an image/logo element.
 
 ## Designer interaction
 
