@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows;
 using wLabelDesigner.Models;
 using wLabelDesigner.Services;
@@ -7,6 +8,8 @@ namespace wLabelDesigner;
 
 public partial class App : Application
 {
+    private readonly IRecentFilesService recentFilesService = new JsonRecentFilesService();
+
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -16,7 +19,8 @@ public partial class App : Application
     private async Task ShowWelcomeAsync(MainWindow? previousWindow = null)
     {
         var languageService = WpfLanguageService.Instance;
-        using var welcomeViewModel = new WelcomeViewModel(languageService);
+        var recentFilePaths = await TryGetRecentFilesAsync();
+        using var welcomeViewModel = new WelcomeViewModel(languageService, recentFilePaths);
         var welcomeWindow = new WelcomeWindow(welcomeViewModel);
         if (welcomeWindow.ShowDialog() != true || welcomeViewModel.Result is null)
         {
@@ -64,6 +68,10 @@ public partial class App : Application
         {
             await mainViewModel.OpenCommand.ExecuteAsync(null);
         }
+        else if (welcomeViewModel.Result is { Action: WelcomeAction.OpenRecent, Path: not null } recentResult)
+        {
+            await mainViewModel.OpenPathAsync(recentResult.Path);
+        }
     }
 
     private async void MainWindow_WelcomeScreenRequested(object? sender, EventArgs e)
@@ -86,7 +94,19 @@ public partial class App : Application
         ShutdownMode = ShutdownMode.OnMainWindowClose;
     }
 
-    private static MainViewModel CreateMainViewModel(ILanguageService languageService) => new(
+    private async Task<IReadOnlyList<string>> TryGetRecentFilesAsync()
+    {
+        try
+        {
+            return await recentFilesService.GetRecentFilesAsync();
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return [];
+        }
+    }
+
+    private MainViewModel CreateMainViewModel(ILanguageService languageService) => new(
         new JsonLabelDocumentStore(),
         new FileDialogService(),
         new WpfLabelPrintService(),
@@ -94,5 +114,6 @@ public partial class App : Application
         new WpfImageImportService(),
         new WpfLabelExportService(),
         new WpfUnsavedChangesPromptService(),
-        languageService);
+        languageService,
+        recentFilesService);
 }

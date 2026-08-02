@@ -20,6 +20,7 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly ILabelExportService? labelExportService;
     private readonly IUnsavedChangesPromptService? unsavedChangesPromptService;
     private readonly ILanguageService? languageService;
+    private readonly IRecentFilesService? recentFilesService;
     private readonly UndoHistory history = new();
     private readonly List<LabelElementViewModel> selectedElements = [];
     private string? currentPath;
@@ -46,7 +47,8 @@ public sealed partial class MainViewModel : ObservableObject
         IImageImportService? imageImportService = null,
         ILabelExportService? labelExportService = null,
         IUnsavedChangesPromptService? unsavedChangesPromptService = null,
-        ILanguageService? languageService = null)
+        ILanguageService? languageService = null,
+        IRecentFilesService? recentFilesService = null)
     {
         this.documentStore = documentStore;
         this.fileDialogService = fileDialogService;
@@ -56,6 +58,7 @@ public sealed partial class MainViewModel : ObservableObject
         this.labelExportService = labelExportService;
         this.unsavedChangesPromptService = unsavedChangesPromptService;
         this.languageService = languageService;
+        this.recentFilesService = recentFilesService;
         InitializeNewDocument();
         RefreshLocalization();
     }
@@ -632,12 +635,21 @@ public sealed partial class MainViewModel : ObservableObject
             return;
         }
 
+        await OpenPathAsync(path);
+    }
+
+    public async Task<bool> OpenPathAsync(
+        string path,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
         try
         {
-            var document = await documentStore.LoadAsync(path);
-            if (!await ConfirmDiscardUnsavedChangesAsync(CancellationToken.None))
+            var document = await documentStore.LoadAsync(path, cancellationToken);
+            if (!await ConfirmDiscardUnsavedChangesAsync(cancellationToken))
             {
-                return;
+                return false;
             }
 
             LoadDocument(document);
@@ -645,10 +657,19 @@ public sealed partial class MainViewModel : ObservableObject
             ResetHistory(markAsSaved: true);
             IsDirty = false;
             StatusMessage = $"Opened {Path.GetFileName(path)}";
+            await TryAddRecentFileAsync(path);
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "Open cancelled";
+            return false;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException)
         {
             StatusMessage = $"Could not open template: {exception.Message}";
+            await TryRemoveRecentFileAsync(path);
+            return false;
         }
     }
 
@@ -673,6 +694,7 @@ public sealed partial class MainViewModel : ObservableObject
             savedDocumentFingerprint = CreateFingerprint(CreateDocument());
             IsDirty = false;
             StatusMessage = $"Saved {Path.GetFileName(path)}";
+            await TryAddRecentFileAsync(path);
             return true;
         }
         catch (OperationCanceledException)
@@ -684,6 +706,40 @@ public sealed partial class MainViewModel : ObservableObject
         {
             StatusMessage = $"Could not save template: {exception.Message}";
             return false;
+        }
+    }
+
+    private async Task TryAddRecentFileAsync(string path)
+    {
+        if (recentFilesService is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await recentFilesService.AddRecentFileAsync(path);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // Recent-file history is optional and must not make document I/O fail.
+        }
+    }
+
+    private async Task TryRemoveRecentFileAsync(string path)
+    {
+        if (recentFilesService is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await recentFilesService.RemoveRecentFileAsync(path);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // A stale history entry is harmless if its cleanup cannot be persisted.
         }
     }
 

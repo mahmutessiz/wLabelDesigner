@@ -69,6 +69,6 @@
 
 - [x] Warn before closing or replacing a document with unsaved changes.
 - [ ] Add autosave and crash recovery.
-- [ ] Add a recent-files list.
+- [x] Add a recent-files list.
 - [ ] Validate imported template files and report actionable errors.
 - [ ] Add automated tests for editing, serialization, rendering, and printing behavior.

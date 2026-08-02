@@ -50,6 +50,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -72,9 +74,81 @@
             </StackPanel>
         </Grid>
 
-        <TextBlock Grid.Row="1" Text="STARTER LAYOUTS" Style="{StaticResource SectionHeading}" Margin="0,30,0,12" />
+        <TextBlock Grid.Row="1" Text="RECENT FILES" Style="{StaticResource SectionHeading}" Margin="0,24,0,8" />
 
-        <ListBox Grid.Row="2"
+        <Grid Grid.Row="2" MinHeight="94" MaxHeight="196">
+            <TextBlock Text="No recent templates yet."
+                       Foreground="{StaticResource MutedTextBrush}"
+                       VerticalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Visible" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasRecentFiles}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding RecentFiles}">
+                    <ItemsControl.Style>
+                        <Style TargetType="ItemsControl">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasRecentFiles}" Value="False">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ItemsControl.Style>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="4" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Height="88"
+                                    Margin="0,0,8,8"
+                                    Padding="12,10"
+                                    HorizontalContentAlignment="Stretch"
+                                    Command="{Binding DataContext.OpenRecentCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="{Binding}"
+                                    AutomationProperties.Name="{Binding FileName}"
+                                    ToolTip="{Binding Path}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="30" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Image Width="26"
+                                           Height="26"
+                                           HorizontalAlignment="Left"
+                                           VerticalAlignment="Top"
+                                           Source="pack://application:,,,/Resources/logo.ico" />
+                                    <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                        <TextBlock Text="{Binding FileName}"
+                                                   FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding DirectoryName}"
+                                                   Margin="0,5,0,0"
+                                                   Foreground="{StaticResource MutedTextBrush}"
+                                                   FontSize="11"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+
+        <TextBlock Grid.Row="3" Text="STARTER LAYOUTS" Style="{StaticResource SectionHeading}" Margin="0,18,0,12" />
+
+        <ListBox Grid.Row="4"
                  ItemsSource="{Binding Layouts}"
                  SelectedItem="{Binding SelectedLayout}"
                  Background="Transparent"
@@ -150,7 +224,7 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <Grid Grid.Row="3" Margin="0,12,0,0">
+        <Grid Grid.Row="5" Margin="0,12,0,0">
             <StackPanel Orientation="Horizontal">
                 <Button Content="Open existing template" Command="{Binding OpenExistingCommand}" Style="{StaticResource WelcomeActionButton}" />
                 <Button Content="Start blank" Command="{Binding CreateBlankCommand}" Style="{StaticResource WelcomeActionButton}" Margin="10,0,0,0" />

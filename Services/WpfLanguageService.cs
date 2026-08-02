@@ -19,6 +19,8 @@ public sealed class WpfLanguageService : ILanguageService
     private static readonly IReadOnlyDictionary<string, string> EnglishToTurkish =
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
+            ["RECENT FILES"] = "SON DOSYALAR",
+            ["No recent templates yet."] = "Henüz son kullanılan şablon yok.",
             ["Welcome to wLabel Designer"] = "wLabel Designer'a hoş geldiniz",
             ["Create your next label"] = "Yeni etiketinizi oluşturun",
             ["Start with a ready-made layout, a blank label, or one of your saved templates."] = "Hazır bir yerleşimle, boş bir etiketle veya kayıtlı şablonlarınızdan biriyle başlayın.",

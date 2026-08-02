@@ -6,7 +6,7 @@ The application is built with .NET 10, WPF, and MVVM.
 
 ## Current features
 
-- Welcome screen with cheese-pallet shipping, general shipping, product, shelf, and QR contact starter layouts.
+- Welcome screen with recent templates and cheese-pallet shipping, general shipping, product, shelf, and QR contact starter layouts.
 - Canvas-based label editor using physical millimetre dimensions.
 - Text, Code 128 barcode, QR code, box, rounded-box, and line elements.
 - Drag-to-place element palette.
@@ -51,7 +51,7 @@ Close any running copy of the application before rebuilding the normal output pa
 
 ## Basic workflow
 
-1. Choose a starter layout, create a blank label, or open a saved template from the welcome screen.
+1. Choose a recent template or starter layout, create a blank label, or browse for a saved template from the welcome screen.
 2. Set the label name, width, height, and printer DPI in the top bar if needed.
 3. Drag an element from the left tool rail onto the white label.
 4. Drag an element to move it and use its handles to resize it.
