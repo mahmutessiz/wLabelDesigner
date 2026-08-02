@@ -14,6 +14,7 @@
         <SolidColorBrush x:Key="SubtleAccentBrush" Color="#EEF2FF" />
 
         <Style TargetType="Window">
+            <Setter Property="Icon" Value="pack://application:,,,/Resources/logo.ico" />
             <Setter Property="FontFamily" Value="Segoe UI" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
