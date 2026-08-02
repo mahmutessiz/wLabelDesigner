@@ -37,9 +37,7 @@ public partial class MainWindow : Window
     private bool isClosePromptActive;
 
     public MainWindow()
-    {
-        InitializeComponent();
-        var viewModel = new MainViewModel(
+        : this(new MainViewModel(
             new JsonLabelDocumentStore(),
             new FileDialogService(),
             new WpfLabelPrintService(),
@@ -47,7 +45,13 @@ public partial class MainWindow : Window
             new WpfImageImportService(),
             new WpfLabelExportService(),
             new WpfUnsavedChangesPromptService(),
-            languageService);
+            WpfLanguageService.Instance))
+    {
+    }
+
+    public MainWindow(MainViewModel viewModel)
+    {
+        InitializeComponent();
         viewModel.PropertyChanged += MainViewModel_PropertyChanged;
         DataContext = viewModel;
         languageService.LanguageChanged += LanguageService_LanguageChanged;

@@ -6,6 +6,7 @@ The application is built with .NET 10, WPF, and MVVM.
 
 ## Current features
 
+- Welcome screen with shipping, product, shelf, and QR contact starter layouts.
 - Canvas-based label editor using physical millimetre dimensions.
 - Text, Code 128 barcode, QR code, box, rounded-box, and line elements.
 - Drag-to-place element palette.
@@ -50,14 +51,15 @@ Close any running copy of the application before rebuilding the normal output pa
 
 ## Basic workflow
 
-1. Set the label name, width, height, and printer DPI in the top bar.
-2. Drag an element from the left tool rail onto the white label.
-3. Drag an element to move it and use its handles to resize it.
-4. Double-click text to edit it directly on the label.
-5. Select a barcode or QR code to edit its encoded content in the right panel.
-6. Use Shift-click to select multiple elements, then align or distribute them from the contextual top bar.
-7. Save the editable template as a `.fckbartndr` file.
-8. Press Print to review the label, select a printer, choose the copy count, and print.
+1. Choose a starter layout, create a blank label, or open a saved template from the welcome screen.
+2. Set the label name, width, height, and printer DPI in the top bar if needed.
+3. Drag an element from the left tool rail onto the white label.
+4. Drag an element to move it and use its handles to resize it.
+5. Double-click text to edit it directly on the label.
+6. Select a barcode or QR code to edit its encoded content in the right panel.
+7. Use Shift-click to select multiple elements, then align or distribute them from the contextual top bar.
+8. Save the editable template as a `.fckbartndr` file.
+9. Press Print to review the label, select a printer, choose the copy count, and print.
 
 Click empty workspace or press Escape to clear the current selection. Selected elements are temporarily displayed above overlapping elements while editing without changing the saved or printed layer order.
 

@@ -256,6 +256,16 @@ public sealed partial class MainViewModel : ObservableObject
         ResetHistory(markAsSaved: true);
     }
 
+    public void StartFromLayout(LabelDocument document)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+        LoadDocument(document);
+        currentPath = null;
+        ResetHistory(markAsSaved: false);
+        IsDirty = true;
+        StatusMessage = $"Created {DocumentName} from a starter layout";
+    }
+
     [RelayCommand]
     private void AddText() => AddElementAt(LabelElementKind.Text, 5, 5, beginEditing: true);
 
