@@ -143,4 +143,4 @@ Engineering conventions are documented in [AGENTS.md](AGENTS.md). Planned work i
 
 ## License
 
-No project license has been defined yet. Add a license before redistributing the application or accepting external contributions.
+This project is licensed under the [GNU General Public License version 3](LICENSE).
