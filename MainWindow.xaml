@@ -462,6 +462,13 @@
                                           VerticalAlignment="Center"
                                           Margin="10,0,0,0"
                                           ToolTip="Show or hide the human-readable barcode value" />
+                                <TextBlock Text="Quiet zone" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="10,0,5,0" />
+                                <ComboBox Width="58"
+                                          IsEditable="True"
+                                          ItemsSource="{Binding CommonBarcodeQuietZones}"
+                                          Text="{Binding SelectedElement.BarcodeQuietZoneMillimeters, UpdateSourceTrigger=PropertyChanged, Delay=75}"
+                                          ToolTip="Blank space on the left and right of the barcode" />
+                                <TextBlock Text="mm" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="5,0,0,0" />
                                 <Separator Margin="8,8" />
                             </StackPanel>
                             <TextBlock Text="Content" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,7,0" />
@@ -839,6 +846,8 @@
                                                     <Binding Path="Kind" />
                                                     <Binding Path="BarcodeFormat" />
                                                     <Binding Path="IsBarcodeTextVisible" />
+                                                    <Binding Path="BarcodeQuietZoneMillimeters" />
+                                                    <Binding Path="Width" />
                                                 </MultiBinding>
                                             </Image.Source>
                                         </Image>

@@ -189,6 +189,10 @@ public sealed class WpfLanguageService : ILanguageService
                 "Barkodlarda içeriği girmeden önce biçimi seçin. Geçersiz uzunluk, desteklenmeyen karakterler ve hatalı EAN, UPC veya ITF kontrol basamakları içerik alanının altında gösterilir; yazdırmadan veya dışa aktarmadan önce düzeltilmelidir.",
             ["Use Show text to include or hide the human-readable barcode value beneath the bars. This setting is saved separately for each barcode."] =
                 "Çubukların altındaki okunabilir barkod değerini göstermek veya gizlemek için Metni göster seçeneğini kullanın. Bu ayar her barkod için ayrı kaydedilir.",
+            ["Quiet zone"] = "Sessiz alan",
+            ["Blank space on the left and right of the barcode"] = "Barkodun solunda ve sağındaki boş alan",
+            ["Set Quiet zone in millimetres to reserve blank space on both sides of a barcode. The quiet zone is kept inside the barcode element and is included in previews, exports, and printing."] =
+                "Barkodun iki yanında boş alan ayırmak için Sessiz alan değerini milimetre cinsinden ayarlayın. Sessiz alan barkod öğesinin içinde tutulur; önizlemelere, dışa aktarmalara ve baskıya dahil edilir.",
             ["Use the contextual formatting bar to choose text and shape colors, opacity, corner radius, stroke pattern, vertical alignment, line spacing, and letter spacing. Auto fit reduces text size when necessary; a red exclamation mark warns when text still overflows its bounds."] =
                 "Metin ve şekil renklerini, saydamlığı, köşe yarıçapını, çizgi desenini, dikey hizalamayı, satır ve harf aralığını seçmek için bağlamsal biçimlendirme çubuğunu kullanın. Otomatik sığdırma gerektiğinde metin boyutunu küçültür; kırmızı ünlem işareti metin sınırları aştığında uyarır.",
             ["The Layers panel lists elements from front to back. Select a layer, then use Front, Up, Down, or Back to change its stacking order. The same commands are available from the Arrange menu."] =

@@ -93,6 +93,48 @@ public sealed class BarcodeFormatTests
         Assert.False(ReadPixels(withText).SequenceEqual(ReadPixels(withoutText)));
     }
 
+    [Fact]
+    public void ViewModel_RoundTripsAndNormalizesQuietZone()
+    {
+        var element = new LabelElementViewModel(new LabelElementData
+        {
+            Kind = LabelElementKind.Barcode,
+            BarcodeQuietZoneMillimeters = 3.5
+        });
+
+        Assert.Equal(3.5, element.BarcodeQuietZoneMillimeters);
+        Assert.Equal(3.5, element.ToData().BarcodeQuietZoneMillimeters);
+
+        element.BarcodeQuietZoneMillimeters = -1;
+        Assert.Equal(0, element.BarcodeQuietZoneMillimeters);
+
+        element.BarcodeQuietZoneMillimeters = 30;
+        Assert.Equal(25, element.BarcodeQuietZoneMillimeters);
+    }
+
+    [Fact]
+    public void Render_QuietZoneChangesBarcodeOutputWithoutChangingImageSize()
+    {
+        var withoutQuietZone = LabelImageRenderer.Render(
+            LabelElementKind.Barcode,
+            "SHIP-ABC-123",
+            BarcodeFormatOption.Code128,
+            barcodeQuietZoneMillimeters: 0,
+            barcodeWidthMillimeters: 50);
+        var withQuietZone = LabelImageRenderer.Render(
+            LabelElementKind.Barcode,
+            "SHIP-ABC-123",
+            BarcodeFormatOption.Code128,
+            barcodeQuietZoneMillimeters: 5,
+            barcodeWidthMillimeters: 50);
+
+        Assert.NotNull(withoutQuietZone);
+        Assert.NotNull(withQuietZone);
+        Assert.Equal(withoutQuietZone.PixelWidth, withQuietZone.PixelWidth);
+        Assert.Equal(withoutQuietZone.PixelHeight, withQuietZone.PixelHeight);
+        Assert.False(ReadPixels(withoutQuietZone).SequenceEqual(ReadPixels(withQuietZone)));
+    }
+
     private static byte[] ReadPixels(System.Windows.Media.Imaging.BitmapSource bitmap)
     {
         var stride = ((bitmap.PixelWidth * bitmap.Format.BitsPerPixel) + 7) / 8;

@@ -80,6 +80,8 @@ public sealed partial class MainViewModel : ObservableObject
 
     public IReadOnlyList<double> CommonLetterSpacings { get; } = [-1, 0, 0.5, 1, 2, 3, 5];
 
+    public IReadOnlyList<double> CommonBarcodeQuietZones { get; } = [0, 1, 2, 3, 4, 5, 10];
+
     public IReadOnlyList<SelectionOption<StrokeStyleOption>> StrokeStyles =>
         Enum.GetValues<StrokeStyleOption>()
             .Select(value => new SelectionOption<StrokeStyleOption>(value, languageService?.Translate(value.ToString()) ?? value.ToString()))
@@ -1028,6 +1030,7 @@ public sealed partial class MainViewModel : ObservableObject
             Content = source.Content ?? string.Empty,
             BarcodeFormat = source.BarcodeFormat,
             IsBarcodeTextVisible = source.IsBarcodeTextVisible,
+            BarcodeQuietZoneMillimeters = source.BarcodeQuietZoneMillimeters,
             X = Math.Clamp(sourceX + offset, 0, Math.Max(0, LabelWidth - width)),
             Y = Math.Clamp(sourceY + offset, 0, Math.Max(0, LabelHeight - height)),
             Width = width,

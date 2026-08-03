@@ -40,6 +40,7 @@ The application is built with .NET 10, WPF, and MVVM.
 - Context-sensitive formatting and barcode/QR data controls.
 - Format-aware barcode validation with check-digit verification before printing or export.
 - Per-barcode control over the human-readable value below the bars.
+- Per-barcode quiet-zone control in millimetres for reliable scanning.
 - Unsaved-change prompts and a recent-files list.
 - Built-in F1 user guide.
 
@@ -127,7 +128,7 @@ Templates use the `.fckbartndr` extension and contain human-readable JSON. A tem
 - Embedded image data, line direction, and shape stroke settings.
 - Preferred printer, default copy count, print margins, and X/Y calibration offsets.
 
-The current template format version is 7. The loader accepts templates with format version 7 or earlier and rejects templates created with a newer, unsupported format.
+The current template format version is 8. The loader accepts templates with format version 8 or earlier and rejects templates created with a newer, unsupported format.
 
 ## NuGet dependencies
 

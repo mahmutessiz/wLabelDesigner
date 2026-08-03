@@ -17,6 +17,7 @@ public sealed partial class LabelElementViewModel : ObservableObject
             ? data.BarcodeFormat
             : BarcodeFormatOption.Code128;
         isBarcodeTextVisible = data.IsBarcodeTextVisible;
+        barcodeQuietZoneMillimeters = NormalizeQuietZone(data.BarcodeQuietZoneMillimeters);
         x = data.X;
         y = data.Y;
         width = data.Width;
@@ -91,6 +92,14 @@ public sealed partial class LabelElementViewModel : ObservableObject
 
     [ObservableProperty]
     private bool isBarcodeTextVisible = true;
+
+    private double barcodeQuietZoneMillimeters = 2;
+
+    public double BarcodeQuietZoneMillimeters
+    {
+        get => barcodeQuietZoneMillimeters;
+        set => SetProperty(ref barcodeQuietZoneMillimeters, NormalizeQuietZone(value));
+    }
 
     public string? BarcodeValidationError
     {
@@ -263,6 +272,7 @@ public sealed partial class LabelElementViewModel : ObservableObject
         Content = Content,
         BarcodeFormat = BarcodeFormat,
         IsBarcodeTextVisible = IsBarcodeTextVisible,
+        BarcodeQuietZoneMillimeters = BarcodeQuietZoneMillimeters,
         X = X,
         Y = Y,
         Width = Width,
@@ -292,6 +302,9 @@ public sealed partial class LabelElementViewModel : ObservableObject
 
     private static double Normalize(double value, double minimum, double maximum) =>
         double.IsFinite(value) ? Math.Clamp(value, minimum, maximum) : minimum;
+
+    private static double NormalizeQuietZone(double value) =>
+        double.IsFinite(value) ? Math.Round(Math.Clamp(value, 0, 25), 2) : 2;
 
     private static string NormalizeColor(string? value, string fallback)
     {

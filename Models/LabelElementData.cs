@@ -12,6 +12,8 @@ public sealed class LabelElementData
 
     public bool IsBarcodeTextVisible { get; set; } = true;
 
+    public double BarcodeQuietZoneMillimeters { get; set; } = 2;
+
     public double X { get; set; }
 
     public double Y { get; set; }

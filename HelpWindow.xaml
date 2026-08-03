@@ -66,6 +66,8 @@
                 <TextBlock Style="{StaticResource HelpBody}" Margin="0,8,0,0"
                            Text="Use Show text to include or hide the human-readable barcode value beneath the bars. This setting is saved separately for each barcode." />
                 <TextBlock Style="{StaticResource HelpBody}" Margin="0,8,0,0"
+                           Text="Set Quiet zone in millimetres to reserve blank space on both sides of a barcode. The quiet zone is kept inside the barcode element and is included in previews, exports, and printing." />
+                <TextBlock Style="{StaticResource HelpBody}" Margin="0,8,0,0"
                            Text="Drag the circular handle above a selected element to rotate it. Hold Shift while dragging to snap the angle to 15-degree increments, or enter an exact rotation in the element panel on the right." />
                 <TextBlock Style="{StaticResource HelpBody}" Margin="0,8,0,0"
                            Text="When two or more elements are selected, the contextual toolbar provides edge and centre alignment commands. With three or more selected elements, Space H and Space V distribute them evenly." />

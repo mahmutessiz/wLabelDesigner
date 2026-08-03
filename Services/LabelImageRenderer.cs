@@ -9,12 +9,16 @@ namespace wLabelDesigner.Services;
 public static class LabelImageRenderer
 {
     private const int MaximumEmbeddedImageBytes = 25 * 1024 * 1024;
+    private const int BarcodePixelWidth = 900;
+    private const int BarcodePixelHeight = 300;
 
     public static BitmapSource? Render(
         LabelElementKind kind,
         string content,
         BarcodeFormatOption barcodeFormat = BarcodeFormatOption.Code128,
-        bool isBarcodeTextVisible = true)
+        bool isBarcodeTextVisible = true,
+        double barcodeQuietZoneMillimeters = 2,
+        double barcodeWidthMillimeters = 50)
     {
         if (string.IsNullOrWhiteSpace(content))
         {
@@ -28,7 +32,12 @@ public static class LabelImageRenderer
 
         var imageBytes = kind switch
         {
-            LabelElementKind.Barcode => CreateBarcode(content, barcodeFormat, isBarcodeTextVisible),
+            LabelElementKind.Barcode => CreateBarcode(
+                content,
+                barcodeFormat,
+                isBarcodeTextVisible,
+                barcodeQuietZoneMillimeters,
+                barcodeWidthMillimeters),
             LabelElementKind.QrCode => CreateQrCode(content),
             LabelElementKind.Image => DecodeEmbeddedImage(content),
             _ => null
@@ -40,14 +49,18 @@ public static class LabelImageRenderer
     private static byte[] CreateBarcode(
         string content,
         BarcodeFormatOption format,
-        bool isBarcodeTextVisible)
+        bool isBarcodeTextVisible,
+        double quietZoneMillimeters,
+        double barcodeWidthMillimeters)
     {
+        var quietZonePixels = CalculateQuietZonePixels(quietZoneMillimeters, barcodeWidthMillimeters);
+        var contentWidth = BarcodePixelWidth - (quietZonePixels * 2);
         var barcode = new BarcodeStandard.Barcode
         {
             IncludeLabel = isBarcodeTextVisible
         };
 
-        using var image = barcode.Encode(
+        using var barcodeImage = barcode.Encode(
             format switch
             {
                 BarcodeFormatOption.Code39 => BarcodeStandard.Type.Code39,
@@ -60,10 +73,25 @@ public static class LabelImageRenderer
             content,
             SKColors.Black,
             SKColors.White,
-            width: 900,
-            height: 300);
+            width: contentWidth,
+            height: BarcodePixelHeight);
+        using var surface = SKSurface.Create(new SKImageInfo(BarcodePixelWidth, BarcodePixelHeight));
+        surface.Canvas.Clear(SKColors.White);
+        surface.Canvas.DrawImage(barcodeImage, quietZonePixels, 0);
+        using var image = surface.Snapshot();
         using var encodedImage = image.Encode(SKEncodedImageFormat.Png, quality: 100);
         return encodedImage.ToArray();
+    }
+
+    private static int CalculateQuietZonePixels(double quietZoneMillimeters, double barcodeWidthMillimeters)
+    {
+        var width = double.IsFinite(barcodeWidthMillimeters) && barcodeWidthMillimeters > 0
+            ? barcodeWidthMillimeters
+            : 50;
+        var quietZone = double.IsFinite(quietZoneMillimeters)
+            ? Math.Clamp(quietZoneMillimeters, 0, Math.Min(25, width * 0.45))
+            : 2;
+        return (int)Math.Round((quietZone / width) * BarcodePixelWidth);
     }
 
     private static byte[] CreateQrCode(string content)
