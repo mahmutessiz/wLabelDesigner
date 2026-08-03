@@ -471,6 +471,24 @@
                                 <TextBlock Text="mm" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="5,0,0,0" />
                                 <Separator Margin="8,8" />
                             </StackPanel>
+                            <StackPanel Orientation="Horizontal"
+                                        Visibility="{Binding HasQrCodeSelection, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="Correction" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,7,0" />
+                                <ComboBox Width="120"
+                                          ItemsSource="{Binding QrErrorCorrectionLevels}"
+                                          DisplayMemberPath="Name"
+                                          SelectedValuePath="Value"
+                                          SelectedValue="{Binding SelectedElement.QrErrorCorrection}"
+                                          ToolTip="QR error-correction level" />
+                                <TextBlock Text="Margin" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="10,0,5,0" />
+                                <ComboBox Width="54"
+                                          IsEditable="True"
+                                          ItemsSource="{Binding CommonQrMargins}"
+                                          Text="{Binding SelectedElement.QrMarginModules, UpdateSourceTrigger=PropertyChanged, Delay=75}"
+                                          ToolTip="Blank modules around the QR code" />
+                                <TextBlock Text="modules" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="5,0,0,0" />
+                                <Separator Margin="8,8" />
+                            </StackPanel>
                             <TextBlock Text="Content" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,7,0" />
                             <TextBox Width="360"
                                      Text="{Binding SelectedElement.Content, UpdateSourceTrigger=PropertyChanged}"
@@ -848,6 +866,8 @@
                                                     <Binding Path="IsBarcodeTextVisible" />
                                                     <Binding Path="BarcodeQuietZoneMillimeters" />
                                                     <Binding Path="Width" />
+                                                    <Binding Path="QrErrorCorrection" />
+                                                    <Binding Path="QrMarginModules" />
                                                 </MultiBinding>
                                             </Image.Source>
                                         </Image>

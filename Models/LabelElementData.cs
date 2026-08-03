@@ -14,6 +14,10 @@ public sealed class LabelElementData
 
     public double BarcodeQuietZoneMillimeters { get; set; } = 2;
 
+    public QrErrorCorrectionOption QrErrorCorrection { get; set; } = QrErrorCorrectionOption.Medium;
+
+    public int QrMarginModules { get; set; } = 4;
+
     public double X { get; set; }
 
     public double Y { get; set; }

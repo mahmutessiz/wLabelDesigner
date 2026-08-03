@@ -27,13 +27,19 @@ public sealed class LabelElementImageConverter : IMultiValueConverter
             var isBarcodeTextVisible = values.Length <= 3 || values[3] is not bool isVisible || isVisible;
             var quietZoneMillimeters = values.Length > 4 && values[4] is double quietZone ? quietZone : 2;
             var elementWidthMillimeters = values.Length > 5 && values[5] is double width ? width : 50;
+            var qrErrorCorrection = values.Length > 6 && values[6] is QrErrorCorrectionOption correction
+                ? correction
+                : QrErrorCorrectionOption.Medium;
+            var qrMarginModules = values.Length > 7 && values[7] is int marginModules ? marginModules : 4;
             return LabelImageRenderer.Render(
                 kind,
                 content,
                 barcodeFormat,
                 isBarcodeTextVisible,
                 quietZoneMillimeters,
-                elementWidthMillimeters);
+                elementWidthMillimeters,
+                qrErrorCorrection,
+                qrMarginModules);
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
         {

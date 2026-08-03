@@ -246,7 +246,9 @@ public static class LabelDrawingRenderer
             element.BarcodeFormat,
             element.IsBarcodeTextVisible,
             element.BarcodeQuietZoneMillimeters,
-            element.Width);
+            element.Width,
+            element.QrErrorCorrection,
+            element.QrMarginModules);
         if (image is not null)
         {
             drawingContext.DrawImage(image, bounds);

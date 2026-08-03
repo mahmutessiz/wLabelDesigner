@@ -11,6 +11,7 @@ public static class LabelImageRenderer
     private const int MaximumEmbeddedImageBytes = 25 * 1024 * 1024;
     private const int BarcodePixelWidth = 900;
     private const int BarcodePixelHeight = 300;
+    private const int QrPixelsPerModule = 12;
 
     public static BitmapSource? Render(
         LabelElementKind kind,
@@ -18,7 +19,9 @@ public static class LabelImageRenderer
         BarcodeFormatOption barcodeFormat = BarcodeFormatOption.Code128,
         bool isBarcodeTextVisible = true,
         double barcodeQuietZoneMillimeters = 2,
-        double barcodeWidthMillimeters = 50)
+        double barcodeWidthMillimeters = 50,
+        QrErrorCorrectionOption qrErrorCorrection = QrErrorCorrectionOption.Medium,
+        int qrMarginModules = 4)
     {
         if (string.IsNullOrWhiteSpace(content))
         {
@@ -38,7 +41,7 @@ public static class LabelImageRenderer
                 isBarcodeTextVisible,
                 barcodeQuietZoneMillimeters,
                 barcodeWidthMillimeters),
-            LabelElementKind.QrCode => CreateQrCode(content),
+            LabelElementKind.QrCode => CreateQrCode(content, qrErrorCorrection, qrMarginModules),
             LabelElementKind.Image => DecodeEmbeddedImage(content),
             _ => null
         };
@@ -94,12 +97,38 @@ public static class LabelImageRenderer
         return (int)Math.Round((quietZone / width) * BarcodePixelWidth);
     }
 
-    private static byte[] CreateQrCode(string content)
+    private static byte[] CreateQrCode(
+        string content,
+        QrErrorCorrectionOption errorCorrection,
+        int marginModules)
     {
         using var generator = new QRCodeGenerator();
-        using var data = generator.CreateQrCode(content, QRCodeGenerator.ECCLevel.M);
+        using var data = generator.CreateQrCode(
+            content,
+            errorCorrection switch
+            {
+                QrErrorCorrectionOption.Low => QRCodeGenerator.ECCLevel.L,
+                QrErrorCorrectionOption.Quartile => QRCodeGenerator.ECCLevel.Q,
+                QrErrorCorrectionOption.High => QRCodeGenerator.ECCLevel.H,
+                _ => QRCodeGenerator.ECCLevel.M
+            });
         using var qrCode = new PngByteQRCode(data);
-        return qrCode.GetGraphic(pixelsPerModule: 12, drawQuietZones: true);
+        var qrBytes = qrCode.GetGraphic(pixelsPerModule: QrPixelsPerModule, drawQuietZones: false);
+        var marginPixels = Math.Clamp(marginModules, 0, 16) * QrPixelsPerModule;
+        if (marginPixels == 0)
+        {
+            return qrBytes;
+        }
+
+        using var qrBitmap = SKBitmap.Decode(qrBytes) ??
+            throw new InvalidOperationException("Generated QR code could not be decoded.");
+        var imageSize = qrBitmap.Width + (marginPixels * 2);
+        using var surface = SKSurface.Create(new SKImageInfo(imageSize, imageSize));
+        surface.Canvas.Clear(SKColors.White);
+        surface.Canvas.DrawBitmap(qrBitmap, marginPixels, marginPixels);
+        using var image = surface.Snapshot();
+        using var encodedImage = image.Encode(SKEncodedImageFormat.Png, quality: 100);
+        return encodedImage.ToArray();
     }
 
     private static byte[]? DecodeEmbeddedImage(string content)

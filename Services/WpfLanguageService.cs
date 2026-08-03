@@ -193,6 +193,19 @@ public sealed class WpfLanguageService : ILanguageService
             ["Blank space on the left and right of the barcode"] = "Barkodun solunda ve sağındaki boş alan",
             ["Set Quiet zone in millimetres to reserve blank space on both sides of a barcode. The quiet zone is kept inside the barcode element and is included in previews, exports, and printing."] =
                 "Barkodun iki yanında boş alan ayırmak için Sessiz alan değerini milimetre cinsinden ayarlayın. Sessiz alan barkod öğesinin içinde tutulur; önizlemelere, dışa aktarmalara ve baskıya dahil edilir.",
+            ["Correction"] = "Düzeltme",
+            ["QR error-correction level"] = "QR hata düzeltme düzeyi",
+            ["Low (7%)"] = "Düşük (%7)",
+            ["Medium (15%)"] = "Orta (%15)",
+            ["Quartile (25%)"] = "Çeyrek (%25)",
+            ["High (30%)"] = "Yüksek (%30)",
+            ["For QR codes, choose a Correction level from Low to High. Higher levels can recover from more damage but produce a denser QR code. This setting is saved separately for each QR code."] =
+                "QR kodlarda Düşük ile Yüksek arasında bir Düzeltme düzeyi seçin. Daha yüksek düzeyler daha fazla hasarı kurtarabilir ancak daha yoğun bir QR kod üretir. Bu ayar her QR kod için ayrı kaydedilir.",
+            ["Margin"] = "Kenar boşluğu",
+            ["modules"] = "modül",
+            ["Blank modules around the QR code"] = "QR kodun çevresindeki boş modüller",
+            ["Set a QR Margin in whole modules to control the blank border around the code. Four modules is the standard default; reducing it may make the QR code harder to scan."] =
+                "Kodun çevresindeki boş kenarlığı ayarlamak için QR Kenar boşluğunu tam modül olarak belirleyin. Dört modül standart varsayılandır; azaltılması QR kodun taranmasını zorlaştırabilir.",
             ["Use the contextual formatting bar to choose text and shape colors, opacity, corner radius, stroke pattern, vertical alignment, line spacing, and letter spacing. Auto fit reduces text size when necessary; a red exclamation mark warns when text still overflows its bounds."] =
                 "Metin ve şekil renklerini, saydamlığı, köşe yarıçapını, çizgi desenini, dikey hizalamayı, satır ve harf aralığını seçmek için bağlamsal biçimlendirme çubuğunu kullanın. Otomatik sığdırma gerektiğinde metin boyutunu küçültür; kırmızı ünlem işareti metin sınırları aştığında uyarır.",
             ["The Layers panel lists elements from front to back. Select a layer, then use Front, Up, Down, or Back to change its stacking order. The same commands are available from the Arrange menu."] =

@@ -50,8 +50,8 @@
 - [x] Validate barcode content for the selected format.
 - [x] Allow barcode human-readable labels to be shown or hidden.
 - [x] Add barcode quiet-zone controls.
-- [ ] Add QR error-correction settings.
-- [ ] Add QR margin controls.
+- [x] Add QR error-correction settings.
+- [x] Add QR margin controls.
 
 ## Printing and export
 

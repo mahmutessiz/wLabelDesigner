@@ -18,6 +18,10 @@ public sealed partial class LabelElementViewModel : ObservableObject
             : BarcodeFormatOption.Code128;
         isBarcodeTextVisible = data.IsBarcodeTextVisible;
         barcodeQuietZoneMillimeters = NormalizeQuietZone(data.BarcodeQuietZoneMillimeters);
+        qrErrorCorrection = Enum.IsDefined(data.QrErrorCorrection)
+            ? data.QrErrorCorrection
+            : QrErrorCorrectionOption.Medium;
+        qrMarginModules = Math.Clamp(data.QrMarginModules, 0, 16);
         x = data.X;
         y = data.Y;
         width = data.Width;
@@ -99,6 +103,17 @@ public sealed partial class LabelElementViewModel : ObservableObject
     {
         get => barcodeQuietZoneMillimeters;
         set => SetProperty(ref barcodeQuietZoneMillimeters, NormalizeQuietZone(value));
+    }
+
+    [ObservableProperty]
+    private QrErrorCorrectionOption qrErrorCorrection = QrErrorCorrectionOption.Medium;
+
+    private int qrMarginModules = 4;
+
+    public int QrMarginModules
+    {
+        get => qrMarginModules;
+        set => SetProperty(ref qrMarginModules, Math.Clamp(value, 0, 16));
     }
 
     public string? BarcodeValidationError
@@ -273,6 +288,8 @@ public sealed partial class LabelElementViewModel : ObservableObject
         BarcodeFormat = BarcodeFormat,
         IsBarcodeTextVisible = IsBarcodeTextVisible,
         BarcodeQuietZoneMillimeters = BarcodeQuietZoneMillimeters,
+        QrErrorCorrection = QrErrorCorrection,
+        QrMarginModules = QrMarginModules,
         X = X,
         Y = Y,
         Width = Width,

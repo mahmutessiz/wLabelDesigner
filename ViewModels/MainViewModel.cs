@@ -82,6 +82,8 @@ public sealed partial class MainViewModel : ObservableObject
 
     public IReadOnlyList<double> CommonBarcodeQuietZones { get; } = [0, 1, 2, 3, 4, 5, 10];
 
+    public IReadOnlyList<int> CommonQrMargins { get; } = [0, 1, 2, 4, 6, 8, 12, 16];
+
     public IReadOnlyList<SelectionOption<StrokeStyleOption>> StrokeStyles =>
         Enum.GetValues<StrokeStyleOption>()
             .Select(value => new SelectionOption<StrokeStyleOption>(value, languageService?.Translate(value.ToString()) ?? value.ToString()))
@@ -100,6 +102,14 @@ public sealed partial class MainViewModel : ObservableObject
         new(BarcodeFormatOption.Ean13, "EAN-13"),
         new(BarcodeFormatOption.UpcA, "UPC-A"),
         new(BarcodeFormatOption.Itf14, "ITF-14")
+    ];
+
+    public IReadOnlyList<SelectionOption<QrErrorCorrectionOption>> QrErrorCorrectionLevels =>
+    [
+        new(QrErrorCorrectionOption.Low, languageService?.Translate("Low (7%)") ?? "Low (7%)"),
+        new(QrErrorCorrectionOption.Medium, languageService?.Translate("Medium (15%)") ?? "Medium (15%)"),
+        new(QrErrorCorrectionOption.Quartile, languageService?.Translate("Quartile (25%)") ?? "Quartile (25%)"),
+        new(QrErrorCorrectionOption.High, languageService?.Translate("High (30%)") ?? "High (30%)")
     ];
 
     private static readonly IReadOnlyList<ColorOption> ColorPalette =
@@ -139,6 +149,9 @@ public sealed partial class MainViewModel : ObservableObject
 
     public bool HasBarcodeSelection => selectedElements.Count == 1 &&
         SelectedElement?.Kind == LabelElementKind.Barcode;
+
+    public bool HasQrCodeSelection => selectedElements.Count == 1 &&
+        SelectedElement?.Kind == LabelElementKind.QrCode;
 
     public bool HasShapeSelection => selectedElements.Count == 1 && SelectedElement?.Kind is
         LabelElementKind.Rectangle or LabelElementKind.RoundedRectangle or LabelElementKind.Line or
@@ -191,6 +204,8 @@ public sealed partial class MainViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(DeleteSelectedCommand))]
     [NotifyPropertyChangedFor(nameof(HasTextSelection))]
     [NotifyPropertyChangedFor(nameof(HasDataElementSelection))]
+    [NotifyPropertyChangedFor(nameof(HasBarcodeSelection))]
+    [NotifyPropertyChangedFor(nameof(HasQrCodeSelection))]
     [NotifyPropertyChangedFor(nameof(HasShapeSelection))]
     [NotifyPropertyChangedFor(nameof(HasFormattingSelection))]
     [NotifyPropertyChangedFor(nameof(HasSingleSelection))]
@@ -247,6 +262,7 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(CommonColors));
         OnPropertyChanged(nameof(StrokeStyles));
         OnPropertyChanged(nameof(VerticalTextAlignments));
+        OnPropertyChanged(nameof(QrErrorCorrectionLevels));
         foreach (var element in Elements)
         {
             element.SetLanguage(languageService);
@@ -1031,6 +1047,8 @@ public sealed partial class MainViewModel : ObservableObject
             BarcodeFormat = source.BarcodeFormat,
             IsBarcodeTextVisible = source.IsBarcodeTextVisible,
             BarcodeQuietZoneMillimeters = source.BarcodeQuietZoneMillimeters,
+            QrErrorCorrection = source.QrErrorCorrection,
+            QrMarginModules = source.QrMarginModules,
             X = Math.Clamp(sourceX + offset, 0, Math.Max(0, LabelWidth - width)),
             Y = Math.Clamp(sourceY + offset, 0, Math.Max(0, LabelHeight - height)),
             Width = width,
@@ -1264,6 +1282,7 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(HasTextSelection));
         OnPropertyChanged(nameof(HasDataElementSelection));
         OnPropertyChanged(nameof(HasBarcodeSelection));
+        OnPropertyChanged(nameof(HasQrCodeSelection));
         OnPropertyChanged(nameof(HasShapeSelection));
         OnPropertyChanged(nameof(HasFormattingSelection));
         DeleteSelectedCommand.NotifyCanExecuteChanged();
