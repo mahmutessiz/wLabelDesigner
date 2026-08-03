@@ -29,15 +29,15 @@
 
 ## Styling
 
-- [ ] Add fill-color selection.
-- [ ] Add border and stroke-color selection.
-- [ ] Add opacity controls.
-- [ ] Add configurable corner radius.
-- [ ] Add solid, dashed, and dotted stroke styles.
-- [ ] Add vertical text alignment.
-- [ ] Add text line-spacing controls.
-- [ ] Add letter-spacing controls.
-- [ ] Add automatic text fitting and overflow indicators.
+- [x] Add fill-color selection.
+- [x] Add border and stroke-color selection.
+- [x] Add opacity controls.
+- [x] Add configurable corner radius.
+- [x] Add solid, dashed, and dotted stroke styles.
+- [x] Add vertical text alignment.
+- [x] Add text line-spacing controls.
+- [x] Add letter-spacing controls.
+- [x] Add automatic text fitting and overflow indicators.
 
 ## Elements
 

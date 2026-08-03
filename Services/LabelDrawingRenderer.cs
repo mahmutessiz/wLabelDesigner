@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
 using wLabelDesigner.Models;
@@ -121,6 +120,13 @@ public static class LabelDrawingRenderer
             element.Width * DeviceIndependentPixelsPerMillimeter,
             element.Height * DeviceIndependentPixelsPerMillimeter);
 
+        var opacity = double.IsFinite(element.Opacity) ? Math.Clamp(element.Opacity, 0, 1) : 1;
+        var hasOpacity = opacity < 0.999;
+        if (hasOpacity)
+        {
+            drawingContext.PushOpacity(opacity);
+        }
+
         var rotation = double.IsFinite(element.RotationDegrees) ? element.RotationDegrees : 0;
         var isRotated = Math.Abs(rotation) > 0.001;
         if (isRotated)
@@ -138,6 +144,11 @@ public static class LabelDrawingRenderer
             {
                 drawingContext.Pop();
             }
+
+            if (hasOpacity)
+            {
+                drawingContext.Pop();
+            }
         }
     }
 
@@ -149,7 +160,8 @@ public static class LabelDrawingRenderer
 
         if (element.Kind is LabelElementKind.Rectangle or LabelElementKind.RoundedRectangle)
         {
-            var pen = new Pen(Brushes.Black, element.StrokeThickness);
+            var pen = CreatePen(element);
+            var fill = CreateBrush(element.FillColor, Brushes.Transparent);
             var inset = pen.Thickness / 2;
             var strokeBounds = new Rect(
                 bounds.Left + inset,
@@ -157,15 +169,16 @@ public static class LabelDrawingRenderer
                 Math.Max(0, bounds.Width - pen.Thickness),
                 Math.Max(0, bounds.Height - pen.Thickness));
             var radius = element.Kind == LabelElementKind.RoundedRectangle
-                ? 3 * DeviceIndependentPixelsPerMillimeter
+                ? NormalizeCornerRadius(element.CornerRadius, element.Width, element.Height) * DeviceIndependentPixelsPerMillimeter
                 : 0;
-            drawingContext.DrawRoundedRectangle(null, pen, strokeBounds, radius, radius);
+            drawingContext.DrawRoundedRectangle(fill, pen, strokeBounds, radius, radius);
             return;
         }
 
         if (element.Kind is LabelElementKind.Ellipse or LabelElementKind.Triangle or LabelElementKind.Diamond)
         {
-            var pen = new Pen(Brushes.Black, element.StrokeThickness);
+            var pen = CreatePen(element);
+            var fill = CreateBrush(element.FillColor, Brushes.Transparent);
             var inset = pen.Thickness / 2;
             var strokeBounds = new Rect(
                 bounds.Left + inset,
@@ -176,7 +189,7 @@ public static class LabelDrawingRenderer
             if (element.Kind == LabelElementKind.Ellipse)
             {
                 drawingContext.DrawEllipse(
-                    null,
+                    fill,
                     pen,
                     new Point(strokeBounds.Left + (strokeBounds.Width / 2), strokeBounds.Top + (strokeBounds.Height / 2)),
                     strokeBounds.Width / 2,
@@ -200,7 +213,7 @@ public static class LabelDrawingRenderer
                 geometryContext.PolyLineTo(points[1..], isStroked: true, isSmoothJoin: true);
             }
             geometry.Freeze();
-            drawingContext.DrawGeometry(null, pen, geometry);
+            drawingContext.DrawGeometry(fill, pen, geometry);
             return;
         }
 
@@ -209,7 +222,7 @@ public static class LabelDrawingRenderer
             var start = element.IsLineDirectionReversed ? bounds.BottomLeft : bounds.TopLeft;
             var end = element.IsLineDirectionReversed ? bounds.TopRight : bounds.BottomRight;
             drawingContext.DrawLine(
-                new Pen(Brushes.Black, element.StrokeThickness),
+                CreatePen(element),
                 start,
                 end);
             return;
@@ -218,35 +231,11 @@ public static class LabelDrawingRenderer
         if (element.Kind == LabelElementKind.Text)
         {
             drawingContext.PushClip(new RectangleGeometry(bounds));
-            var text = new FormattedText(
-                element.Content,
-                CultureInfo.CurrentCulture,
-                FlowDirection.LeftToRight,
-                new Typeface(
-                    new FontFamily(element.FontFamily),
-                    element.IsItalic ? FontStyles.Italic : FontStyles.Normal,
-                    element.IsBold ? FontWeights.Bold : FontWeights.Normal,
-                    FontStretches.Normal),
-                element.FontSize,
-                Brushes.Black,
-                pixelsPerDip: 1)
-            {
-                MaxTextWidth = bounds.Width,
-                MaxTextHeight = bounds.Height,
-                TextAlignment = element.TextAlignment switch
-                {
-                    TextAlignmentOption.Left => TextAlignment.Left,
-                    TextAlignmentOption.Right => TextAlignment.Right,
-                    _ => TextAlignment.Center
-                }
-            };
-
-            if (element.IsUnderlined)
-            {
-                text.SetTextDecorations(TextDecorations.Underline);
-            }
-
-            drawingContext.DrawText(text, bounds.TopLeft);
+            TextLayoutEngine.Draw(
+                drawingContext,
+                element,
+                bounds,
+                CreateBrush(element.TextColor, Brushes.Black));
             drawingContext.Pop();
             return;
         }
@@ -263,4 +252,51 @@ public static class LabelDrawingRenderer
 
     private static double NormalizeOffset(double value) =>
         double.IsFinite(value) ? Math.Clamp(value, -1000, 1000) : 0;
+
+    public static Brush CreateBrush(string? color, Brush fallback)
+    {
+        ArgumentNullException.ThrowIfNull(fallback);
+        if (!string.IsNullOrWhiteSpace(color))
+        {
+            try
+            {
+                if (ColorConverter.ConvertFromString(color) is Color parsed)
+                {
+                    var brush = new SolidColorBrush(parsed);
+                    brush.Freeze();
+                    return brush;
+                }
+            }
+            catch (Exception exception) when (exception is FormatException or NotSupportedException)
+            {
+            }
+        }
+
+        return fallback;
+    }
+
+    private static Pen CreatePen(LabelElementData element)
+    {
+        var thickness = double.IsFinite(element.StrokeThickness)
+            ? Math.Clamp(element.StrokeThickness, 0.25, 20)
+            : 1;
+        var pen = new Pen(CreateBrush(element.StrokeColor, Brushes.Black), thickness)
+        {
+            DashStyle = element.StrokeStyle switch
+            {
+                StrokeStyleOption.Dashed => DashStyles.Dash,
+                StrokeStyleOption.Dotted => DashStyles.Dot,
+                _ => DashStyles.Solid
+            },
+            DashCap = PenLineCap.Round
+        };
+        pen.Freeze();
+        return pen;
+    }
+
+    private static double NormalizeCornerRadius(double value, double width, double height)
+    {
+        var maximum = Math.Max(0, Math.Min(width, height) / 2);
+        return double.IsFinite(value) ? Math.Clamp(value, 0, maximum) : 0;
+    }
 }

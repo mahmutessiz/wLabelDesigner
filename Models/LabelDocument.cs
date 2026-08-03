@@ -2,7 +2,7 @@ namespace wLabelDesigner.Models;
 
 public sealed class LabelDocument
 {
-    public const int CurrentFormatVersion = 4;
+    public const int CurrentFormatVersion = 5;
 
     public int FormatVersion { get; init; } = CurrentFormatVersion;
 

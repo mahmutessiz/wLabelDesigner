@@ -24,8 +24,9 @@ The application is built with .NET 10, WPF, and MVVM.
 - Independent line endpoint editing.
 - Drag-based and precise numeric element rotation.
 - Multiline, in-place text editing.
-- Font family, size, bold, italic, underline, and alignment controls.
-- Configurable shape stroke thickness.
+- Font family, size, color, bold, italic, underline, horizontal/vertical alignment, line spacing, letter spacing, and automatic fitting controls.
+- Shape fill, stroke color, opacity, corner radius, stroke thickness, and solid/dashed/dotted stroke controls.
+- On-canvas warnings when text overflows its bounds.
 - Shift-click multi-selection.
 - Group movement, alignment, and distribution.
 - Zooming, canvas panning, millimetre rulers, a configurable visual grid, and alignment guides.
@@ -124,7 +125,7 @@ Templates use the `.fckbartndr` extension and contain human-readable JSON. A tem
 - Embedded image data, line direction, and shape stroke settings.
 - Preferred printer, default copy count, print margins, and X/Y calibration offsets.
 
-The current template format version is 4. The loader accepts templates with format version 4 or earlier and rejects templates created with a newer, unsupported format.
+The current template format version is 5. The loader accepts templates with format version 5 or earlier and rejects templates created with a newer, unsupported format.
 
 ## NuGet dependencies
 
@@ -151,8 +152,6 @@ Engineering conventions are documented in [AGENTS.md](AGENTS.md). Planned work i
 - Barcode output currently uses Code 128.
 - CSV variable fields and batch printing are not implemented yet.
 - The grid and alignment guides are visual aids; they do not snap elements into position.
-- Fill/stroke colors, opacity, custom corner radii, and dashed or dotted strokes are not configurable yet.
-- Advanced text layout controls such as vertical alignment, line spacing, letter spacing, and automatic fitting are not implemented yet.
 - Autosave and crash recovery are not implemented yet.
 
 ## License

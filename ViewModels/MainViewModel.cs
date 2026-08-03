@@ -74,6 +74,42 @@ public sealed partial class MainViewModel : ObservableObject
 
     public IReadOnlyList<double> CommonStrokeWidths { get; } = [0.5, 0.75, 1, 1.5, 2, 3, 4, 6];
 
+    public IReadOnlyList<double> CommonCornerRadii { get; } = [0, 1, 2, 3, 5, 8, 10, 15];
+
+    public IReadOnlyList<double> CommonLineSpacings { get; } = [0.75, 1, 1.15, 1.25, 1.5, 2];
+
+    public IReadOnlyList<double> CommonLetterSpacings { get; } = [-1, 0, 0.5, 1, 2, 3, 5];
+
+    public IReadOnlyList<SelectionOption<StrokeStyleOption>> StrokeStyles =>
+        Enum.GetValues<StrokeStyleOption>()
+            .Select(value => new SelectionOption<StrokeStyleOption>(value, languageService?.Translate(value.ToString()) ?? value.ToString()))
+            .ToArray();
+
+    public IReadOnlyList<SelectionOption<VerticalTextAlignmentOption>> VerticalTextAlignments =>
+        Enum.GetValues<VerticalTextAlignmentOption>()
+            .Select(value => new SelectionOption<VerticalTextAlignmentOption>(value, languageService?.Translate(value.ToString()) ?? value.ToString()))
+            .ToArray();
+
+    private static readonly IReadOnlyList<ColorOption> ColorPalette =
+    [
+        new("Transparent", "#00FFFFFF"),
+        new("Black", "#FF000000"),
+        new("Dark gray", "#FF475467"),
+        new("Gray", "#FF98A2B3"),
+        new("White", "#FFFFFFFF"),
+        new("Red", "#FFD92D20"),
+        new("Orange", "#FFF79009"),
+        new("Yellow", "#FFFDB022"),
+        new("Green", "#FF039855"),
+        new("Blue", "#FF1570EF"),
+        new("Indigo", "#FF4F46E5"),
+        new("Purple", "#FF7F56D9")
+    ];
+
+    public IReadOnlyList<ColorOption> CommonColors => ColorPalette
+        .Select(option => option with { Name = languageService?.Translate(option.Name) ?? option.Name })
+        .ToArray();
+
     public IReadOnlyList<double> CommonGridSizes { get; } = [1, 2, 2.5, 5, 10, 20];
 
     public IReadOnlyList<LabelElementViewModel> SelectedElements => selectedElements;
@@ -193,6 +229,9 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(IsEnglish));
         OnPropertyChanged(nameof(IsTurkish));
         OnPropertyChanged(nameof(WindowTitle));
+        OnPropertyChanged(nameof(CommonColors));
+        OnPropertyChanged(nameof(StrokeStyles));
+        OnPropertyChanged(nameof(VerticalTextAlignments));
         foreach (var element in Elements)
         {
             element.SetLanguage(languageService);
@@ -969,7 +1008,17 @@ public sealed partial class MainViewModel : ObservableObject
             IsItalic = source.IsItalic,
             IsUnderlined = source.IsUnderlined,
             TextAlignment = source.TextAlignment,
+            VerticalTextAlignment = source.VerticalTextAlignment,
+            TextColor = source.TextColor,
+            FillColor = source.FillColor,
+            StrokeColor = source.StrokeColor,
             StrokeThickness = source.StrokeThickness,
+            StrokeStyle = source.StrokeStyle,
+            Opacity = source.Opacity,
+            CornerRadius = source.CornerRadius,
+            LineSpacing = source.LineSpacing,
+            LetterSpacing = source.LetterSpacing,
+            IsTextAutoFitEnabled = source.IsTextAutoFitEnabled,
             IsLineDirectionReversed = source.IsLineDirectionReversed,
             RotationDegrees = source.RotationDegrees,
             IsLocked = source.IsLocked,

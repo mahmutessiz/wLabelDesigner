@@ -29,6 +29,8 @@
         <converters:MillimetersToDeviceIndependentPixelsConverter x:Key="MmToDip" />
         <converters:LabelElementImageConverter x:Key="ElementImage" />
         <converters:EnumEqualsConverter x:Key="EnumEquals" />
+        <converters:ColorStringToBrushConverter x:Key="ColorToBrush" />
+        <converters:StrokeStyleToDashArrayConverter x:Key="StrokeDashArray" />
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
 
         <Style x:Key="TopActionButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
@@ -344,14 +346,15 @@
                     </StackPanel>
                 </DockPanel>
 
-                <Border Height="48" Background="#FAFBFC" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
-                    <Grid Margin="14,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="Select an element to show formatting controls"
-                                   Grid.ColumnSpan="2"
+                <Border Height="84" Background="#FAFBFC" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+                    <Grid Margin="14,4">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="38" />
+                            <RowDefinition Height="38" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.RowSpan="2"
+                                   Text="Select an element to show formatting controls"
                                    Foreground="{StaticResource MutedTextBrush}"
                                    VerticalAlignment="Center">
                             <TextBlock.Style>
@@ -365,68 +368,70 @@
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
-                        <StackPanel Orientation="Horizontal"
-                                    Grid.Column="0"
+
+                        <StackPanel Grid.Row="0"
+                                    Orientation="Horizontal"
                                     VerticalAlignment="Center"
                                     Visibility="{Binding HasTextSelection, Converter={StaticResource BoolToVisibility}}">
-                            <TextBlock Text="TEXT" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,14,0" />
-                            <ComboBox Width="150"
-                                      ItemsSource="{Binding AvailableFontFamilies}"
-                                      SelectedItem="{Binding SelectedElement.FontFamily, UpdateSourceTrigger=PropertyChanged}" />
-                            <ComboBox Width="72"
-                                      Margin="8,0,6,0"
-                                      IsEditable="True"
-                                      ItemsSource="{Binding CommonFontSizes}"
-                                      Text="{Binding SelectedElement.FontSize, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
-                            <ToggleButton Content="B"
-                                          FontWeight="Bold"
-                                          Style="{StaticResource FormatToggle}"
-                                          IsChecked="{Binding SelectedElement.IsBold}" />
-                            <ToggleButton Content="I"
-                                          FontStyle="Italic"
-                                          Style="{StaticResource FormatToggle}"
-                                          IsChecked="{Binding SelectedElement.IsItalic}" />
-                            <ToggleButton Style="{StaticResource FormatToggle}"
-                                          IsChecked="{Binding SelectedElement.IsUnderlined}">
+                            <TextBlock Text="TEXT" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <ComboBox Width="140" ItemsSource="{Binding AvailableFontFamilies}" SelectedItem="{Binding SelectedElement.FontFamily, UpdateSourceTrigger=PropertyChanged}" />
+                            <ComboBox Width="66" Margin="8,0,6,0" IsEditable="True" ItemsSource="{Binding CommonFontSizes}" Text="{Binding SelectedElement.FontSize, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
+                            <TextBlock Text="Color" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="8,0,5,0" />
+                            <ComboBox Width="92" ItemsSource="{Binding CommonColors}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding SelectedElement.TextColor}" />
+                            <ToggleButton Content="B" FontWeight="Bold" Style="{StaticResource FormatToggle}" IsChecked="{Binding SelectedElement.IsBold}" />
+                            <ToggleButton Content="I" FontStyle="Italic" Style="{StaticResource FormatToggle}" IsChecked="{Binding SelectedElement.IsItalic}" />
+                            <ToggleButton Style="{StaticResource FormatToggle}" IsChecked="{Binding SelectedElement.IsUnderlined}">
                                 <TextBlock Text="U" TextDecorations="Underline" />
                             </ToggleButton>
                             <Separator Margin="8,8" />
-                            <RadioButton ToolTip="Align left"
-                                         GroupName="TextAlignment"
-                                         Style="{StaticResource AlignmentOption}"
-                                         IsChecked="{Binding SelectedElement.TextAlignment, Converter={StaticResource EnumEquals}, ConverterParameter=Left}">
+                            <RadioButton ToolTip="Align left" GroupName="TextAlignment" Style="{StaticResource AlignmentOption}" IsChecked="{Binding SelectedElement.TextAlignment, Converter={StaticResource EnumEquals}, ConverterParameter=Left}">
                                 <TextBlock Text="≡" Width="16" TextAlignment="Left" />
                             </RadioButton>
-                            <RadioButton ToolTip="Align center"
-                                         GroupName="TextAlignment"
-                                         Style="{StaticResource AlignmentOption}"
-                                         IsChecked="{Binding SelectedElement.TextAlignment, Converter={StaticResource EnumEquals}, ConverterParameter=Center}">
+                            <RadioButton ToolTip="Align center" GroupName="TextAlignment" Style="{StaticResource AlignmentOption}" IsChecked="{Binding SelectedElement.TextAlignment, Converter={StaticResource EnumEquals}, ConverterParameter=Center}">
                                 <TextBlock Text="≡" Width="16" TextAlignment="Center" />
                             </RadioButton>
-                            <RadioButton ToolTip="Align right"
-                                         GroupName="TextAlignment"
-                                         Style="{StaticResource AlignmentOption}"
-                                         IsChecked="{Binding SelectedElement.TextAlignment, Converter={StaticResource EnumEquals}, ConverterParameter=Right}">
+                            <RadioButton ToolTip="Align right" GroupName="TextAlignment" Style="{StaticResource AlignmentOption}" IsChecked="{Binding SelectedElement.TextAlignment, Converter={StaticResource EnumEquals}, ConverterParameter=Right}">
                                 <TextBlock Text="≡" Width="16" TextAlignment="Right" />
                             </RadioButton>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal"
-                                    Grid.Column="0"
+
+                        <StackPanel Grid.Row="1"
+                                    Orientation="Horizontal"
+                                    VerticalAlignment="Center"
+                                    Visibility="{Binding HasTextSelection, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="TEXT LAYOUT" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <TextBlock Text="Vertical" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,5,0" />
+                            <ComboBox Width="78" ItemsSource="{Binding VerticalTextAlignments}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding SelectedElement.VerticalTextAlignment}" />
+                            <TextBlock Text="Spacing" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="10,0,5,0" />
+                            <ComboBox Width="62" IsEditable="True" ItemsSource="{Binding CommonLineSpacings}" Text="{Binding SelectedElement.LineSpacing, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
+                            <TextBlock Text="Track" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="10,0,5,0" />
+                            <ComboBox Width="62" IsEditable="True" ItemsSource="{Binding CommonLetterSpacings}" Text="{Binding SelectedElement.LetterSpacing, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
+                            <CheckBox Content="Auto fit" IsChecked="{Binding SelectedElement.IsTextAutoFitEnabled}" VerticalAlignment="Center" Margin="10,0,0,0" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="0"
+                                    Orientation="Horizontal"
                                     VerticalAlignment="Center"
                                     Visibility="{Binding HasShapeSelection, Converter={StaticResource BoolToVisibility}}">
-                            <TextBlock Text="SHAPE" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,14,0" />
-                            <TextBlock Text="Stroke" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,7,0" />
-                            <ComboBox Width="76"
-                                      IsEditable="True"
-                                      ItemsSource="{Binding CommonStrokeWidths}"
-                                      Text="{Binding SelectedElement.StrokeThickness, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
-                            <TextBlock Text="px" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="6,0,0,0" />
+                            <TextBlock Text="SHAPE" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <TextBlock Text="Fill" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,5,0" />
+                            <ComboBox Width="92" ItemsSource="{Binding CommonColors}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding SelectedElement.FillColor}" />
+                            <TextBlock Text="Stroke" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="10,0,5,0" />
+                            <ComboBox Width="92" ItemsSource="{Binding CommonColors}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding SelectedElement.StrokeColor}" />
+                            <ComboBox Width="70" Margin="6,0,0,0" IsEditable="True" ItemsSource="{Binding CommonStrokeWidths}" Text="{Binding SelectedElement.StrokeThickness, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
+                            <TextBlock Text="px" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="5,0,0,0" />
+                            <TextBlock Text="Style" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="10,0,5,0" />
+                            <ComboBox Width="82" ItemsSource="{Binding StrokeStyles}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding SelectedElement.StrokeStyle}" />
+                            <TextBlock Text="Radius" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="10,0,5,0" />
+                            <ComboBox Width="62" IsEditable="True" ItemsSource="{Binding CommonCornerRadii}" Text="{Binding SelectedElement.CornerRadius, UpdateSourceTrigger=PropertyChanged, Delay=75}" />
+                            <TextBlock Text="mm" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="5,0,0,0" />
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal"
-                                    Grid.Column="0"
+
+                        <StackPanel Grid.Row="0"
+                                    Orientation="Horizontal"
                                     VerticalAlignment="Center"
                                     Visibility="{Binding HasMultipleSelection, Converter={StaticResource BoolToVisibility}}">
-                            <TextBlock Text="MULTI" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,14,0" />
+                            <TextBlock Text="MULTI" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,12,0" />
                             <Button Content="Left" Command="{Binding AlignSelectionCommand}" CommandParameter="Left" Style="{StaticResource TopActionButton}" ToolTip="Align left edges" />
                             <Button Content="Center" Command="{Binding AlignSelectionCommand}" CommandParameter="HorizontalCenter" Style="{StaticResource TopActionButton}" ToolTip="Align horizontal centers" />
                             <Button Content="Right" Command="{Binding AlignSelectionCommand}" CommandParameter="Right" Style="{StaticResource TopActionButton}" ToolTip="Align right edges" />
@@ -438,43 +443,37 @@
                             <Button Content="Space H" Command="{Binding DistributeSelectionCommand}" CommandParameter="Horizontal" Style="{StaticResource TopActionButton}" ToolTip="Distribute horizontally (3 or more)" />
                             <Button Content="Space V" Command="{Binding DistributeSelectionCommand}" CommandParameter="Vertical" Style="{StaticResource TopActionButton}" ToolTip="Distribute vertically (3 or more)" />
                         </StackPanel>
-                        <StackPanel Grid.Column="0"
+
+                        <StackPanel Grid.Row="0"
                                     Orientation="Horizontal"
                                     VerticalAlignment="Center"
                                     Visibility="{Binding HasDataElementSelection, Converter={StaticResource BoolToVisibility}}">
-                            <TextBlock Text="DATA" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,14,0" />
+                            <TextBlock Text="DATA" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,12,0" />
                             <TextBlock Text="Content" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,7,0" />
-                            <TextBox Width="300"
-                                     Text="{Binding SelectedElement.Content, UpdateSourceTrigger=PropertyChanged}"
-                                     ToolTip="Barcode or QR code content" />
+                            <TextBox Width="360" Text="{Binding SelectedElement.Content, UpdateSourceTrigger=PropertyChanged}" ToolTip="Barcode or QR code content" />
                         </StackPanel>
-                        <StackPanel Grid.Column="1"
+
+                        <StackPanel Grid.Row="0"
                                     Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
                                     VerticalAlignment="Center"
-                                    Margin="16,0,0,0"
                                     Visibility="{Binding HasSingleSelection, Converter={StaticResource BoolToVisibility}}">
-                            <TextBlock Text="{Binding SelectedElement.DisplayName, Mode=OneWay}"
-                                       FontWeight="SemiBold"
-                                       VerticalAlignment="Center"
-                                       Margin="0,0,12,0" />
+                            <TextBlock Text="{Binding SelectedElement.DisplayName, Mode=OneWay}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0" />
                             <CheckBox Content="Visible" IsChecked="{Binding SelectedElement.IsVisible}" VerticalAlignment="Center" Margin="0,0,10,0" />
-                            <CheckBox Content="Lock position"
-                                      IsChecked="{Binding SelectedElement.IsLocked}"
-                                      VerticalAlignment="Center"
-                                      Margin="0,0,14,0"
-                                      ToolTip="Prevent the element from being moved" />
+                            <CheckBox Content="Lock position" IsChecked="{Binding SelectedElement.IsLocked}" VerticalAlignment="Center" ToolTip="Prevent the element from being moved" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Visibility="{Binding HasSingleSelection, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="Rotate" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
-                            <TextBox Width="58"
-                                     Text="{Binding SelectedElement.RotationDegrees, UpdateSourceTrigger=LostFocus}"
-                                     ToolTip="Rotation in degrees" />
+                            <TextBox Width="56" Text="{Binding SelectedElement.RotationDegrees, UpdateSourceTrigger=LostFocus}" ToolTip="Rotation in degrees" />
                             <TextBlock Text="°" VerticalAlignment="Center" Margin="4,0,6,0" />
-                            <Slider Width="110"
-                                    Minimum="-180"
-                                    Maximum="180"
-                                    Value="{Binding SelectedElement.RotationDegrees}"
-                                    TickFrequency="15"
-                                    IsSnapToTickEnabled="False"
-                                    ToolTip="Rotate selected element" />
+                            <Slider Width="90" Minimum="-180" Maximum="180" Value="{Binding SelectedElement.RotationDegrees}" TickFrequency="15" IsSnapToTickEnabled="False" ToolTip="Rotate selected element" />
+                            <TextBlock Text="Opacity" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="10,0,6,0" />
+                            <Slider Width="70" Minimum="0" Maximum="1" Value="{Binding SelectedElement.Opacity}" ToolTip="Element opacity" />
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -716,15 +715,22 @@
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <Grid ClipToBounds="False" ToolTip="{Binding DisplayName}">
-                                        <TextBlock x:Name="PreviewText"
-                                                   Text="{Binding Content}"
-                                                   FontFamily="{Binding FontFamily}"
-                                                   FontSize="{Binding FontSize}"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   TextWrapping="Wrap"
-                                                   TextAlignment="Center"
-                                                   VerticalAlignment="Stretch"
-                                                   HorizontalAlignment="Stretch" />
+                                        <controls:LabelTextPresenter x:Name="PreviewText"
+                                                                     Text="{Binding Content}"
+                                                                     TypefaceFamily="{Binding FontFamily}"
+                                                                     TextFontSize="{Binding FontSize}"
+                                                                     IsBold="{Binding IsBold}"
+                                                                     IsItalic="{Binding IsItalic}"
+                                                                     IsUnderlined="{Binding IsUnderlined}"
+                                                                     HorizontalTextAlignment="{Binding TextAlignment}"
+                                                                     VerticalTextAlignment="{Binding VerticalTextAlignment}"
+                                                                     TextColor="{Binding TextColor}"
+                                                                     LineSpacing="{Binding LineSpacing}"
+                                                                     LetterSpacing="{Binding LetterSpacing}"
+                                                                     IsAutoFitEnabled="{Binding IsTextAutoFitEnabled}"
+                                                                     Opacity="{Binding Opacity}"
+                                                                     VerticalAlignment="Stretch"
+                                                                     HorizontalAlignment="Stretch" />
                                         <TextBox x:Name="InlineTextEditor"
                                                  Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
                                                  FontFamily="{Binding FontFamily}"
@@ -732,6 +738,7 @@
                                                  Padding="2,0"
                                                  BorderThickness="0"
                                                  Background="White"
+                                                 Foreground="{Binding TextColor, Converter={StaticResource ColorToBrush}}"
                                                  AcceptsReturn="True"
                                                  TextWrapping="Wrap"
                                                  VerticalScrollBarVisibility="Auto"
@@ -740,36 +747,52 @@
                                                  Visibility="Collapsed"
                                                  LostKeyboardFocus="InlineTextEditor_LostKeyboardFocus"
                                                  PreviewKeyDown="InlineTextEditor_PreviewKeyDown" />
-                                        <Border x:Name="ShapePreview"
-                                                Margin="1"
-                                                Background="Transparent"
-                                                BorderBrush="Black"
-                                                BorderThickness="{Binding StrokeThickness}"
-                                                Visibility="Collapsed" />
+                                        <Rectangle x:Name="ShapePreview"
+                                                   Margin="1"
+                                                   Fill="{Binding FillColor, Converter={StaticResource ColorToBrush}}"
+                                                   Stroke="{Binding StrokeColor, Converter={StaticResource ColorToBrush}}"
+                                                   StrokeThickness="{Binding StrokeThickness}"
+                                                   StrokeDashArray="{Binding StrokeStyle, Converter={StaticResource StrokeDashArray}}"
+                                                   StrokeDashCap="Round"
+                                                   RadiusX="{Binding CornerRadius, Converter={StaticResource MmToDip}}"
+                                                   RadiusY="{Binding CornerRadius, Converter={StaticResource MmToDip}}"
+                                                   Opacity="{Binding Opacity}"
+                                                   Visibility="Collapsed" />
                                         <Line x:Name="LinePreview"
                                               X1="0"
                                               Y1="0"
                                               X2="100"
                                               Y2="100"
                                               Stretch="Fill"
-                                              Stroke="Black"
+                                              Stroke="{Binding StrokeColor, Converter={StaticResource ColorToBrush}}"
                                               StrokeThickness="{Binding StrokeThickness}"
+                                              StrokeDashArray="{Binding StrokeStyle, Converter={StaticResource StrokeDashArray}}"
+                                              StrokeDashCap="Round"
+                                              Opacity="{Binding Opacity}"
                                               SnapsToDevicePixels="True"
                                               Visibility="Collapsed" />
                                         <Ellipse x:Name="EllipsePreview"
                                                  Margin="1"
-                                                 Stroke="Black"
+                                                 Fill="{Binding FillColor, Converter={StaticResource ColorToBrush}}"
+                                                 Stroke="{Binding StrokeColor, Converter={StaticResource ColorToBrush}}"
                                                  StrokeThickness="{Binding StrokeThickness}"
+                                                 StrokeDashArray="{Binding StrokeStyle, Converter={StaticResource StrokeDashArray}}"
+                                                 StrokeDashCap="Round"
+                                                 Opacity="{Binding Opacity}"
                                                  Visibility="Collapsed" />
                                         <Polygon x:Name="PolygonPreview"
                                                  Margin="1"
                                                  Points="50,0 100,100 0,100"
                                                  Stretch="Fill"
-                                                 Stroke="Black"
+                                                 Fill="{Binding FillColor, Converter={StaticResource ColorToBrush}}"
+                                                 Stroke="{Binding StrokeColor, Converter={StaticResource ColorToBrush}}"
                                                  StrokeThickness="{Binding StrokeThickness}"
+                                                 StrokeDashArray="{Binding StrokeStyle, Converter={StaticResource StrokeDashArray}}"
+                                                 StrokeDashCap="Round"
                                                  StrokeLineJoin="Round"
+                                                 Opacity="{Binding Opacity}"
                                                  Visibility="Collapsed" />
-                                        <Image x:Name="PreviewImage" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality" SnapsToDevicePixels="True" Visibility="Collapsed">
+                                        <Image x:Name="PreviewImage" Stretch="Fill" Opacity="{Binding Opacity}" RenderOptions.BitmapScalingMode="HighQuality" SnapsToDevicePixels="True" Visibility="Collapsed">
                                             <Image.Source>
                                                 <MultiBinding Converter="{StaticResource ElementImage}">
                                                     <Binding Path="Content" />
@@ -777,6 +800,21 @@
                                                 </MultiBinding>
                                             </Image.Source>
                                         </Image>
+                                        <Border x:Name="OverflowIndicator"
+                                                Width="14"
+                                                Height="14"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Top"
+                                                Margin="0,-7,-7,0"
+                                                Background="#D92D20"
+                                                BorderBrush="White"
+                                                BorderThickness="1"
+                                                CornerRadius="7"
+                                                Panel.ZIndex="19"
+                                                ToolTip="Text overflows its bounds"
+                                                Visibility="Collapsed">
+                                            <TextBlock Text="!" Foreground="White" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
                                         <Thumb Cursor="SizeAll"
                                                PreviewMouseLeftButtonDown="DesignerItem_PreviewMouseLeftButtonDown"
                                                DragStarted="DesignerItem_DragStarted"
@@ -814,27 +852,37 @@
                                         <DataTrigger Binding="{Binding IsEditing}" Value="True">
                                             <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
                                             <Setter TargetName="InlineTextEditor" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="OverflowIndicator" Property="Visibility" Value="Collapsed" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding IsBold}" Value="True">
-                                            <Setter TargetName="PreviewText" Property="FontWeight" Value="Bold" />
                                             <Setter TargetName="InlineTextEditor" Property="FontWeight" Value="Bold" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding IsItalic}" Value="True">
-                                            <Setter TargetName="PreviewText" Property="FontStyle" Value="Italic" />
                                             <Setter TargetName="InlineTextEditor" Property="FontStyle" Value="Italic" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding IsUnderlined}" Value="True">
-                                            <Setter TargetName="PreviewText" Property="TextDecorations" Value="Underline" />
                                             <Setter TargetName="InlineTextEditor" Property="TextDecorations" Value="Underline" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding TextAlignment}" Value="{x:Static models:TextAlignmentOption.Left}">
-                                            <Setter TargetName="PreviewText" Property="TextAlignment" Value="Left" />
                                             <Setter TargetName="InlineTextEditor" Property="TextAlignment" Value="Left" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding TextAlignment}" Value="{x:Static models:TextAlignmentOption.Right}">
-                                            <Setter TargetName="PreviewText" Property="TextAlignment" Value="Right" />
                                             <Setter TargetName="InlineTextEditor" Property="TextAlignment" Value="Right" />
                                         </DataTrigger>
+                                        <DataTrigger Binding="{Binding VerticalTextAlignment}" Value="{x:Static models:VerticalTextAlignmentOption.Center}">
+                                            <Setter TargetName="InlineTextEditor" Property="VerticalContentAlignment" Value="Center" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding VerticalTextAlignment}" Value="{x:Static models:VerticalTextAlignmentOption.Bottom}">
+                                            <Setter TargetName="InlineTextEditor" Property="VerticalContentAlignment" Value="Bottom" />
+                                        </DataTrigger>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding HasOverflow, ElementName=PreviewText}" Value="True" />
+                                                <Condition Binding="{Binding IsEditing}" Value="False" />
+                                                <Condition Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Text}" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter TargetName="OverflowIndicator" Property="Visibility" Value="Visible" />
+                                        </MultiDataTrigger>
                                         <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Barcode}">
                                             <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
                                             <Setter TargetName="PreviewImage" Property="Visibility" Value="Visible" />
@@ -858,7 +906,6 @@
                                         <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.RoundedRectangle}">
                                             <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
                                             <Setter TargetName="ShapePreview" Property="Visibility" Value="Visible" />
-                                            <Setter TargetName="ShapePreview" Property="CornerRadius" Value="8" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Line}">
                                             <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />

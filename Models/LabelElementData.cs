@@ -28,7 +28,27 @@ public sealed class LabelElementData
 
     public TextAlignmentOption TextAlignment { get; set; } = TextAlignmentOption.Center;
 
+    public VerticalTextAlignmentOption VerticalTextAlignment { get; set; } = VerticalTextAlignmentOption.Top;
+
+    public string TextColor { get; set; } = "#FF000000";
+
+    public string FillColor { get; set; } = "#00FFFFFF";
+
+    public string StrokeColor { get; set; } = "#FF000000";
+
     public double StrokeThickness { get; set; } = 1;
+
+    public StrokeStyleOption StrokeStyle { get; set; }
+
+    public double Opacity { get; set; } = 1;
+
+    public double CornerRadius { get; set; } = 3;
+
+    public double LineSpacing { get; set; } = 1;
+
+    public double LetterSpacing { get; set; }
+
+    public bool IsTextAutoFitEnabled { get; set; }
 
     public bool IsLineDirectionReversed { get; set; }
 

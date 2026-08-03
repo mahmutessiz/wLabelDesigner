@@ -60,11 +60,15 @@
                 <TextBlock Style="{StaticResource HelpBody}"
                            Text="Click an element to select it. Shift-click toggles additional elements in the selection. Click empty workspace or press Escape to clear the selection. Drag a selected element to move the whole selection. Use the eight handles to resize regular elements; lines use two endpoint handles." />
                 <TextBlock Style="{StaticResource HelpBody}" Margin="0,8,0,0"
-                           Text="Double-click text to edit it directly. Enter creates a new line, Ctrl+Enter commits, Escape cancels, and clicking away commits. Barcode and QR data is edited in the contextual panel on the right." />
+                           Text="Double-click text to edit it directly. Enter creates a new line, Ctrl+Enter commits, Escape cancels, and clicking away commits. Barcode and QR data is edited in the contextual bar above the workspace." />
                 <TextBlock Style="{StaticResource HelpBody}" Margin="0,8,0,0"
                            Text="Drag the circular handle above a selected element to rotate it. Hold Shift while dragging to snap the angle to 15-degree increments, or enter an exact rotation in the element panel on the right." />
                 <TextBlock Style="{StaticResource HelpBody}" Margin="0,8,0,0"
                            Text="When two or more elements are selected, the contextual toolbar provides edge and centre alignment commands. With three or more selected elements, Space H and Space V distribute them evenly." />
+
+                <TextBlock Text="Styling elements" Style="{StaticResource HelpHeading}" />
+                <TextBlock Style="{StaticResource HelpBody}"
+                           Text="Use the contextual formatting bar to choose text and shape colors, opacity, corner radius, stroke pattern, vertical alignment, line spacing, and letter spacing. Auto fit reduces text size when necessary; a red exclamation mark warns when text still overflows its bounds." />
 
                 <TextBlock Text="Layers, locking, and visibility" Style="{StaticResource HelpHeading}" />
                 <TextBlock Style="{StaticResource HelpBody}"

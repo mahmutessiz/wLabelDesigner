@@ -21,9 +21,21 @@ public sealed partial class LabelElementViewModel : ObservableObject
         isItalic = data.IsItalic;
         isUnderlined = data.IsUnderlined;
         textAlignment = data.TextAlignment;
+        verticalTextAlignment = Enum.IsDefined(data.VerticalTextAlignment)
+            ? data.VerticalTextAlignment
+            : VerticalTextAlignmentOption.Top;
+        textColor = NormalizeColor(data.TextColor, "#FF000000");
+        fillColor = NormalizeColor(data.FillColor, "#00FFFFFF");
+        strokeColor = NormalizeColor(data.StrokeColor, "#FF000000");
         strokeThickness = double.IsFinite(data.StrokeThickness)
             ? Math.Clamp(data.StrokeThickness, 0.25, 20)
             : 1;
+        strokeStyle = Enum.IsDefined(data.StrokeStyle) ? data.StrokeStyle : StrokeStyleOption.Solid;
+        opacity = double.IsFinite(data.Opacity) ? Math.Clamp(data.Opacity, 0, 1) : 1;
+        cornerRadius = Normalize(data.CornerRadius, 0, 1000);
+        lineSpacing = double.IsFinite(data.LineSpacing) ? Math.Clamp(data.LineSpacing, 0.5, 5) : 1;
+        letterSpacing = double.IsFinite(data.LetterSpacing) ? Math.Clamp(data.LetterSpacing, -5, 50) : 0;
+        isTextAutoFitEnabled = data.IsTextAutoFitEnabled;
         isLineDirectionReversed = data.IsLineDirectionReversed;
         rotationDegrees = NormalizeRotation(data.RotationDegrees);
         isLocked = data.IsLocked;
@@ -120,6 +132,33 @@ public sealed partial class LabelElementViewModel : ObservableObject
     [ObservableProperty]
     private TextAlignmentOption textAlignment;
 
+    [ObservableProperty]
+    private VerticalTextAlignmentOption verticalTextAlignment;
+
+    private string textColor;
+
+    public string TextColor
+    {
+        get => textColor;
+        set => SetProperty(ref textColor, NormalizeColor(value, "#FF000000"));
+    }
+
+    private string fillColor;
+
+    public string FillColor
+    {
+        get => fillColor;
+        set => SetProperty(ref fillColor, NormalizeColor(value, "#00FFFFFF"));
+    }
+
+    private string strokeColor;
+
+    public string StrokeColor
+    {
+        get => strokeColor;
+        set => SetProperty(ref strokeColor, NormalizeColor(value, "#FF000000"));
+    }
+
     private double strokeThickness;
 
     public double StrokeThickness
@@ -127,6 +166,44 @@ public sealed partial class LabelElementViewModel : ObservableObject
         get => strokeThickness;
         set => SetProperty(ref strokeThickness, Normalize(value, 0.25, 20));
     }
+
+    [ObservableProperty]
+    private StrokeStyleOption strokeStyle;
+
+    private double opacity;
+
+    public double Opacity
+    {
+        get => opacity;
+        set => SetProperty(ref opacity, double.IsFinite(value) ? Math.Clamp(value, 0, 1) : 1);
+    }
+
+    private double cornerRadius;
+
+    public double CornerRadius
+    {
+        get => cornerRadius;
+        set => SetProperty(ref cornerRadius, Normalize(value, 0, 1000));
+    }
+
+    private double lineSpacing;
+
+    public double LineSpacing
+    {
+        get => lineSpacing;
+        set => SetProperty(ref lineSpacing, double.IsFinite(value) ? Math.Clamp(value, 0.5, 5) : 1);
+    }
+
+    private double letterSpacing;
+
+    public double LetterSpacing
+    {
+        get => letterSpacing;
+        set => SetProperty(ref letterSpacing, double.IsFinite(value) ? Math.Clamp(value, -5, 50) : 0);
+    }
+
+    [ObservableProperty]
+    private bool isTextAutoFitEnabled;
 
     [ObservableProperty]
     private bool isLineDirectionReversed;
@@ -160,7 +237,17 @@ public sealed partial class LabelElementViewModel : ObservableObject
         IsItalic = IsItalic,
         IsUnderlined = IsUnderlined,
         TextAlignment = TextAlignment,
+        VerticalTextAlignment = VerticalTextAlignment,
+        TextColor = TextColor,
+        FillColor = FillColor,
+        StrokeColor = StrokeColor,
         StrokeThickness = StrokeThickness,
+        StrokeStyle = StrokeStyle,
+        Opacity = Opacity,
+        CornerRadius = CornerRadius,
+        LineSpacing = LineSpacing,
+        LetterSpacing = LetterSpacing,
+        IsTextAutoFitEnabled = IsTextAutoFitEnabled,
         IsLineDirectionReversed = IsLineDirectionReversed,
         RotationDegrees = RotationDegrees,
         IsLocked = IsLocked,
@@ -169,6 +256,24 @@ public sealed partial class LabelElementViewModel : ObservableObject
 
     private static double Normalize(double value, double minimum, double maximum) =>
         double.IsFinite(value) ? Math.Clamp(value, minimum, maximum) : minimum;
+
+    private static string NormalizeColor(string? value, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return fallback;
+        }
+
+        var color = value.Trim().ToUpperInvariant();
+        if (color.Length == 7)
+        {
+            color = $"#FF{color[1..]}";
+        }
+
+        return color.Length == 9 && color[0] == '#' && color[1..].All(Uri.IsHexDigit)
+            ? color
+            : fallback;
+    }
 
     private static double NormalizeRotation(double value)
     {
