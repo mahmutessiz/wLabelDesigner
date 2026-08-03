@@ -58,9 +58,12 @@
 
         <Grid>
             <StackPanel>
-                <Border Width="48" Height="48" HorizontalAlignment="Left" Background="{StaticResource AccentBrush}" CornerRadius="12">
-                    <TextBlock Text="W" Foreground="White" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Border>
+                <Image Width="48"
+                       Height="48"
+                       HorizontalAlignment="Left"
+                       Source="pack://application:,,,/Resources/logo.png"
+                       Stretch="Uniform"
+                       AutomationProperties.Name="wLabel Designer logo" />
                 <TextBlock Text="Create your next label" Margin="0,18,0,5" FontSize="30" FontWeight="SemiBold" />
                 <TextBlock Text="Start with a ready-made layout, a blank label, or one of your saved templates."
                            Foreground="{StaticResource MutedTextBrush}" FontSize="14" />

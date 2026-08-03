@@ -4,6 +4,16 @@ wLabelDesigner is a lightweight Windows desktop application for designing and pr
 
 The application is built with .NET 10, WPF, and MVVM.
 
+## Screenshots
+
+### Welcome screen
+
+![wLabelDesigner welcome screen](Resources/pic1.png)
+
+### Label editor
+
+![wLabelDesigner label editor](Resources/pic2.png)
+
 ## Current features
 
 - Welcome screen with recent templates and cheese-pallet shipping, general shipping, product, shelf, and QR contact starter layouts.

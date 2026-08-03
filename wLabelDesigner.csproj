@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <Resource Include="Resources\logo.ico" />
+    <Resource Include="Resources\logo.png" />
   </ItemGroup>
 
   <ItemGroup>
