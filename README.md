@@ -49,7 +49,7 @@ The application is built with .NET 10, WPF, and MVVM.
 ## Requirements
 
 - Windows 10 or Windows 11, x64.
-- [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) to run the application.
+- [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) only when using a framework-dependent build; the self-contained installer includes the runtime.
 - .NET 10 SDK to build from source.
 - A Windows printer configured for physical printing.
 
@@ -58,9 +58,7 @@ The application is built with .NET 10, WPF, and MVVM.
 From PowerShell in the repository root:
 
 ```powershell
-dotnet restore .\wLabelDesigner.csproj
-dotnet build .\wLabelDesigner.csproj --configuration Debug
-dotnet run --project .\wLabelDesigner.csproj
+dotnet restore .\wLabelDesigner.csproj; dotnet build .\wLabelDesigner.csproj --configuration Debug --no-restore; dotnet run --project .\wLabelDesigner.csproj --no-build
 ```
 
 The Debug executable is written to:
@@ -70,6 +68,8 @@ bin\Debug\net10.0-windows\wLabelDesigner.exe
 ```
 
 Close any running copy of the application before rebuilding the normal output path because Windows locks the active executable.
+
+Self-contained publishing and Inno Setup installer commands are documented in [Docs/Build-and-package.md](Docs/Build-and-package.md).
 
 ## Basic workflow
 
@@ -144,7 +144,9 @@ The current template format version is 10. The loader accepts templates with for
 ```text
 Converters/   WPF value converters and preview conversion
 Docs/         Product specification
+Installer/    Inno Setup definition and release automation
 Models/       Serializable label document and element models
+Properties/   Self-contained publish profile
 Services/     Persistence, clipboard, rendering, printing, and history
 ViewModels/   Designer and print-preview presentation state
 *.xaml        Welcome, designer, help, and print-preview windows

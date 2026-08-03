@@ -105,6 +105,8 @@ $RECYCLE.BIN/
 # -----------------------------------------------------------------------
 # App-Specific / Local Testing Artifacts
 # -----------------------------------------------------------------------
+artifacts/
+
 # Ignore test print outputs (PNGs/BMPs generated while testing renderers)
 *.png
 *.bmp
