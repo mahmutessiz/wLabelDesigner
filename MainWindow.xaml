@@ -449,6 +449,16 @@
                                     VerticalAlignment="Center"
                                     Visibility="{Binding HasDataElementSelection, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="DATA" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <StackPanel Orientation="Horizontal"
+                                        Visibility="{Binding HasBarcodeSelection, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="Format" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,7,0" />
+                                <ComboBox Width="100"
+                                          ItemsSource="{Binding BarcodeFormats}"
+                                          DisplayMemberPath="Name"
+                                          SelectedValuePath="Value"
+                                          SelectedValue="{Binding SelectedElement.BarcodeFormat}" />
+                                <Separator Margin="8,8" />
+                            </StackPanel>
                             <TextBlock Text="Content" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,7,0" />
                             <TextBox Width="360" Text="{Binding SelectedElement.Content, UpdateSourceTrigger=PropertyChanged}" ToolTip="Barcode or QR code content" />
                         </StackPanel>
@@ -797,6 +807,7 @@
                                                 <MultiBinding Converter="{StaticResource ElementImage}">
                                                     <Binding Path="Content" />
                                                     <Binding Path="Kind" />
+                                                    <Binding Path="BarcodeFormat" />
                                                 </MultiBinding>
                                             </Image.Source>
                                         </Image>

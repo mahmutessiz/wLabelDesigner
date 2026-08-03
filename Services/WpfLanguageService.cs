@@ -118,6 +118,7 @@ public sealed class WpfLanguageService : ILanguageService
             ["Dashed"] = "Kesik",
             ["Dotted"] = "Noktalı",
             ["Content"] = "İçerik",
+            ["Format"] = "Biçim",
             ["Visible"] = "Görünür",
             ["Lock position"] = "Konumu kilitle",
             ["Rotate"] = "Döndür",

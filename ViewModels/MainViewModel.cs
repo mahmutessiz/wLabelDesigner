@@ -90,6 +90,16 @@ public sealed partial class MainViewModel : ObservableObject
             .Select(value => new SelectionOption<VerticalTextAlignmentOption>(value, languageService?.Translate(value.ToString()) ?? value.ToString()))
             .ToArray();
 
+    public IReadOnlyList<SelectionOption<BarcodeFormatOption>> BarcodeFormats =>
+    [
+        new(BarcodeFormatOption.Code128, "Code 128"),
+        new(BarcodeFormatOption.Code39, "Code 39"),
+        new(BarcodeFormatOption.Ean8, "EAN-8"),
+        new(BarcodeFormatOption.Ean13, "EAN-13"),
+        new(BarcodeFormatOption.UpcA, "UPC-A"),
+        new(BarcodeFormatOption.Itf14, "ITF-14")
+    ];
+
     private static readonly IReadOnlyList<ColorOption> ColorPalette =
     [
         new("Transparent", "#00FFFFFF"),
@@ -124,6 +134,9 @@ public sealed partial class MainViewModel : ObservableObject
 
     public bool HasDataElementSelection => selectedElements.Count == 1 &&
         SelectedElement?.Kind is LabelElementKind.Barcode or LabelElementKind.QrCode;
+
+    public bool HasBarcodeSelection => selectedElements.Count == 1 &&
+        SelectedElement?.Kind == LabelElementKind.Barcode;
 
     public bool HasShapeSelection => selectedElements.Count == 1 && SelectedElement?.Kind is
         LabelElementKind.Rectangle or LabelElementKind.RoundedRectangle or LabelElementKind.Line or
@@ -998,6 +1011,7 @@ public sealed partial class MainViewModel : ObservableObject
             Id = Guid.NewGuid(),
             Kind = source.Kind,
             Content = source.Content ?? string.Empty,
+            BarcodeFormat = source.BarcodeFormat,
             X = Math.Clamp(sourceX + offset, 0, Math.Max(0, LabelWidth - width)),
             Y = Math.Clamp(sourceY + offset, 0, Math.Max(0, LabelHeight - height)),
             Width = width,
@@ -1230,6 +1244,7 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(HasSingleSelection));
         OnPropertyChanged(nameof(HasTextSelection));
         OnPropertyChanged(nameof(HasDataElementSelection));
+        OnPropertyChanged(nameof(HasBarcodeSelection));
         OnPropertyChanged(nameof(HasShapeSelection));
         OnPropertyChanged(nameof(HasFormattingSelection));
         DeleteSelectedCommand.NotifyCanExecuteChanged();

@@ -10,7 +10,10 @@ public static class LabelImageRenderer
 {
     private const int MaximumEmbeddedImageBytes = 25 * 1024 * 1024;
 
-    public static BitmapSource? Render(LabelElementKind kind, string content)
+    public static BitmapSource? Render(
+        LabelElementKind kind,
+        string content,
+        BarcodeFormatOption barcodeFormat = BarcodeFormatOption.Code128)
     {
         if (string.IsNullOrWhiteSpace(content))
         {
@@ -19,7 +22,7 @@ public static class LabelImageRenderer
 
         var imageBytes = kind switch
         {
-            LabelElementKind.Barcode => CreateBarcode(content),
+            LabelElementKind.Barcode => CreateBarcode(content, barcodeFormat),
             LabelElementKind.QrCode => CreateQrCode(content),
             LabelElementKind.Image => DecodeEmbeddedImage(content),
             _ => null
@@ -28,7 +31,7 @@ public static class LabelImageRenderer
         return imageBytes is null ? null : CreateBitmap(imageBytes);
     }
 
-    private static byte[] CreateBarcode(string content)
+    private static byte[] CreateBarcode(string content, BarcodeFormatOption format)
     {
         var barcode = new BarcodeStandard.Barcode
         {
@@ -36,7 +39,15 @@ public static class LabelImageRenderer
         };
 
         using var image = barcode.Encode(
-            BarcodeStandard.Type.Code128,
+            format switch
+            {
+                BarcodeFormatOption.Code39 => BarcodeStandard.Type.Code39,
+                BarcodeFormatOption.Ean8 => BarcodeStandard.Type.Ean8,
+                BarcodeFormatOption.Ean13 => BarcodeStandard.Type.Ean13,
+                BarcodeFormatOption.UpcA => BarcodeStandard.Type.UpcA,
+                BarcodeFormatOption.Itf14 => BarcodeStandard.Type.Itf14,
+                _ => BarcodeStandard.Type.Code128
+            },
             content,
             SKColors.Black,
             SKColors.White,

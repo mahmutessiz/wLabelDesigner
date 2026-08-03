@@ -11,6 +11,9 @@ public sealed partial class LabelElementViewModel : ObservableObject
         Id = data.Id;
         Kind = data.Kind;
         content = data.Content;
+        barcodeFormat = Enum.IsDefined(data.BarcodeFormat)
+            ? data.BarcodeFormat
+            : BarcodeFormatOption.Code128;
         x = data.X;
         y = data.Y;
         width = data.Width;
@@ -73,6 +76,9 @@ public sealed partial class LabelElementViewModel : ObservableObject
 
     [ObservableProperty]
     private string content;
+
+    [ObservableProperty]
+    private BarcodeFormatOption barcodeFormat;
 
     [ObservableProperty]
     private bool isEditing;
@@ -227,6 +233,7 @@ public sealed partial class LabelElementViewModel : ObservableObject
         Id = Id,
         Kind = Kind,
         Content = Content,
+        BarcodeFormat = BarcodeFormat,
         X = X,
         Y = Y,
         Width = Width,

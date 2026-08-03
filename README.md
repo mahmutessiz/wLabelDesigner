@@ -18,7 +18,7 @@ The application is built with .NET 10, WPF, and MVVM.
 
 - Welcome screen with recent templates and cheese-pallet shipping, general shipping, product, shelf, and QR contact starter layouts.
 - Canvas-based label editor using physical millimetre dimensions.
-- Text, Code 128 barcode, QR code, image, box, rounded-box, line, ellipse, triangle, and diamond elements.
+- Text, Code 128/39, EAN-8/13, UPC-A, ITF-14 barcode, QR code, image, box, rounded-box, line, ellipse, triangle, and diamond elements.
 - Drag-to-place element palette.
 - Direct element movement and eight-handle resizing.
 - Independent line endpoint editing.
@@ -125,12 +125,12 @@ Templates use the `.fckbartndr` extension and contain human-readable JSON. A tem
 - Embedded image data, line direction, and shape stroke settings.
 - Preferred printer, default copy count, print margins, and X/Y calibration offsets.
 
-The current template format version is 5. The loader accepts templates with format version 5 or earlier and rejects templates created with a newer, unsupported format.
+The current template format version is 6. The loader accepts templates with format version 6 or earlier and rejects templates created with a newer, unsupported format.
 
 ## NuGet dependencies
 
 - `CommunityToolkit.Mvvm` for MVVM observable properties and commands.
-- `BarcodeLib` for Code 128 rendering.
+- `BarcodeLib` for linear barcode rendering.
 - `QRCoder` for QR-code rendering.
 - `CsvHelper` for planned variable-data and batch-printing support.
 
@@ -149,7 +149,7 @@ Engineering conventions are documented in [AGENTS.md](AGENTS.md). Planned work i
 
 ## Current limitations
 
-- Barcode output currently uses Code 128.
+- Barcode content validation and format-specific error messages are not implemented yet.
 - CSV variable fields and batch printing are not implemented yet.
 - The grid and alignment guides are visual aids; they do not snap elements into position.
 - Autosave and crash recovery are not implemented yet.

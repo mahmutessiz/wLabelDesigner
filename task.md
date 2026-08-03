@@ -46,14 +46,12 @@
 
 ## Barcode and QR options
 
-- [ ] Support Code 128, EAN-13, UPC, and other required barcode formats.
+- [x] Support Code 128, EAN-13, UPC, and other required barcode formats.
 - [ ] Validate barcode content for the selected format.
 - [ ] Allow barcode human-readable labels to be shown or hidden.
 - [ ] Add barcode quiet-zone controls.
 - [ ] Add QR error-correction settings.
 - [ ] Add QR margin controls.
-- [ ] Add barcode and QR foreground/background colors.
-- [ ] Allow a logo to be embedded in QR codes.
 
 ## Printing and export
 

@@ -8,6 +8,8 @@ public sealed class LabelElementData
 
     public string Content { get; set; } = string.Empty;
 
+    public BarcodeFormatOption BarcodeFormat { get; set; } = BarcodeFormatOption.Code128;
+
     public double X { get; set; }
 
     public double Y { get; set; }
