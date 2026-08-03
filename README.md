@@ -18,20 +18,26 @@ The application is built with .NET 10, WPF, and MVVM.
 
 - Welcome screen with recent templates and cheese-pallet shipping, general shipping, product, shelf, and QR contact starter layouts.
 - Canvas-based label editor using physical millimetre dimensions.
-- Text, Code 128 barcode, QR code, box, rounded-box, and line elements.
+- Text, Code 128 barcode, QR code, image, box, rounded-box, line, ellipse, triangle, and diamond elements.
 - Drag-to-place element palette.
 - Direct element movement and eight-handle resizing.
 - Independent line endpoint editing.
+- Drag-based and precise numeric element rotation.
 - Multiline, in-place text editing.
 - Font family, size, bold, italic, underline, and alignment controls.
 - Configurable shape stroke thickness.
 - Shift-click multi-selection.
 - Group movement, alignment, and distribution.
+- Zooming, canvas panning, millimetre rulers, a configurable visual grid, and alignment guides.
+- Layer ordering with per-element position locking and visibility controls.
 - Undo and redo with coalesced typing and drag operations.
 - Cut, copy, paste, duplicate, delete, and keyboard nudging.
-- Print preview with printer selection and copy count.
-- Saved printer and copy defaults in each template.
-- Context-sensitive barcode and QR data panel.
+- Print preview with printer selection, copy count, margins, and X/Y calibration offsets.
+- Saved printer, copy, margin, and calibration settings in each template.
+- PNG and PDF export.
+- English and Turkish interface languages.
+- Context-sensitive formatting and barcode/QR data controls.
+- Unsaved-change prompts and a recent-files list.
 - Built-in F1 user guide.
 
 ## Requirements
@@ -66,14 +72,15 @@ Close any running copy of the application before rebuilding the normal output pa
 3. Drag an element from the left tool rail onto the white label.
 4. Drag an element to move it and use its handles to resize it.
 5. Double-click text to edit it directly on the label.
-6. Select a barcode or QR code to edit its encoded content in the right panel.
+6. Select a barcode or QR code to edit its encoded content in the contextual bar above the workspace.
 7. Use Shift-click to select multiple elements, then align or distribute them from the contextual top bar.
-8. Save the editable template as a `.fckbartndr` file.
-9. Press Print to review the label, select a printer, choose the copy count, and print.
+8. Use the Layers panel to reorder, hide, show, lock, or unlock elements.
+9. Save the editable template as a `.fckbartndr` file, or export the rendered label as PNG or PDF.
+10. Press Print to review the label, select a printer, set copies and calibration, and print.
 
 Click empty workspace or press Escape to clear the current selection. Selected elements are temporarily displayed above overlapping elements while editing without changing the saved or printed layer order.
 
-Use **Welcome** in the main toolbar or **File → Welcome screen** to return to the starter layouts. If the current label has unsaved changes, the application asks whether to save it before replacing the document.
+Use the home button in the main toolbar or **File → Welcome screen** to return to the starter layouts. If the current label has unsaved changes, the application asks whether to save it before replacing the document.
 
 ## Keyboard shortcuts
 
@@ -95,6 +102,11 @@ Use **Welcome** in the main toolbar or **File → Welcome screen** to return to 
 | Arrow keys | Move selection by 0.5 mm |
 | `Shift` + arrow keys | Move selection by 5 mm |
 | `Shift` + click | Toggle an element in the selection |
+| `Ctrl` + mouse wheel | Zoom around the pointer |
+| `Ctrl++` / `Ctrl+-` | Zoom in or out |
+| `Ctrl+0` | Reset zoom to 100% |
+| Middle-button drag | Pan the canvas |
+| `Space` + left-button drag | Pan the canvas |
 | Double-click text | Begin inline text editing |
 | `Enter` | Insert a new line while editing text |
 | `Ctrl+Enter` | Commit inline text editing |
@@ -108,11 +120,11 @@ Templates use the `.fckbartndr` extension and contain human-readable JSON. A tem
 
 - Format version and document name.
 - Label width, height, and printer DPI.
-- Element types, IDs, geometry, content, and styling.
-- Line direction and shape stroke settings.
-- Preferred printer and default copy count.
+- Element types, IDs, geometry, content, rotation, visibility, locking, and styling.
+- Embedded image data, line direction, and shape stroke settings.
+- Preferred printer, default copy count, print margins, and X/Y calibration offsets.
 
-The current template format version is 2. Older version 1 templates remain loadable.
+The current template format version is 4. The loader accepts templates with format version 4 or earlier and rejects templates created with a newer, unsupported format.
 
 ## NuGet dependencies
 
@@ -129,7 +141,7 @@ Docs/         Product specification
 Models/       Serializable label document and element models
 Services/     Persistence, clipboard, rendering, printing, and history
 ViewModels/   Designer and print-preview presentation state
-*.xaml        Main designer, help, and print-preview windows
+*.xaml        Welcome, designer, help, and print-preview windows
 ```
 
 Engineering conventions are documented in [AGENTS.md](AGENTS.md). Planned work is tracked in [task.md](task.md).
@@ -138,8 +150,10 @@ Engineering conventions are documented in [AGENTS.md](AGENTS.md). Planned work i
 
 - Barcode output currently uses Code 128.
 - CSV variable fields and batch printing are not implemented yet.
-- Canvas zoom, rulers, grid snapping, rotation, and persistent layer controls remain planned.
-- Physical output may require printer-specific margin or offset calibration.
+- The grid and alignment guides are visual aids; they do not snap elements into position.
+- Fill/stroke colors, opacity, custom corner radii, and dashed or dotted strokes are not configurable yet.
+- Advanced text layout controls such as vertical alignment, line spacing, letter spacing, and automatic fitting are not implemented yet.
+- Autosave and crash recovery are not implemented yet.
 
 ## License
 
