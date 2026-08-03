@@ -59,6 +59,48 @@ public sealed class BarcodeFormatTests
         Assert.False(viewModel.HasBarcodeSelection);
     }
 
+    [Fact]
+    public void ViewModel_RoundTripsHumanReadableTextVisibility()
+    {
+        var element = new LabelElementViewModel(new LabelElementData
+        {
+            Kind = LabelElementKind.Barcode,
+            IsBarcodeTextVisible = false
+        });
+
+        Assert.False(element.IsBarcodeTextVisible);
+        Assert.False(element.ToData().IsBarcodeTextVisible);
+    }
+
+    [Fact]
+    public void Render_HumanReadableTextToggleChangesBarcodeOutput()
+    {
+        var withText = LabelImageRenderer.Render(
+            LabelElementKind.Barcode,
+            "SHIP-ABC-123",
+            BarcodeFormatOption.Code128,
+            isBarcodeTextVisible: true);
+        var withoutText = LabelImageRenderer.Render(
+            LabelElementKind.Barcode,
+            "SHIP-ABC-123",
+            BarcodeFormatOption.Code128,
+            isBarcodeTextVisible: false);
+
+        Assert.NotNull(withText);
+        Assert.NotNull(withoutText);
+        Assert.Equal(withText.PixelWidth, withoutText.PixelWidth);
+        Assert.Equal(withText.PixelHeight, withoutText.PixelHeight);
+        Assert.False(ReadPixels(withText).SequenceEqual(ReadPixels(withoutText)));
+    }
+
+    private static byte[] ReadPixels(System.Windows.Media.Imaging.BitmapSource bitmap)
+    {
+        var stride = ((bitmap.PixelWidth * bitmap.Format.BitsPerPixel) + 7) / 8;
+        var pixels = new byte[stride * bitmap.PixelHeight];
+        bitmap.CopyPixels(pixels, stride, 0);
+        return pixels;
+    }
+
     private static MainViewModel CreateViewModel() => new(
         new StubDocumentStore(),
         new StubFileDialogService(),

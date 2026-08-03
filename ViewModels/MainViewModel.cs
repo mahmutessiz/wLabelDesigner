@@ -1027,6 +1027,7 @@ public sealed partial class MainViewModel : ObservableObject
             Kind = source.Kind,
             Content = source.Content ?? string.Empty,
             BarcodeFormat = source.BarcodeFormat,
+            IsBarcodeTextVisible = source.IsBarcodeTextVisible,
             X = Math.Clamp(sourceX + offset, 0, Math.Max(0, LabelWidth - width)),
             Y = Math.Clamp(sourceY + offset, 0, Math.Max(0, LabelHeight - height)),
             Width = width,

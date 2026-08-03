@@ -240,7 +240,11 @@ public static class LabelDrawingRenderer
             return;
         }
 
-        var image = LabelImageRenderer.Render(element.Kind, element.Content, element.BarcodeFormat);
+        var image = LabelImageRenderer.Render(
+            element.Kind,
+            element.Content,
+            element.BarcodeFormat,
+            element.IsBarcodeTextVisible);
         if (image is not null)
         {
             drawingContext.DrawImage(image, bounds);

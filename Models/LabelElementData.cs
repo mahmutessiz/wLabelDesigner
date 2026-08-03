@@ -10,6 +10,8 @@ public sealed class LabelElementData
 
     public BarcodeFormatOption BarcodeFormat { get; set; } = BarcodeFormatOption.Code128;
 
+    public bool IsBarcodeTextVisible { get; set; } = true;
+
     public double X { get; set; }
 
     public double Y { get; set; }

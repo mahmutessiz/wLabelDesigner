@@ -119,6 +119,8 @@ public sealed class WpfLanguageService : ILanguageService
             ["Dotted"] = "Noktalı",
             ["Content"] = "İçerik",
             ["Format"] = "Biçim",
+            ["Show text"] = "Metni göster",
+            ["Show or hide the human-readable barcode value"] = "Okunabilir barkod değerini göster veya gizle",
             ["Enter barcode content."] = "Barkod içeriği girin.",
             ["The selected barcode format is not supported."] = "Seçilen barkod biçimi desteklenmiyor.",
             ["Code 128 supports at most 120 characters."] = "Code 128 en fazla 120 karakter destekler.",
@@ -185,6 +187,8 @@ public sealed class WpfLanguageService : ILanguageService
                 "Metni doğrudan düzenlemek için çift tıklayın. Enter yeni satır oluşturur, Ctrl+Enter değişikliği uygular, Escape iptal eder; başka bir yere tıklamak değişikliği uygular. Barkod ve QR verileri bağlamsal üst çubukta düzenlenir.",
             ["For barcodes, choose the format before entering content. Invalid length, unsupported characters, and incorrect EAN, UPC, or ITF check digits are shown below the content field and must be fixed before printing or exporting."] =
                 "Barkodlarda içeriği girmeden önce biçimi seçin. Geçersiz uzunluk, desteklenmeyen karakterler ve hatalı EAN, UPC veya ITF kontrol basamakları içerik alanının altında gösterilir; yazdırmadan veya dışa aktarmadan önce düzeltilmelidir.",
+            ["Use Show text to include or hide the human-readable barcode value beneath the bars. This setting is saved separately for each barcode."] =
+                "Çubukların altındaki okunabilir barkod değerini göstermek veya gizlemek için Metni göster seçeneğini kullanın. Bu ayar her barkod için ayrı kaydedilir.",
             ["Use the contextual formatting bar to choose text and shape colors, opacity, corner radius, stroke pattern, vertical alignment, line spacing, and letter spacing. Auto fit reduces text size when necessary; a red exclamation mark warns when text still overflows its bounds."] =
                 "Metin ve şekil renklerini, saydamlığı, köşe yarıçapını, çizgi desenini, dikey hizalamayı, satır ve harf aralığını seçmek için bağlamsal biçimlendirme çubuğunu kullanın. Otomatik sığdırma gerektiğinde metin boyutunu küçültür; kırmızı ünlem işareti metin sınırları aştığında uyarır.",
             ["The Layers panel lists elements from front to back. Select a layer, then use Front, Up, Down, or Back to change its stacking order. The same commands are available from the Arrange menu."] =

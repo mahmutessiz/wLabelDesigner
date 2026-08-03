@@ -13,7 +13,8 @@ public static class LabelImageRenderer
     public static BitmapSource? Render(
         LabelElementKind kind,
         string content,
-        BarcodeFormatOption barcodeFormat = BarcodeFormatOption.Code128)
+        BarcodeFormatOption barcodeFormat = BarcodeFormatOption.Code128,
+        bool isBarcodeTextVisible = true)
     {
         if (string.IsNullOrWhiteSpace(content))
         {
@@ -27,7 +28,7 @@ public static class LabelImageRenderer
 
         var imageBytes = kind switch
         {
-            LabelElementKind.Barcode => CreateBarcode(content, barcodeFormat),
+            LabelElementKind.Barcode => CreateBarcode(content, barcodeFormat, isBarcodeTextVisible),
             LabelElementKind.QrCode => CreateQrCode(content),
             LabelElementKind.Image => DecodeEmbeddedImage(content),
             _ => null
@@ -36,11 +37,14 @@ public static class LabelImageRenderer
         return imageBytes is null ? null : CreateBitmap(imageBytes);
     }
 
-    private static byte[] CreateBarcode(string content, BarcodeFormatOption format)
+    private static byte[] CreateBarcode(
+        string content,
+        BarcodeFormatOption format,
+        bool isBarcodeTextVisible)
     {
         var barcode = new BarcodeStandard.Barcode
         {
-            IncludeLabel = true
+            IncludeLabel = isBarcodeTextVisible
         };
 
         using var image = barcode.Encode(

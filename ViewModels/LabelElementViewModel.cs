@@ -16,6 +16,7 @@ public sealed partial class LabelElementViewModel : ObservableObject
         barcodeFormat = Enum.IsDefined(data.BarcodeFormat)
             ? data.BarcodeFormat
             : BarcodeFormatOption.Code128;
+        isBarcodeTextVisible = data.IsBarcodeTextVisible;
         x = data.X;
         y = data.Y;
         width = data.Width;
@@ -87,6 +88,9 @@ public sealed partial class LabelElementViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(BarcodeValidationError))]
     [NotifyPropertyChangedFor(nameof(IsBarcodeContentValid))]
     private BarcodeFormatOption barcodeFormat;
+
+    [ObservableProperty]
+    private bool isBarcodeTextVisible = true;
 
     public string? BarcodeValidationError
     {
@@ -258,6 +262,7 @@ public sealed partial class LabelElementViewModel : ObservableObject
         Kind = Kind,
         Content = Content,
         BarcodeFormat = BarcodeFormat,
+        IsBarcodeTextVisible = IsBarcodeTextVisible,
         X = X,
         Y = Y,
         Width = Width,

@@ -24,7 +24,8 @@ public sealed class LabelElementImageConverter : IMultiValueConverter
             var barcodeFormat = values.Length > 2 && values[2] is BarcodeFormatOption format
                 ? format
                 : BarcodeFormatOption.Code128;
-            return LabelImageRenderer.Render(kind, content, barcodeFormat);
+            var isBarcodeTextVisible = values.Length <= 3 || values[3] is not bool isVisible || isVisible;
+            return LabelImageRenderer.Render(kind, content, barcodeFormat, isBarcodeTextVisible);
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
         {

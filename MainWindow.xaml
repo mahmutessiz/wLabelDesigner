@@ -457,6 +457,11 @@
                                           DisplayMemberPath="Name"
                                           SelectedValuePath="Value"
                                           SelectedValue="{Binding SelectedElement.BarcodeFormat}" />
+                                <CheckBox Content="Show text"
+                                          IsChecked="{Binding SelectedElement.IsBarcodeTextVisible}"
+                                          VerticalAlignment="Center"
+                                          Margin="10,0,0,0"
+                                          ToolTip="Show or hide the human-readable barcode value" />
                                 <Separator Margin="8,8" />
                             </StackPanel>
                             <TextBlock Text="Content" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,7,0" />
@@ -833,6 +838,7 @@
                                                     <Binding Path="Content" />
                                                     <Binding Path="Kind" />
                                                     <Binding Path="BarcodeFormat" />
+                                                    <Binding Path="IsBarcodeTextVisible" />
                                                 </MultiBinding>
                                             </Image.Source>
                                         </Image>
