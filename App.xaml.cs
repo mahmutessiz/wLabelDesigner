@@ -13,7 +13,21 @@ public partial class App : Application
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        await ShowWelcomeAsync();
+        var startupTemplatePath = StartupTemplatePathResolver.Resolve(e.Args);
+        if (startupTemplatePath is null)
+        {
+            await ShowWelcomeAsync();
+            return;
+        }
+
+        await ShowStartupTemplateAsync(startupTemplatePath);
+    }
+
+    private async Task ShowStartupTemplateAsync(string path)
+    {
+        var mainViewModel = CreateMainViewModel(WpfLanguageService.Instance);
+        await mainViewModel.OpenPathAsync(path);
+        ShowMainWindow(mainViewModel);
     }
 
     private async Task ShowWelcomeAsync(MainWindow? previousWindow = null)
@@ -58,11 +72,7 @@ public partial class App : Application
             mainViewModel.StartFromLayout(layout.CreateDocument());
         }
 
-        var mainWindow = new MainWindow(mainViewModel);
-        mainWindow.WelcomeScreenRequested += MainWindow_WelcomeScreenRequested;
-        MainWindow = mainWindow;
-        mainWindow.Show();
-        ShutdownMode = ShutdownMode.OnMainWindowClose;
+        ShowMainWindow(mainViewModel);
 
         if (welcomeViewModel.Result.Action == WelcomeAction.OpenExisting)
         {
@@ -72,6 +82,15 @@ public partial class App : Application
         {
             await mainViewModel.OpenPathAsync(recentResult.Path);
         }
+    }
+
+    private void ShowMainWindow(MainViewModel mainViewModel)
+    {
+        var mainWindow = new MainWindow(mainViewModel);
+        mainWindow.WelcomeScreenRequested += MainWindow_WelcomeScreenRequested;
+        MainWindow = mainWindow;
+        mainWindow.Show();
+        ShutdownMode = ShutdownMode.OnMainWindowClose;
     }
 
     private async void MainWindow_WelcomeScreenRequested(object? sender, EventArgs e)

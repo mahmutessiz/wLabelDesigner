@@ -44,6 +44,7 @@ The application is built with .NET 10, WPF, and MVVM.
 - Per-QR-code error correction from Low through High.
 - Per-QR-code margin control in whole modules.
 - Unsaved-change prompts and a recent-files list.
+- Opening `.fckbartndr` templates by double-clicking them or dropping them onto the application shortcut.
 - Built-in F1 user guide.
 
 ## Requirements
