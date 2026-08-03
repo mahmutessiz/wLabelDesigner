@@ -20,6 +20,11 @@ public static class LabelImageRenderer
             return null;
         }
 
+        if (kind == LabelElementKind.Barcode && !BarcodeContentValidator.IsValid(barcodeFormat, content))
+        {
+            return null;
+        }
+
         var imageBytes = kind switch
         {
             LabelElementKind.Barcode => CreateBarcode(content, barcodeFormat),

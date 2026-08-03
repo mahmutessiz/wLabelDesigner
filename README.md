@@ -38,6 +38,7 @@ The application is built with .NET 10, WPF, and MVVM.
 - PNG and PDF export.
 - English and Turkish interface languages.
 - Context-sensitive formatting and barcode/QR data controls.
+- Format-aware barcode validation with check-digit verification before printing or export.
 - Unsaved-change prompts and a recent-files list.
 - Built-in F1 user guide.
 
@@ -149,7 +150,6 @@ Engineering conventions are documented in [AGENTS.md](AGENTS.md). Planned work i
 
 ## Current limitations
 
-- Barcode content validation and format-specific error messages are not implemented yet.
 - CSV variable fields and batch printing are not implemented yet.
 - The grid and alignment guides are visual aids; they do not snap elements into position.
 - Autosave and crash recovery are not implemented yet.

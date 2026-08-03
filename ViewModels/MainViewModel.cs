@@ -822,6 +822,11 @@ public sealed partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void Print()
     {
+        if (!TryValidateBarcodesForOutput("print"))
+        {
+            return;
+        }
+
         var document = CreateDocument();
         try
         {
@@ -844,6 +849,11 @@ public sealed partial class MainViewModel : ObservableObject
         if (labelExportService is null)
         {
             StatusMessage = "PNG export is not available";
+            return;
+        }
+
+        if (!TryValidateBarcodesForOutput("export PNG"))
+        {
             return;
         }
 
@@ -870,6 +880,11 @@ public sealed partial class MainViewModel : ObservableObject
         if (labelExportService is null)
         {
             StatusMessage = "PDF export is not available";
+            return;
+        }
+
+        if (!TryValidateBarcodesForOutput("export PDF"))
+        {
             return;
         }
 
@@ -1301,6 +1316,20 @@ public sealed partial class MainViewModel : ObservableObject
 
     private static string CreateFingerprint(LabelDocument document) =>
         JsonSerializer.Serialize(document);
+
+    private bool TryValidateBarcodesForOutput(string action)
+    {
+        var invalidBarcode = Elements.FirstOrDefault(element =>
+            element.Kind == LabelElementKind.Barcode && !element.IsBarcodeContentValid);
+        if (invalidBarcode is null)
+        {
+            return true;
+        }
+
+        SelectedElement = invalidBarcode;
+        StatusMessage = $"Cannot {action}: {invalidBarcode.BarcodeValidationError}";
+        return false;
+    }
 
     private static string MakeSafeFileName(string name)
     {

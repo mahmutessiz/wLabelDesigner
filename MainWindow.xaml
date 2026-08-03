@@ -460,7 +460,32 @@
                                 <Separator Margin="8,8" />
                             </StackPanel>
                             <TextBlock Text="Content" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,7,0" />
-                            <TextBox Width="360" Text="{Binding SelectedElement.Content, UpdateSourceTrigger=PropertyChanged}" ToolTip="Barcode or QR code content" />
+                            <TextBox Width="360"
+                                     Text="{Binding SelectedElement.Content, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Barcode or QR code content"
+                                     AutomationProperties.HelpText="{Binding SelectedElement.BarcodeValidationError}">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedElement.IsBarcodeContentValid}" Value="False">
+                                                <Setter Property="BorderBrush" Value="#D92D20" />
+                                                <Setter Property="BorderThickness" Value="1.5" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1"
+                                    Orientation="Horizontal"
+                                    VerticalAlignment="Center"
+                                    Visibility="{Binding HasBarcodeSelection, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="{Binding SelectedElement.BarcodeValidationError}"
+                                       Foreground="#D92D20"
+                                       FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis"
+                                       ToolTip="{Binding SelectedElement.BarcodeValidationError}" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="0"

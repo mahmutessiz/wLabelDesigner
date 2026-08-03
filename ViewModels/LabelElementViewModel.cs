@@ -6,6 +6,8 @@ namespace wLabelDesigner.ViewModels;
 
 public sealed partial class LabelElementViewModel : ObservableObject
 {
+    private ILanguageService? languageService;
+
     public LabelElementViewModel(LabelElementData data)
     {
         Id = data.Id;
@@ -70,15 +72,37 @@ public sealed partial class LabelElementViewModel : ObservableObject
 
     public void SetLanguage(ILanguageService? languageService)
     {
+        this.languageService = languageService;
         localizedDisplayName = languageService?.Translate(GetDefaultDisplayName());
         OnPropertyChanged(nameof(DisplayName));
+        OnPropertyChanged(nameof(BarcodeValidationError));
     }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BarcodeValidationError))]
+    [NotifyPropertyChangedFor(nameof(IsBarcodeContentValid))]
     private string content;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BarcodeValidationError))]
+    [NotifyPropertyChangedFor(nameof(IsBarcodeContentValid))]
     private BarcodeFormatOption barcodeFormat;
+
+    public string? BarcodeValidationError
+    {
+        get
+        {
+            if (Kind != LabelElementKind.Barcode)
+            {
+                return null;
+            }
+
+            var error = BarcodeContentValidator.GetError(BarcodeFormat, Content);
+            return error is null ? null : languageService?.Translate(error) ?? error;
+        }
+    }
+
+    public bool IsBarcodeContentValid => BarcodeValidationError is null;
 
     [ObservableProperty]
     private bool isEditing;

@@ -119,6 +119,16 @@ public sealed class WpfLanguageService : ILanguageService
             ["Dotted"] = "Noktalı",
             ["Content"] = "İçerik",
             ["Format"] = "Biçim",
+            ["Enter barcode content."] = "Barkod içeriği girin.",
+            ["The selected barcode format is not supported."] = "Seçilen barkod biçimi desteklenmiyor.",
+            ["Code 128 supports at most 120 characters."] = "Code 128 en fazla 120 karakter destekler.",
+            ["Code 128 supports printable ASCII characters only."] = "Code 128 yalnızca yazdırılabilir ASCII karakterlerini destekler.",
+            ["Code 39 supports at most 80 characters."] = "Code 39 en fazla 80 karakter destekler.",
+            ["Code 39 supports A-Z, 0-9, space, and - . $ / + % only."] = "Code 39 yalnızca A-Z, 0-9, boşluk ve - . $ / + % karakterlerini destekler.",
+            ["EAN-8 requires exactly 8 digits."] = "EAN-8 tam olarak 8 rakam gerektirir.",
+            ["EAN-13 requires exactly 13 digits."] = "EAN-13 tam olarak 13 rakam gerektirir.",
+            ["UPC-A requires exactly 12 digits."] = "UPC-A tam olarak 12 rakam gerektirir.",
+            ["ITF-14 requires exactly 14 digits."] = "ITF-14 tam olarak 14 rakam gerektirir.",
             ["Visible"] = "Görünür",
             ["Lock position"] = "Konumu kilitle",
             ["Rotate"] = "Döndür",
@@ -173,6 +183,8 @@ public sealed class WpfLanguageService : ILanguageService
                 "Bir öğeyi seçmek için tıklayın. Shift+tıklama ek öğeleri seçime ekler veya çıkarır. Seçimi temizlemek için boş çalışma alanına tıklayın ya da Escape tuşuna basın. Tüm seçimi taşımak için seçili bir öğeyi sürükleyin. Normal öğeleri sekiz tutamaçla, çizgileri iki uç tutamacıyla boyutlandırın.",
             ["Double-click text to edit it directly. Enter creates a new line, Ctrl+Enter commits, Escape cancels, and clicking away commits. Barcode and QR data is edited in the contextual bar above the workspace."] =
                 "Metni doğrudan düzenlemek için çift tıklayın. Enter yeni satır oluşturur, Ctrl+Enter değişikliği uygular, Escape iptal eder; başka bir yere tıklamak değişikliği uygular. Barkod ve QR verileri bağlamsal üst çubukta düzenlenir.",
+            ["For barcodes, choose the format before entering content. Invalid length, unsupported characters, and incorrect EAN, UPC, or ITF check digits are shown below the content field and must be fixed before printing or exporting."] =
+                "Barkodlarda içeriği girmeden önce biçimi seçin. Geçersiz uzunluk, desteklenmeyen karakterler ve hatalı EAN, UPC veya ITF kontrol basamakları içerik alanının altında gösterilir; yazdırmadan veya dışa aktarmadan önce düzeltilmelidir.",
             ["Use the contextual formatting bar to choose text and shape colors, opacity, corner radius, stroke pattern, vertical alignment, line spacing, and letter spacing. Auto fit reduces text size when necessary; a red exclamation mark warns when text still overflows its bounds."] =
                 "Metin ve şekil renklerini, saydamlığı, köşe yarıçapını, çizgi desenini, dikey hizalamayı, satır ve harf aralığını seçmek için bağlamsal biçimlendirme çubuğunu kullanın. Otomatik sığdırma gerektiğinde metin boyutunu küçültür; kırmızı ünlem işareti metin sınırları aştığında uyarır.",
             ["The Layers panel lists elements from front to back. Select a layer, then use Front, Up, Down, or Back to change its stacking order. The same commands are available from the Arrange menu."] =
@@ -275,8 +287,18 @@ public sealed class WpfLanguageService : ILanguageService
             _ when text.StartsWith("PNG exported to ", StringComparison.Ordinal) => $"PNG {text[16..]} dosyasına aktarıldı",
             _ when text.StartsWith("PDF exported to ", StringComparison.Ordinal) => $"PDF {text[16..]} dosyasına aktarıldı",
             _ when text.StartsWith("Could not ", StringComparison.Ordinal) => $"İşlem başarısız: {text[10..]}",
+            _ when text.Contains(" check digit should be ", StringComparison.Ordinal) => TranslateBarcodeCheckDigit(text),
             _ => text
         };
+    }
+
+    private static string TranslateBarcodeCheckDigit(string text)
+    {
+        const string marker = " check digit should be ";
+        var markerIndex = text.IndexOf(marker, StringComparison.Ordinal);
+        return markerIndex < 0
+            ? text
+            : $"{text[..markerIndex]} kontrol basamağı {text[(markerIndex + marker.Length)..].TrimEnd('.')} olmalıdır.";
     }
 
     public static string TranslateForLanguage(string text, string language) =>
