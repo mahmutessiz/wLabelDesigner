@@ -749,7 +749,7 @@ public sealed partial class MainViewModel : ObservableObject
 
     private async Task<bool> SaveDocumentAsync(CancellationToken cancellationToken)
     {
-        var suggestedName = MakeSafeFileName(DocumentName) + ".fckbartndr";
+        var suggestedName = MakeSafeFileName(DocumentName) + ".wld";
         var path = currentPath ?? fileDialogService.ChooseTemplateToSave(suggestedName);
         if (path is null)
         {

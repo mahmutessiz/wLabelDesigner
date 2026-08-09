@@ -8,7 +8,7 @@ public sealed class StartupTemplatePathResolverTests
     [Fact]
     public void Resolve_ReturnsFullPathForDroppedTemplate()
     {
-        var relativePath = Path.Combine("templates", "shipping.fckbartndr");
+        var relativePath = Path.Combine("templates", "shipping.wld");
 
         var result = StartupTemplatePathResolver.Resolve([relativePath]);
 
@@ -18,7 +18,7 @@ public sealed class StartupTemplatePathResolverTests
     [Fact]
     public void Resolve_AcceptsUppercaseExtensionAndQuotedPath()
     {
-        var path = Path.Combine(Path.GetTempPath(), "Label Template.FCKBARTNDR");
+        var path = Path.Combine(Path.GetTempPath(), "Label Template.WLD");
 
         var result = StartupTemplatePathResolver.Resolve([$"\"{path}\""]);
 
@@ -36,8 +36,8 @@ public sealed class StartupTemplatePathResolverTests
     [Fact]
     public void Resolve_UsesFirstTemplateWhenMultipleFilesAreDropped()
     {
-        var first = Path.Combine(Path.GetTempPath(), "first.fckbartndr");
-        var second = Path.Combine(Path.GetTempPath(), "second.fckbartndr");
+        var first = Path.Combine(Path.GetTempPath(), "first.wld");
+        var second = Path.Combine(Path.GetTempPath(), "second.wld");
 
         var result = StartupTemplatePathResolver.Resolve([first, second]);
 

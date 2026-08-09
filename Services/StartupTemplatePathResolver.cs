@@ -21,7 +21,7 @@ public static class StartupTemplatePathResolver
             var candidate = argument.Trim().Trim('"');
             try
             {
-                if (!string.Equals(Path.GetExtension(candidate), ".fckbartndr", StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(Path.GetExtension(candidate), ".wld", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }

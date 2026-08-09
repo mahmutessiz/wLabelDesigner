@@ -53,7 +53,7 @@ Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Registry]
-Root: HKA; Subkey: "Software\Classes\.fckbartndr"; ValueType: string; ValueName: ""; ValueData: "wLabelDesigner.Template"; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.wld"; ValueType: string; ValueName: ""; ValueData: "wLabelDesigner.Template"; Flags: uninsdeletevalue
 Root: HKA; Subkey: "Software\Classes\wLabelDesigner.Template"; ValueType: string; ValueName: ""; ValueData: "wLabelDesigner label template"; Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\wLabelDesigner.Template\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#MyAppExeName},0"
 Root: HKA; Subkey: "Software\Classes\wLabelDesigner.Template\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""

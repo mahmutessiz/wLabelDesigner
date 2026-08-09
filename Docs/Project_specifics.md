@@ -9,7 +9,7 @@ Build a lightweight, zero-bloat C# WPF desktop application for designing and pri
 * **Target Framework:** .NET 8.0 (Windows Desktop SDK)
 * **Architecture:** WPF with MVVM (`CommunityToolkit.Mvvm`)
 * **Target OS:** Windows 10/11 (x64)
-* **Primary File Extension:** `.fckbartndr` (JSON-formatted template file)
+* **Primary File Extension:** `.wld` (JSON-formatted template file)
 
 ---
 

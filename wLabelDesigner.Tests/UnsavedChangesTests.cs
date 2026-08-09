@@ -26,7 +26,7 @@ public sealed class UnsavedChangesTests
     public async Task NewDocument_WhenSaveIsChosen_SavesBeforeReplacingDocument()
     {
         var store = new StubDocumentStore();
-        var dialogs = new StubFileDialogService { SavePath = "saved.fckbartndr" };
+        var dialogs = new StubFileDialogService { SavePath = "saved.wld" };
         var viewModel = CreateViewModel(
             store,
             dialogs,
@@ -59,7 +59,7 @@ public sealed class UnsavedChangesTests
                 ]
             }
         };
-        var dialogs = new StubFileDialogService { OpenPath = "opened.fckbartndr" };
+        var dialogs = new StubFileDialogService { OpenPath = "opened.wld" };
         var viewModel = CreateViewModel(
             store,
             dialogs,

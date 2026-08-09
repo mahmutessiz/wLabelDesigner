@@ -96,7 +96,7 @@
 
                 <TextBlock Text="Files and application" Style="{StaticResource HelpSubheading}" />
                 <Grid Margin="0,3"><Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Ctrl+N" Style="{StaticResource ShortcutKey}"/><TextBlock Grid.Column="1" Text="Create a new label" Style="{StaticResource ShortcutDescription}"/></Grid>
-                <Grid Margin="0,3"><Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Ctrl+O" Style="{StaticResource ShortcutKey}"/><TextBlock Grid.Column="1" Text="Open a .fckbartndr template" Style="{StaticResource ShortcutDescription}"/></Grid>
+                <Grid Margin="0,3"><Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Ctrl+O" Style="{StaticResource ShortcutKey}"/><TextBlock Grid.Column="1" Text="Open a .wld template" Style="{StaticResource ShortcutDescription}"/></Grid>
                 <Grid Margin="0,3"><Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Ctrl+S" Style="{StaticResource ShortcutKey}"/><TextBlock Grid.Column="1" Text="Save the current template" Style="{StaticResource ShortcutDescription}"/></Grid>
                 <Grid Margin="0,3"><Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Ctrl+P" Style="{StaticResource ShortcutKey}"/><TextBlock Grid.Column="1" Text="Open print preview and configure printer/copies" Style="{StaticResource ShortcutDescription}"/></Grid>
                 <Grid Margin="0,3"><Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="F1" Style="{StaticResource ShortcutKey}"/><TextBlock Grid.Column="1" Text="Open this help window" Style="{StaticResource ShortcutDescription}"/></Grid>
@@ -128,7 +128,7 @@
 
                 <TextBlock Text="Templates and printing" Style="{StaticResource HelpHeading}" />
                 <TextBlock Style="{StaticResource HelpBody}"
-                           Text="Templates use the .fckbartndr extension and JSON data. They store label size, DPI, all elements and styles, printer choice, and default copy count. Print opens a preview that uses the same renderer as physical output. Choose a printer and copies, then press Print. Save the document afterward when the title shows an asterisk." />
+                           Text="Templates use the .wld extension and JSON data. They store label size, DPI, all elements and styles, printer choice, and default copy count. Print opens a preview that uses the same renderer as physical output. Choose a printer and copies, then press Print. Save the document afterward when the title shows an asterisk." />
 
                 <TextBlock Text="About" Style="{StaticResource HelpHeading}" />
                 <TextBlock Style="{StaticResource HelpBody}"

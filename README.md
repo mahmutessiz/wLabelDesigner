@@ -1,6 +1,6 @@
 # wLabelDesigner
 
-wLabelDesigner is a lightweight Windows desktop application for designing and printing thermal labels. It targets common 203 and 300 DPI label printers and stores editable templates as JSON-based `.fckbartndr` files.
+wLabelDesigner is a lightweight Windows desktop application for designing and printing thermal labels. It targets common 203 and 300 DPI label printers and stores editable templates as JSON-based `.wld` files.
 
 The application is built with .NET 10, WPF, and MVVM.
 
@@ -44,7 +44,7 @@ The application is built with .NET 10, WPF, and MVVM.
 - Per-QR-code error correction from Low through High.
 - Per-QR-code margin control in whole modules.
 - Unsaved-change prompts and a recent-files list.
-- Opening `.fckbartndr` templates by double-clicking them or dropping them onto the application shortcut.
+- Opening `.wld` templates by double-clicking them or dropping them onto the application shortcut.
 - Built-in F1 user guide.
 
 ## Requirements
@@ -82,7 +82,7 @@ Self-contained publishing and Inno Setup installer commands are documented in [D
 6. Select a barcode or QR code to edit its encoded content in the contextual bar above the workspace.
 7. Use Shift-click to select multiple elements, then align or distribute them from the contextual top bar.
 8. Use the Layers panel to reorder, hide, show, lock, or unlock elements.
-9. Save the editable template as a `.fckbartndr` file, or export the rendered label as PNG or PDF.
+9. Save the editable template as a `.wld` file, or export the rendered label as PNG or PDF.
 10. Press Print to review the label, select a printer, set copies and calibration, and print.
 
 Click empty workspace or press Escape to clear the current selection. Selected elements are temporarily displayed above overlapping elements while editing without changing the saved or printed layer order.
@@ -123,7 +123,7 @@ Keyboard editing commands do not override normal input behavior while a text or 
 
 ## Template format
 
-Templates use the `.fckbartndr` extension and contain human-readable JSON. A template stores:
+Templates use the `.wld` extension and contain human-readable JSON. A template stores:
 
 - Format version and document name.
 - Label width, height, and printer DPI.

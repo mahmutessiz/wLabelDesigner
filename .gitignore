@@ -116,5 +116,5 @@ artifacts/
 !**/Resources/*.bmp
 
 # Ignore local test designs (keep the repo clean)
-*.fckbartndr
-!**/Samples/*.fckbartndr
+*.wld
+!**/Samples/*.wld

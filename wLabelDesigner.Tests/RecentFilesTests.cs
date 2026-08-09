@@ -16,7 +16,7 @@ public sealed class RecentFilesTests
         try
         {
             var paths = Enumerable.Range(0, JsonRecentFilesService.MaximumRecentFiles + 2)
-                .Select(index => Path.Combine(directory, $"label-{index}.fckbartndr"))
+                .Select(index => Path.Combine(directory, $"label-{index}.wld"))
                 .ToArray();
             foreach (var path in paths)
             {
@@ -50,7 +50,7 @@ public sealed class RecentFilesTests
     [Fact]
     public void WelcomeViewModel_OpenRecentCompletesWithSelectedPath()
     {
-        const string path = @"C:\Labels\shipping.fckbartndr";
+        const string path = @"C:\Labels\shipping.wld";
         using var viewModel = new WelcomeViewModel(new StubLanguageService(), [path]);
         var closeRequested = false;
         viewModel.RequestClose += (_, _) => closeRequested = true;
@@ -65,8 +65,8 @@ public sealed class RecentFilesTests
     [Fact]
     public async Task MainViewModel_SuccessfulOpenAndSaveUpdateRecentFiles()
     {
-        const string openPath = @"C:\Labels\opened.fckbartndr";
-        const string savePath = @"C:\Labels\saved.fckbartndr";
+        const string openPath = @"C:\Labels\opened.wld";
+        const string savePath = @"C:\Labels\saved.wld";
         var recentFiles = new StubRecentFilesService();
         var viewModel = new MainViewModel(
             new StubDocumentStore(),

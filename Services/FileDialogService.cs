@@ -4,14 +4,14 @@ namespace wLabelDesigner.Services;
 
 public sealed class FileDialogService : IFileDialogService
 {
-    private const string TemplateFilter = "FckBarTender label (*.fckbartndr)|*.fckbartndr|JSON files (*.json)|*.json|All files (*.*)|*.*";
+    private const string TemplateFilter = "wLabelDesigner label (*.wld)|*.wld|JSON files (*.json)|*.json|All files (*.*)|*.*";
 
     public string? ChooseTemplateToOpen()
     {
         var dialog = new OpenFileDialog
         {
             CheckFileExists = true,
-            DefaultExt = ".fckbartndr",
+            DefaultExt = ".wld",
             Filter = TemplateFilter,
             Title = WpfLanguageService.Instance.IsTurkish ? "Etiket şablonu aç" : "Open label template"
         };
@@ -24,7 +24,7 @@ public sealed class FileDialogService : IFileDialogService
         var dialog = new SaveFileDialog
         {
             AddExtension = true,
-            DefaultExt = ".fckbartndr",
+            DefaultExt = ".wld",
             FileName = suggestedFileName,
             Filter = TemplateFilter,
             OverwritePrompt = true,
