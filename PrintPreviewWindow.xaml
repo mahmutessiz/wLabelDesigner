@@ -174,11 +174,17 @@
         <Border Grid.Row="2" Padding="20,0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Background="#FAFBFC">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                 <Button Content="Cancel" IsCancel="True" MinWidth="90" Margin="0,0,10,0" />
-                <Button Content="Print"
-                        IsDefault="True"
+                <Button IsDefault="True"
                         IsEnabled="{Binding CanPrint}"
                         Style="{StaticResource PrimaryPrintButton}"
-                        Click="Print_Click" />
+                        Click="Print_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="18" Height="18" Margin="0,0,7,0"
+                                Background="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                OpacityMask="{StaticResource PrintIconMask}" />
+                        <TextBlock Text="Print" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
             </StackPanel>
         </Border>
     </Grid>

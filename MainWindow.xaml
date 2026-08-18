@@ -321,18 +321,64 @@
             <StackPanel>
                 <DockPanel Height="52" Margin="10,0">
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Content="Delete" Command="{Binding DeleteSelectedCommand}" Style="{StaticResource TopActionButton}" />
-                        <Button Content="Print" Command="{Binding PrintCommand}" Style="{StaticResource PrimaryActionButton}" Margin="8,0,2,0" />
+                        <Button Command="{Binding DeleteSelectedCommand}" Style="{StaticResource TopActionButton}" ToolTip="Delete selected (Delete)">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="17" Height="17" Margin="0,0,6,0"
+                                        Background="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                        OpacityMask="{StaticResource DeleteIconMask}" />
+                                <TextBlock Text="Delete" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding PrintCommand}" Style="{StaticResource PrimaryActionButton}" Margin="8,0,2,0" ToolTip="Print (Ctrl+P)">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="17" Height="17" Margin="0,0,6,0"
+                                        Background="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                        OpacityMask="{StaticResource PrintIconMask}" />
+                                <TextBlock Text="Print" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Content="🏠" Click="WelcomeScreen_Click" Style="{StaticResource TopActionButton}" ToolTip="Return to the welcome screen" />
+                        <Button Click="WelcomeScreen_Click" Style="{StaticResource TopActionButton}" ToolTip="Return to the welcome screen"
+                                AutomationProperties.Name="Return to welcome screen">
+                            <TextBlock Text="&#x1F3E0;" FontFamily="Segoe UI Emoji" FontSize="16" />
+                        </Button>
                         <Separator Margin="8,10" />
-                        <Button Content="New" Command="{Binding NewDocumentCommand}" Style="{StaticResource TopActionButton}" />
-                        <Button Content="Open" Command="{Binding OpenCommand}" Style="{StaticResource TopActionButton}" />
-                        <Button Content="Save" Command="{Binding SaveCommand}" Style="{StaticResource TopActionButton}" />
+                        <Button Command="{Binding NewDocumentCommand}" Style="{StaticResource TopActionButton}" ToolTip="New label (Ctrl+N)">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="17" Height="17" Margin="0,0,6,0" Background="{StaticResource AccentBrush}" OpacityMask="{StaticResource AddIconMask}" />
+                                <TextBlock Text="New" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding OpenCommand}" Style="{StaticResource TopActionButton}" ToolTip="Open template (Ctrl+O)">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="17" Height="17" Margin="0,0,6,0"
+                                        Background="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                        OpacityMask="{StaticResource OpenIconMask}" />
+                                <TextBlock Text="Open" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding SaveCommand}" Style="{StaticResource TopActionButton}" ToolTip="Save template (Ctrl+S)">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="17" Height="17" Margin="0,0,6,0"
+                                        Background="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                        OpacityMask="{StaticResource SaveIconMask}" />
+                                <TextBlock Text="Save" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
                         <Separator Margin="8,10" />
-                        <Button Content="↶" Command="{Binding UndoCommand}" Style="{StaticResource TopActionButton}" ToolTip="Undo (Ctrl+Z)" />
-                        <Button Content="↷" Command="{Binding RedoCommand}" Style="{StaticResource TopActionButton}" ToolTip="Redo (Ctrl+Y)" />
+                        <Button Command="{Binding UndoCommand}" Style="{StaticResource TopActionButton}" ToolTip="Undo (Ctrl+Z)"
+                                AutomationProperties.Name="Undo">
+                            <Border Width="16" Height="16"
+                                    Background="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                    OpacityMask="{StaticResource UndoIconMask}" />
+                        </Button>
+                        <Button Command="{Binding RedoCommand}" Style="{StaticResource TopActionButton}" ToolTip="Redo (Ctrl+Y)"
+                                AutomationProperties.Name="Redo">
+                            <Border Width="16" Height="16"
+                                    Background="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                    OpacityMask="{StaticResource RedoIconMask}" />
+                        </Button>
                         <Separator Margin="8,10" />
                         <TextBlock Text="Label" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="4,0,6,0" />
                         <TextBox Width="160" Text="{Binding DocumentName, UpdateSourceTrigger=PropertyChanged}" />
@@ -583,7 +629,7 @@
                             PreviewMouseMove="ToolboxItem_PreviewMouseMove"
                             Style="{StaticResource PaletteButton}"
                             ToolTip="Text — click to add or drag onto the label">
-                        <TextBlock Text="A" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" FontSize="18" />
+                        <Border Width="23" Height="23" Background="{StaticResource AccentBrush}" OpacityMask="{StaticResource TextIconMask}" />
                     </Button>
                     <Button Tag="{x:Static models:LabelElementKind.Barcode}"
                             Command="{Binding AddBarcodeCommand}"
@@ -591,7 +637,7 @@
                             PreviewMouseMove="ToolboxItem_PreviewMouseMove"
                             Style="{StaticResource PaletteButton}"
                             ToolTip="Barcode — click to add or drag onto the label">
-                        <TextBlock Text="𝄃𝄂𝄂𝄀𝄁𝄃𝄂𝄂𝄃" Foreground="#15803D" FontSize="20" />
+                        <Border Width="24" Height="24" Background="#15803D" OpacityMask="{StaticResource BarcodeIconMask}" />
                     </Button>
                     <Button Tag="{x:Static models:LabelElementKind.QrCode}"
                             Command="{Binding AddQrCodeCommand}"
@@ -599,7 +645,7 @@
                             PreviewMouseMove="ToolboxItem_PreviewMouseMove"
                             Style="{StaticResource PaletteButton}"
                             ToolTip="QR code — click to add or drag onto the label">
-                        <TextBlock Text="⚄" Foreground="#C2410C" FontSize="20" />
+                        <Border Width="24" Height="24" Background="#C2410C" OpacityMask="{StaticResource QrCodeIconMask}" />
                     </Button>
                     <Button Tag="{x:Static models:LabelElementKind.Image}"
                             Command="{Binding AddImageCommand}"

@@ -1,6 +1,7 @@
 <Application x:Class="wLabelDesigner.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
              ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
         <SolidColorBrush x:Key="AccentBrush" Color="#4F46E5" />
@@ -12,6 +13,18 @@
         <SolidColorBrush x:Key="MutedTextBrush" Color="#667085" />
         <SolidColorBrush x:Key="HoverBrush" Color="#F7F8FA" />
         <SolidColorBrush x:Key="SubtleAccentBrush" Color="#EEF2FF" />
+
+        <ImageBrush x:Key="AddIconMask" ImageSource="{svgc:SvgImage Source=/Resources/MaterialSymbolsAddRounded.svg}" Stretch="Uniform" />
+        <ImageBrush x:Key="ForwardIconMask" ImageSource="{svgc:SvgImage Source=/Resources/MaterialSymbolsLightArrowForwardIos.svg}" Stretch="Uniform" />
+        <ImageBrush x:Key="UndoIconMask" ImageSource="{svgc:SvgImage Source=/Resources/IonArrowUndoSharp.svg}" Stretch="Uniform" />
+        <ImageBrush x:Key="RedoIconMask" ImageSource="{svgc:SvgImage Source=/Resources/IonArrowRedoSharp.svg}" Stretch="Uniform" />
+        <ImageBrush x:Key="OpenIconMask" ImageSource="{svgc:SvgImage Source=/Resources/MaterialSymbolsLightFolderOpenSharp.svg}" Stretch="Uniform" />
+        <ImageBrush x:Key="SaveIconMask" ImageSource="{svgc:SvgImage Source=/Resources/MaterialSymbolsSave.svg}" Stretch="Uniform" />
+        <ImageBrush x:Key="PrintIconMask" ImageSource="{svgc:SvgImage Source=/Resources/MaterialSymbolsPrintRounded.svg}" Stretch="Uniform" />
+        <ImageBrush x:Key="DeleteIconMask" ImageSource="{svgc:SvgImage Source=/Resources/MaterialSymbolsDelete.svg}" Stretch="Uniform" />
+        <ImageBrush x:Key="TextIconMask" ImageSource="{svgc:SvgImage Source=/Resources/MaterialSymbolsFormatColorTextRounded.svg}" Stretch="Uniform" />
+        <ImageBrush x:Key="BarcodeIconMask" ImageSource="{svgc:SvgImage Source=/Resources/BxBxsBarcode.svg}" Stretch="Uniform" />
+        <ImageBrush x:Key="QrCodeIconMask" ImageSource="{svgc:SvgImage Source=/Resources/BiQrCodeScan.svg}" Stretch="Uniform" />
 
         <Style TargetType="Window">
             <Setter Property="Icon" Value="pack://application:,,,/Resources/logo.ico" />
