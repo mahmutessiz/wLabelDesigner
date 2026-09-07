@@ -21,6 +21,8 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly IUnsavedChangesPromptService? unsavedChangesPromptService;
     private readonly ILanguageService? languageService;
     private readonly IRecentFilesService? recentFilesService;
+    private readonly IUpdateService? updateService;
+    private readonly IUpdateNotificationService? updateNotificationService;
     private readonly UndoHistory history = new();
     private readonly List<LabelElementViewModel> selectedElements = [];
     private string? currentPath;
@@ -48,7 +50,9 @@ public sealed partial class MainViewModel : ObservableObject
         ILabelExportService? labelExportService = null,
         IUnsavedChangesPromptService? unsavedChangesPromptService = null,
         ILanguageService? languageService = null,
-        IRecentFilesService? recentFilesService = null)
+        IRecentFilesService? recentFilesService = null,
+        IUpdateService? updateService = null,
+        IUpdateNotificationService? updateNotificationService = null)
     {
         this.documentStore = documentStore;
         this.fileDialogService = fileDialogService;
@@ -59,11 +63,37 @@ public sealed partial class MainViewModel : ObservableObject
         this.unsavedChangesPromptService = unsavedChangesPromptService;
         this.languageService = languageService;
         this.recentFilesService = recentFilesService;
+        this.updateService = updateService;
+        this.updateNotificationService = updateNotificationService;
         InitializeNewDocument();
         RefreshLocalization();
     }
 
     public ObservableCollection<LabelElementViewModel> Elements { get; } = [];
+
+    [RelayCommand]
+    private async Task CheckForUpdatesAsync(CancellationToken cancellationToken)
+    {
+        if (updateService is null || updateNotificationService is null)
+        {
+            StatusMessage = "Update checking is unavailable";
+            return;
+        }
+
+        StatusMessage = "Checking for updates…";
+        try
+        {
+            var result = await updateService.CheckAsync(cancellationToken);
+            StatusMessage = result.UpdateAvailable ? "An update is available" : "Update check complete";
+            updateNotificationService.ShowResult(result);
+        }
+        catch (Exception exception) when (exception is System.Net.Http.HttpRequestException
+            or OperationCanceledException or JsonException or Win32Exception or InvalidOperationException)
+        {
+            StatusMessage = "Could not check for updates. Check your internet connection or try again later.";
+            updateNotificationService.ShowError(languageService?.Translate(StatusMessage) ?? StatusMessage);
+        }
+    }
 
     public IReadOnlyList<int> SupportedDpi { get; } = [203, 300];
 

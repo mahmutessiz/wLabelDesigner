@@ -7,6 +7,41 @@ namespace wLabelDesigner.Tests;
 
 public sealed class UnsavedChangesTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CheckForUpdates_ShowsResultOrErrorAndPreservesDocument(bool fail)
+    {
+        var notifications = new StubUpdateNotifications();
+        var viewModel = new MainViewModel(new StubDocumentStore(), new StubFileDialogService(),
+            new StubPrintService(), new StubClipboard(),
+            updateService: new StubUpdateService(fail), updateNotificationService: notifications);
+        var element = viewModel.AddElementAt(LabelElementKind.Text, 1, 1);
+
+        await viewModel.CheckForUpdatesCommand.ExecuteAsync(null);
+
+        Assert.True(viewModel.IsDirty);
+        Assert.Contains(element, viewModel.Elements);
+        Assert.Equal(fail, notifications.Error is not null);
+        Assert.Equal(!fail, notifications.Result?.UpdateAvailable == true);
+        Assert.True(viewModel.CheckForUpdatesCommand.CanExecute(null));
+    }
+
+    private sealed class StubUpdateService(bool fail) : IUpdateService
+    {
+        public Task<UpdateCheckResult> CheckAsync(CancellationToken cancellationToken = default) => fail
+            ? Task.FromException<UpdateCheckResult>(new System.Net.Http.HttpRequestException("Offline"))
+            : Task.FromResult(new UpdateCheckResult(new Version(1, 0), new Version(2, 0)));
+    }
+
+    private sealed class StubUpdateNotifications : IUpdateNotificationService
+    {
+        public UpdateCheckResult? Result { get; private set; }
+        public string? Error { get; private set; }
+        public void ShowResult(UpdateCheckResult result) => Result = result;
+        public void ShowError(string message) => Error = message;
+    }
+
     [Fact]
     public async Task SaveAs_UsesChosenPathForSubsequentSaves()
     {

@@ -103,6 +103,9 @@ The installer includes the GPL license, Start menu shortcut, optional desktop sh
 
 ## Release verification
 
+The app's **Help → Check for updates…** command compares its assembly version with the latest stable release at `mahmutessiz/wLabelDesigner` on GitHub. Publish releases with numeric tags such as `v1.2.0` and build the matching installer with `-Version 1.2.0` (or publish with `-p:Version=1.2.0`). Two to four numeric version components are supported, with an optional `v` prefix. Drafts and prereleases are excluded. A newer release opens in the user's browser only after confirmation; downloads and installation are manual. Checks run on demand with a 15-second HTTP timeout.
+
+
 Before distributing a release:
 
 1. Run the Release test suite without failures or warnings.

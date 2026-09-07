@@ -8,6 +8,7 @@ namespace wLabelDesigner;
 
 public partial class App : Application
 {
+    private static readonly System.Net.Http.HttpClient UpdateHttpClient = new() { Timeout = TimeSpan.FromSeconds(15) };
     private readonly IRecentFilesService recentFilesService = new JsonRecentFilesService();
 
     protected override async void OnStartup(StartupEventArgs e)
@@ -134,5 +135,7 @@ public partial class App : Application
         new WpfLabelExportService(),
         new WpfUnsavedChangesPromptService(),
         languageService,
-        recentFilesService);
+        recentFilesService,
+        new GitHubUpdateService(UpdateHttpClient, typeof(App).Assembly.GetName().Version ?? new Version(1, 0, 0)),
+        new WpfUpdateNotificationService(languageService));
 }

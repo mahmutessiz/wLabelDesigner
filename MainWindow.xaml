@@ -315,6 +315,8 @@
                 <MenuItem Header="Send to _back" Command="{Binding SendToBackCommand}" />
             </MenuItem>
             <MenuItem Header="_Help">
+                <MenuItem Header="Check for _updates…" Command="{Binding CheckForUpdatesCommand}" />
+                <Separator />
                 <MenuItem Header="_User guide" InputGestureText="F1" Click="Help_Click" />
             </MenuItem>
         </Menu>

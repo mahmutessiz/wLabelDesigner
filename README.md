@@ -36,6 +36,7 @@ The application is built with .NET 10, WPF, and MVVM.
 - Print preview with printer selection, copy count, margins, and X/Y calibration offsets.
 - Saved printer, copy, margin, and calibration settings in each template.
 - PNG and PDF export.
+- Check for updates from **Help → Check for updates…**; opens the latest GitHub release for manual download when a newer version is available.
 - English and Turkish interface languages.
 - Context-sensitive formatting and barcode/QR data controls.
 - Format-aware barcode validation with check-digit verification before printing or export.
