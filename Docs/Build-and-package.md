@@ -18,7 +18,7 @@ dotnet publish .\wLabelDesigner.csproj --configuration Release -p:PublishProfile
 Create the complete installer after installing Inno Setup:
 
 ```powershell
-.\Installer\Build-Installer.ps1 -Version 1.0.0
+.\Installer\Build-Installer.ps1 -Version 1.1.1
 ```
 
 ## Prerequisites
