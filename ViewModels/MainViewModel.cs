@@ -493,6 +493,40 @@ public sealed partial class MainViewModel : ObservableObject
         NotifySelectionStateChanged();
     }
 
+    public bool HasLineSelection => HasSingleSelection && SelectedElement?.Kind == LabelElementKind.Line;
+    public bool HasNonLineShapeSelection => HasShapeSelection && !HasLineSelection;
+
+    [RelayCommand(CanExecute = nameof(CanFitLine))]
+    private void FitLine(string direction)
+    {
+        if (SelectedElement is not { } line) return;
+        var (start, end) = LineGeometry.GetEndpoints(line.ToData());
+        var centerX = Math.Clamp((start.X + end.X) / 2, 0, LabelWidth);
+        var centerY = Math.Clamp((start.Y + end.Y) / 2, 0, LabelHeight);
+        if (direction == "Width") SetLineEndpoints(line, new(0, centerY), new(LabelWidth, centerY));
+        else if (direction == "Height") SetLineEndpoints(line, new(centerX, 0), new(centerX, LabelHeight));
+    }
+
+    private bool CanFitLine(string direction) => HasLineSelection && SelectedElement is { IsLocked: false };
+
+    public void SetLineEndpoints(LabelElementViewModel line, LinePoint start, LinePoint end)
+    {
+        if (line.Kind != LabelElementKind.Line || line.IsLocked || !Elements.Contains(line) ||
+            !double.IsFinite(start.X) || !double.IsFinite(start.Y) || !double.IsFinite(end.X) || !double.IsFinite(end.Y)) return;
+        start = new(Math.Clamp(start.X, 0, LabelWidth), Math.Clamp(start.Y, 0, LabelHeight));
+        end = new(Math.Clamp(end.X, 0, LabelWidth), Math.Clamp(end.Y, 0, LabelHeight));
+        if (Math.Abs(start.X - end.X) + Math.Abs(start.Y - end.Y) < 0.1) return;
+        ApplyBatchChange(() =>
+        {
+            line.X = Math.Min(start.X, end.X);
+            line.Y = Math.Min(start.Y, end.Y);
+            line.Width = Math.Abs(end.X - start.X);
+            line.Height = Math.Abs(end.Y - start.Y);
+            line.IsLineDirectionReversed = (end.X - start.X) * (end.Y - start.Y) < 0;
+            line.RotationDegrees = 0;
+        }, "selection:geometry");
+    }
+
     public void MoveSelectedElements(double horizontalChange, double verticalChange)
     {
         var movableElements = selectedElements.Where(element => !element.IsLocked).ToArray();
@@ -502,18 +536,20 @@ public sealed partial class MainViewModel : ObservableObject
             return;
         }
 
-        var minimumX = movableElements.Min(element => element.X);
-        var minimumY = movableElements.Min(element => element.Y);
-        var maximumRight = movableElements.Max(element => element.X + element.Width);
-        var maximumBottom = movableElements.Max(element => element.Y + element.Height);
+        var bounds = movableElements.Select(element => element.GetMovementBounds()).ToArray();
+        var minimumX = bounds.Min(bounds => bounds.X);
+        var minimumY = bounds.Min(bounds => bounds.Y);
+        var maximumRight = bounds.Max(bounds => bounds.Right);
+        var maximumBottom = bounds.Max(bounds => bounds.Bottom);
+        // An oversized selection may align either edge without an invalid clamp range.
         var boundedHorizontalChange = Math.Clamp(
             double.IsFinite(horizontalChange) ? horizontalChange : 0,
-            -minimumX,
-            LabelWidth - maximumRight);
+            Math.Min(-minimumX, LabelWidth - maximumRight),
+            Math.Max(-minimumX, LabelWidth - maximumRight));
         var boundedVerticalChange = Math.Clamp(
             double.IsFinite(verticalChange) ? verticalChange : 0,
-            -minimumY,
-            LabelHeight - maximumBottom);
+            Math.Min(-minimumY, LabelHeight - maximumBottom),
+            Math.Max(-minimumY, LabelHeight - maximumBottom));
 
         if (boundedHorizontalChange == 0 && boundedVerticalChange == 0)
         {
@@ -974,7 +1010,7 @@ public sealed partial class MainViewModel : ObservableObject
             LabelElementKind.QrCode => ("https://example.com", 22d, 22d),
             LabelElementKind.Rectangle => (string.Empty, 35d, 20d),
             LabelElementKind.RoundedRectangle => (string.Empty, 35d, 20d),
-            LabelElementKind.Line => (string.Empty, 35d, 1d),
+            LabelElementKind.Line => (string.Empty, 35d, 0d),
             LabelElementKind.Ellipse => (string.Empty, 30d, 20d),
             LabelElementKind.Triangle => (string.Empty, 30d, 24d),
             LabelElementKind.Diamond => (string.Empty, 30d, 24d),
@@ -1190,6 +1226,13 @@ public sealed partial class MainViewModel : ObservableObject
             return;
         }
 
+        if (e.PropertyName is nameof(LabelElementViewModel.CanvasX) or nameof(LabelElementViewModel.CanvasY)
+            or nameof(LabelElementViewModel.CanvasWidth) or nameof(LabelElementViewModel.CanvasHeight)
+            or nameof(LabelElementViewModel.DisplayRotationDegrees))
+        {
+            return;
+        }
+
         if (e.PropertyName == nameof(LabelElementViewModel.IsEditing))
         {
             NotifySelectionCommandsChanged();
@@ -1305,6 +1348,7 @@ public sealed partial class MainViewModel : ObservableObject
 
     private void NotifySelectionCommandsChanged()
     {
+        FitLineCommand.NotifyCanExecuteChanged();
         CopyCommand.NotifyCanExecuteChanged();
         CutCommand.NotifyCanExecuteChanged();
         PasteCommand.NotifyCanExecuteChanged();
@@ -1322,6 +1366,8 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(HasBarcodeSelection));
         OnPropertyChanged(nameof(HasQrCodeSelection));
         OnPropertyChanged(nameof(HasShapeSelection));
+        OnPropertyChanged(nameof(HasLineSelection));
+        OnPropertyChanged(nameof(HasNonLineShapeSelection));
         OnPropertyChanged(nameof(HasFormattingSelection));
         DeleteSelectedCommand.NotifyCanExecuteChanged();
         DeselectAllCommand.NotifyCanExecuteChanged();

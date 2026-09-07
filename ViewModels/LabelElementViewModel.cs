@@ -140,7 +140,9 @@ public sealed partial class LabelElementViewModel : ObservableObject
     public double X
     {
         get => x;
-        set => SetProperty(ref x, Normalize(value, 0, 1000));
+        // A rotated line may have its unrotated box outside the label even when
+        // both visible endpoints are inside. Movement constrains those endpoints.
+        set { if (SetProperty(ref x, Normalize(value, Kind == LabelElementKind.Line ? -1000 : 0, 1000))) OnPropertyChanged(nameof(CanvasX)); }
     }
 
     private double y;
@@ -148,7 +150,7 @@ public sealed partial class LabelElementViewModel : ObservableObject
     public double Y
     {
         get => y;
-        set => SetProperty(ref y, Normalize(value, 0, 1000));
+        set { if (SetProperty(ref y, Normalize(value, Kind == LabelElementKind.Line ? -1000 : 0, 1000))) OnPropertyChanged(nameof(CanvasY)); }
     }
 
     private double width;
@@ -156,7 +158,14 @@ public sealed partial class LabelElementViewModel : ObservableObject
     public double Width
     {
         get => width;
-        set => SetProperty(ref width, Normalize(value, 0.1, 1000));
+        set
+        {
+            if (SetProperty(ref width, Normalize(value, Kind == LabelElementKind.Line ? 0 : 0.1, 1000)))
+            {
+                OnPropertyChanged(nameof(CanvasWidth));
+                OnPropertyChanged(nameof(DisplayRotationDegrees));
+            }
+        }
     }
 
     private double height;
@@ -164,7 +173,30 @@ public sealed partial class LabelElementViewModel : ObservableObject
     public double Height
     {
         get => height;
-        set => SetProperty(ref height, Normalize(value, 0.1, 1000));
+        set
+        {
+            if (SetProperty(ref height, Normalize(value, Kind == LabelElementKind.Line ? 0 : 0.1, 1000)))
+            {
+                OnPropertyChanged(nameof(CanvasHeight));
+                OnPropertyChanged(nameof(DisplayRotationDegrees));
+            }
+        }
+    }
+
+    // A line's endpoint bounds can have zero area. Reserve drawing room around
+    // them in the designer only; serialization and output retain exact geometry.
+    private double CanvasPaddingMillimeters => Kind == LabelElementKind.Line ? 12 * 25.4 / 96 : 0;
+    public double CanvasX => X - CanvasPaddingMillimeters;
+    public double CanvasY => Y - CanvasPaddingMillimeters;
+    public double CanvasWidth => Width + 2 * CanvasPaddingMillimeters;
+    public double CanvasHeight => Height + 2 * CanvasPaddingMillimeters;
+
+    public DesignerBounds GetMovementBounds()
+    {
+        if (Kind != LabelElementKind.Line) return new(X, Y, Width, Height);
+        var (start, end) = LineGeometry.GetEndpoints(ToData());
+        return new(Math.Min(start.X, end.X), Math.Min(start.Y, end.Y),
+            Math.Abs(end.X - start.X), Math.Abs(end.Y - start.Y));
     }
 
     private double fontSize;
@@ -264,6 +296,7 @@ public sealed partial class LabelElementViewModel : ObservableObject
     private bool isTextAutoFitEnabled;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayRotationDegrees))]
     private bool isLineDirectionReversed;
 
     private double rotationDegrees;
@@ -271,7 +304,28 @@ public sealed partial class LabelElementViewModel : ObservableObject
     public double RotationDegrees
     {
         get => rotationDegrees;
-        set => SetProperty(ref rotationDegrees, NormalizeRotation(value));
+        set
+        {
+            if (SetProperty(ref rotationDegrees, NormalizeRotation(value)))
+            {
+                OnPropertyChanged(nameof(DisplayRotationDegrees));
+            }
+        }
+    }
+
+    // Lines can be angled by moving endpoints as well as by rotating their box.
+    // Show the actual line direction, while retaining the stored box transform.
+    private double EndpointAngle => Kind == LabelElementKind.Line
+        ? Math.Atan2(IsLineDirectionReversed ? -Height : Height, Width) * 180 / Math.PI
+        : 0;
+
+    public double DisplayRotationDegrees
+    {
+        get => NormalizeRotation(RotationDegrees + EndpointAngle);
+        set
+        {
+            if (double.IsFinite(value)) RotationDegrees = NormalizeRotation(value) - EndpointAngle;
+        }
     }
 
     [ObservableProperty]

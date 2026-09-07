@@ -36,6 +36,8 @@ The application is built with .NET 10, WPF, and MVVM.
 - Print preview with printer selection, copy count, margins, and X/Y calibration offsets.
 - Saved printer, copy, margin, and calibration settings in each template.
 - PNG and PDF export.
+- Lines have a wider grab area and larger endpoint handles. Drag either endpoint freely, hold Shift to make it horizontal or vertical, or use **Full width** / **Full height** to span the label. These actions preserve line styling and support Undo.
+- Select a line to change its stroke color, width, and solid/dashed/dotted style in the line toolbar. The designer reserves space around the stroke so horizontal, vertical, and thick lines remain visible without altering their saved endpoints.
 - Check for updates from **Help → Check for updates…**, then choose **Download Update**. The app downloads and verifies the installer, prompts to save unsaved work, and starts setup.
 - English and Turkish interface languages.
 - Context-sensitive formatting and barcode/QR data controls.

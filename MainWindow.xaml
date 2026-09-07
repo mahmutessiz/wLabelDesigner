@@ -148,16 +148,18 @@
         </Style>
 
         <Style x:Key="LineResizeThumbStyle" TargetType="Thumb">
-            <Setter Property="Width" Value="11" />
-            <Setter Property="Height" Value="11" />
-            <Setter Property="Margin" Value="-5" />
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="Margin" Value="0" />
             <Setter Property="Panel.ZIndex" Value="21" />
             <Setter Property="Cursor" Value="Cross" />
             <Setter Property="Visibility" Value="Collapsed" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Thumb">
-                        <Ellipse Fill="White" Stroke="{StaticResource AccentBrush}" StrokeThickness="2" />
+                        <Grid Background="Transparent">
+                            <Ellipse Width="12" Height="12" Fill="White" Stroke="{StaticResource AccentBrush}" StrokeThickness="2" />
+                        </Grid>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -169,6 +171,9 @@
                     </MultiDataTrigger.Conditions>
                     <Setter Property="Visibility" Value="Visible" />
                 </MultiDataTrigger>
+                <DataTrigger Binding="{Binding IsLocked}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
             </Style.Triggers>
         </Style>
 
@@ -223,10 +228,10 @@
 
         <Style x:Key="DesignerItemStyle" TargetType="ListBoxItem">
             <Setter Property="Panel.ZIndex" Value="0" />
-            <Setter Property="Canvas.Left" Value="{Binding X, Converter={StaticResource MmToDip}}" />
-            <Setter Property="Canvas.Top" Value="{Binding Y, Converter={StaticResource MmToDip}}" />
-            <Setter Property="Width" Value="{Binding Width, Converter={StaticResource MmToDip}}" />
-            <Setter Property="Height" Value="{Binding Height, Converter={StaticResource MmToDip}}" />
+            <Setter Property="Canvas.Left" Value="{Binding CanvasX, Converter={StaticResource MmToDip}}" />
+            <Setter Property="Canvas.Top" Value="{Binding CanvasY, Converter={StaticResource MmToDip}}" />
+            <Setter Property="Width" Value="{Binding CanvasWidth, Converter={StaticResource MmToDip}}" />
+            <Setter Property="Height" Value="{Binding CanvasHeight, Converter={StaticResource MmToDip}}" />
             <Setter Property="Visibility" Value="{Binding IsVisible, Converter={StaticResource BoolToVisibility}}" />
             <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
             <Setter Property="RenderTransform">
@@ -252,6 +257,10 @@
                             <Trigger Property="IsKeyboardFocusWithin" Value="True">
                                 <Setter TargetName="SelectionBorder" Property="BorderThickness" Value="2" />
                             </Trigger>
+                            <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Line}">
+                                <Setter TargetName="SelectionBorder" Property="BorderThickness" Value="0" />
+                                <Setter TargetName="SelectionBorder" Property="Background" Value="{x:Null}" />
+                            </DataTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -462,7 +471,7 @@
                         <StackPanel Grid.Row="0"
                                     Orientation="Horizontal"
                                     VerticalAlignment="Center"
-                                    Visibility="{Binding HasShapeSelection, Converter={StaticResource BoolToVisibility}}">
+                                    Visibility="{Binding HasNonLineShapeSelection, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="SHAPE" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,12,0" />
                             <TextBlock Text="Fill" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,5,0" />
                             <ComboBox Width="92" ItemsSource="{Binding CommonColors}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding SelectedElement.FillColor}" />
@@ -584,11 +593,28 @@
                                     VerticalAlignment="Center"
                                     Visibility="{Binding HasSingleSelection, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="Rotate" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
-                            <TextBox Width="56" Text="{Binding SelectedElement.RotationDegrees, UpdateSourceTrigger=LostFocus}" ToolTip="Rotation in degrees" />
+                            <TextBox x:Name="RotationTextBox" Width="56" Text="{Binding SelectedElement.DisplayRotationDegrees, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" ToolTip="Rotation in degrees" />
                             <TextBlock Text="°" VerticalAlignment="Center" Margin="4,0,6,0" />
-                            <Slider Width="90" Minimum="-180" Maximum="180" Value="{Binding SelectedElement.RotationDegrees}" TickFrequency="15" IsSnapToTickEnabled="False" ToolTip="Rotate selected element" />
+                            <Slider x:Name="RotationSlider" Width="90" Minimum="-180" Maximum="180" Value="{Binding SelectedElement.DisplayRotationDegrees}" TickFrequency="15" IsSnapToTickEnabled="False" ToolTip="Rotate selected element" />
                             <TextBlock Text="Opacity" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="10,0,6,0" />
                             <Slider Width="70" Minimum="0" Maximum="1" Value="{Binding SelectedElement.Opacity}" ToolTip="Element opacity" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center"
+                                    Visibility="{Binding HasLineSelection, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="Line" Style="{StaticResource SectionHeading}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <TextBlock Text="Stroke" VerticalAlignment="Center" Margin="0,0,6,0" />
+                            <ComboBox x:Name="LineStrokeColor" Width="100" ItemsSource="{Binding CommonColors}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding SelectedElement.StrokeColor}" />
+                            <TextBlock Text="Width" VerticalAlignment="Center" Margin="12,0,6,0" />
+                            <ComboBox x:Name="LineStrokeWidth" Width="70" IsEditable="True" ItemsSource="{Binding CommonStrokeWidths}" Text="{Binding SelectedElement.StrokeThickness, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="px" VerticalAlignment="Center" Margin="5,0,12,0" />
+                            <TextBlock Text="Style" VerticalAlignment="Center" Margin="0,0,6,0" />
+                            <ComboBox x:Name="LineStrokeStyle" Width="100" ItemsSource="{Binding StrokeStyles}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding SelectedElement.StrokeStyle}" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left"
+                                    Visibility="{Binding HasLineSelection, Converter={StaticResource BoolToVisibility}}">
+                            <Button Content="Full width" Command="{Binding FitLineCommand}" CommandParameter="Width" Margin="0,0,6,0" />
+                            <Button Content="Full height" Command="{Binding FitLineCommand}" CommandParameter="Height" />
+                            <TextBlock Text="Drag ends · Shift for straight lines" VerticalAlignment="Center" Margin="12,0,0,0" Foreground="{StaticResource MutedTextBrush}" />
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -873,19 +899,6 @@
                                                    RadiusY="{Binding CornerRadius, Converter={StaticResource MmToDip}}"
                                                    Opacity="{Binding Opacity}"
                                                    Visibility="Collapsed" />
-                                        <Line x:Name="LinePreview"
-                                              X1="0"
-                                              Y1="0"
-                                              X2="100"
-                                              Y2="100"
-                                              Stretch="Fill"
-                                              Stroke="{Binding StrokeColor, Converter={StaticResource ColorToBrush}}"
-                                              StrokeThickness="{Binding StrokeThickness}"
-                                              StrokeDashArray="{Binding StrokeStyle, Converter={StaticResource StrokeDashArray}}"
-                                              StrokeDashCap="Round"
-                                              Opacity="{Binding Opacity}"
-                                              SnapsToDevicePixels="True"
-                                              Visibility="Collapsed" />
                                         <Ellipse x:Name="EllipsePreview"
                                                  Margin="1"
                                                  Fill="{Binding FillColor, Converter={StaticResource ColorToBrush}}"
@@ -949,6 +962,7 @@
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsEditing}" Value="True"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
                                                         <DataTrigger Binding="{Binding IsLocked}" Value="True"><Setter Property="Cursor" Value="Arrow" /></DataTrigger>
+                                                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Line}"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </Thumb.Style>
@@ -961,8 +975,27 @@
                                         <Thumb Tag="S" Margin="0,0,0,-4" HorizontalAlignment="Center" VerticalAlignment="Bottom" Cursor="SizeNS" Style="{StaticResource NonLineResizeThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
                                         <Thumb Tag="SW" Margin="-4,0,0,-4" HorizontalAlignment="Left" VerticalAlignment="Bottom" Cursor="SizeNESW" Style="{StaticResource NonLineResizeThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
                                         <Thumb Tag="W" Margin="-4,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Cursor="SizeWE" Style="{StaticResource NonLineResizeThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
-                                        <Thumb Tag="LineStart" Style="{StaticResource LineStartThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
-                                        <Thumb Tag="LineEnd" Style="{StaticResource LineEndThumbStyle}" DragDelta="DesignerItem_ResizeDelta" />
+                                        <controls:LineMoveThumb IsReversed="{Binding IsLineDirectionReversed}"
+                                            DrawingInset="12"
+                                            Stroke="{Binding StrokeColor, Converter={StaticResource ColorToBrush}}"
+                                            StrokeThickness="{Binding StrokeThickness}" StrokeStyle="{Binding StrokeStyle}"
+                                            Opacity="{Binding Opacity}"
+                                            ZoomScale="{Binding DataContext.ZoomScale, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            Cursor="SizeAll" PreviewMouseLeftButtonDown="DesignerItem_PreviewMouseLeftButtonDown"
+                                            DragStarted="DesignerItem_DragStarted" DragDelta="DesignerItem_DragDelta" DragCompleted="DesignerItem_DragCompleted">
+                                            <controls:LineMoveThumb.Style>
+                                                <Style TargetType="controls:LineMoveThumb">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="controls:LineMoveThumb"><Border /></ControlTemplate></Setter.Value></Setter>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Line}"><Setter Property="Visibility" Value="Visible" /></DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsLocked}" Value="True"><Setter Property="Cursor" Value="Arrow" /></DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </controls:LineMoveThumb.Style>
+                                        </controls:LineMoveThumb>
+                                        <Thumb Tag="LineStart" Style="{StaticResource LineStartThumbStyle}" DragStarted="LineEndpoint_DragStarted" DragDelta="LineEndpoint_DragDelta" DragCompleted="LineEndpoint_DragCompleted" />
+                                        <Thumb Tag="LineEnd" Style="{StaticResource LineEndThumbStyle}" DragStarted="LineEndpoint_DragStarted" DragDelta="LineEndpoint_DragDelta" DragCompleted="LineEndpoint_DragCompleted" />
                                         <Thumb Style="{StaticResource RotationThumbStyle}"
                                                ToolTip="Drag to rotate; hold Shift to snap to 15°"
                                                DragStarted="DesignerItem_RotationStarted"
@@ -1030,7 +1063,6 @@
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Line}">
                                             <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
-                                            <Setter TargetName="LinePreview" Property="Visibility" Value="Visible" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:LabelElementKind.Ellipse}">
                                             <Setter TargetName="PreviewText" Property="Visibility" Value="Collapsed" />
@@ -1045,10 +1077,7 @@
                                             <Setter TargetName="PolygonPreview" Property="Points" Value="50,0 100,50 50,100 0,50" />
                                             <Setter TargetName="PolygonPreview" Property="Visibility" Value="Visible" />
                                         </DataTrigger>
-                                        <DataTrigger Binding="{Binding IsLineDirectionReversed}" Value="True">
-                                            <Setter TargetName="LinePreview" Property="Y1" Value="100" />
-                                            <Setter TargetName="LinePreview" Property="Y2" Value="0" />
-                                        </DataTrigger>
+
                                     </DataTemplate.Triggers>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>

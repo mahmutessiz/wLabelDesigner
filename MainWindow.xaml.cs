@@ -8,6 +8,7 @@ using System.Windows.Threading;
 using wLabelDesigner.Models;
 using wLabelDesigner.Services;
 using wLabelDesigner.ViewModels;
+using LineGeometry = wLabelDesigner.Services.LineGeometry;
 
 namespace wLabelDesigner;
 
@@ -26,13 +27,16 @@ public partial class MainWindow : Window
     private double panTranslateY;
     private DesignerBounds? dragInitialBounds;
     private DesignerBounds[] dragOtherBounds = [];
-    private double dragRawHorizontalChange;
-    private double dragRawVerticalChange;
+    private Point dragPointerStart;
     private double dragAppliedHorizontalChange;
     private double dragAppliedVerticalChange;
     private LabelElementViewModel? rotatingElement;
     private double rotationStartAngle;
     private double rotationPointerStartAngle;
+    private LabelElementViewModel? resizingLine;
+    private LinePoint lineAnchor;
+    private LinePoint lineMovingStart;
+    private Point linePointerStart;
     private bool isCloseApproved;
     private bool isClosePromptActive;
 
@@ -345,6 +349,7 @@ public partial class MainWindow : Window
 
     private void DesignerItem_DragStarted(object sender, DragStartedEventArgs e)
     {
+        dragInitialBounds = null;
         if (DataContext is not MainViewModel viewModel || viewModel.SelectedElements.Count == 0)
         {
             return;
@@ -355,18 +360,17 @@ public partial class MainWindow : Window
         {
             return;
         }
+        var bounds = selection.Select(candidate => candidate.GetMovementBounds()).ToArray();
         dragInitialBounds = new DesignerBounds(
-            selection.Min(candidate => candidate.X),
-            selection.Min(candidate => candidate.Y),
-            selection.Max(candidate => candidate.X + candidate.Width) - selection.Min(candidate => candidate.X),
-            selection.Max(candidate => candidate.Y + candidate.Height) - selection.Min(candidate => candidate.Y));
+            bounds.Min(bounds => bounds.X), bounds.Min(bounds => bounds.Y),
+            bounds.Max(bounds => bounds.Right) - bounds.Min(bounds => bounds.X),
+            bounds.Max(bounds => bounds.Bottom) - bounds.Min(bounds => bounds.Y));
         var selectedIds = selection.Select(candidate => candidate.Id).ToHashSet();
         dragOtherBounds = viewModel.Elements
             .Where(candidate => candidate.IsVisible && !selectedIds.Contains(candidate.Id))
-            .Select(candidate => new DesignerBounds(candidate.X, candidate.Y, candidate.Width, candidate.Height))
+            .Select(candidate => candidate.GetMovementBounds())
             .ToArray();
-        dragRawHorizontalChange = 0;
-        dragRawVerticalChange = 0;
+        dragPointerStart = Mouse.GetPosition(DesignerCanvas);
         dragAppliedHorizontalChange = 0;
         dragAppliedVerticalChange = 0;
     }
@@ -374,14 +378,20 @@ public partial class MainWindow : Window
     private void DesignerItem_DragDelta(object sender, DragDeltaEventArgs e)
     {
         if (sender is not Thumb { DataContext: LabelElementViewModel { IsLocked: false } } ||
-            DataContext is not MainViewModel viewModel)
+            DataContext is not MainViewModel viewModel || dragInitialBounds is null)
         {
             return;
         }
 
         const double millimetersPerDeviceIndependentPixel = 25.4d / 96d;
-        dragRawHorizontalChange += e.HorizontalChange * millimetersPerDeviceIndependentPixel;
-        dragRawVerticalChange += e.VerticalChange * millimetersPerDeviceIndependentPixel;
+        // Thumb deltas use the rotated, moving element's coordinate system. Anchor
+        // the gesture to the canvas instead; GetPosition also accounts for zoom.
+        var pointer = Mouse.GetPosition(DesignerCanvas);
+        var pointerChange = pointer - dragPointerStart;
+        dragPointerStart = pointer;
+        // Discard movement blocked at an edge, so reversing the pointer responds immediately.
+        var dragRawHorizontalChange = dragAppliedHorizontalChange + pointerChange.X * millimetersPerDeviceIndependentPixel;
+        var dragRawVerticalChange = dragAppliedVerticalChange + pointerChange.Y * millimetersPerDeviceIndependentPixel;
         if (dragInitialBounds is DesignerBounds selectionBounds)
         {
             var guides = DesignerGuideEngine.FindGuides(
@@ -405,8 +415,8 @@ public partial class MainWindow : Window
         if (dragInitialBounds is DesignerBounds initialBounds)
         {
             var movedElements = viewModel.SelectedElements.Where(candidate => !candidate.IsLocked).ToArray();
-            dragAppliedHorizontalChange = movedElements.Min(candidate => candidate.X) - initialBounds.X;
-            dragAppliedVerticalChange = movedElements.Min(candidate => candidate.Y) - initialBounds.Y;
+            dragAppliedHorizontalChange = movedElements.Min(candidate => candidate.GetMovementBounds().X) - initialBounds.X;
+            dragAppliedVerticalChange = movedElements.Min(candidate => candidate.GetMovementBounds().Y) - initialBounds.Y;
         }
         e.Handled = true;
     }
@@ -532,20 +542,6 @@ public partial class MainWindow : Window
         var horizontalChange = e.HorizontalChange * millimetersPerDeviceIndependentPixel;
         var verticalChange = e.VerticalChange * millimetersPerDeviceIndependentPixel;
 
-        if (element.Kind == LabelElementKind.Line && direction is "LineStart" or "LineEnd")
-        {
-            ResizeLineEndpoint(
-                element,
-                direction,
-                horizontalChange,
-                verticalChange,
-                viewModel.LabelWidth,
-                viewModel.LabelHeight);
-            viewModel.SelectedElement = element;
-            e.Handled = true;
-            return;
-        }
-
         var minimumWidth = element.Kind == LabelElementKind.Line ? 0.25 : 1;
         var minimumHeight = element.Kind == LabelElementKind.Line ? 0.1 : 1;
 
@@ -588,7 +584,7 @@ public partial class MainWindow : Window
         }
 
         rotatingElement = element;
-        rotationStartAngle = element.RotationDegrees;
+        rotationStartAngle = element.DisplayRotationDegrees;
         rotationPointerStartAngle = GetPointerAngle(element);
         e.Handled = true;
     }
@@ -607,11 +603,11 @@ public partial class MainWindow : Window
             angle = Math.Round(angle / 15d, MidpointRounding.AwayFromZero) * 15;
         }
 
-        element.RotationDegrees = angle;
+        element.DisplayRotationDegrees = angle;
         if (DataContext is MainViewModel viewModel)
         {
             viewModel.SelectedElement = element;
-            viewModel.StatusMessage = $"Rotation {element.RotationDegrees:0.##}°";
+            viewModel.StatusMessage = $"Rotation {element.DisplayRotationDegrees:0.##}°";
         }
 
         e.Handled = true;
@@ -647,42 +643,34 @@ public partial class MainWindow : Window
         return normalized;
     }
 
-    private static void ResizeLineEndpoint(
-        LabelElementViewModel element,
-        string endpoint,
-        double horizontalChange,
-        double verticalChange,
-        double labelWidth,
-        double labelHeight)
+    private void LineEndpoint_DragStarted(object sender, DragStartedEventArgs e)
     {
-        const double minimumLineSpan = 0.1;
-        var left = element.X;
-        var right = element.X + element.Width;
-        var leftY = element.IsLineDirectionReversed
-            ? element.Y + element.Height
-            : element.Y;
-        var rightY = element.IsLineDirectionReversed
-            ? element.Y
-            : element.Y + element.Height;
-
-        if (endpoint == "LineStart")
-        {
-            left = Math.Clamp(left + horizontalChange, 0, right - minimumLineSpan);
-            leftY = Math.Clamp(leftY + verticalChange, 0, labelHeight);
-        }
-        else
-        {
-            right = Math.Clamp(right + horizontalChange, left + minimumLineSpan, labelWidth);
-            rightY = Math.Clamp(rightY + verticalChange, 0, labelHeight);
-        }
-
-        element.X = left;
-        element.Y = Math.Min(leftY, rightY);
-        element.Width = right - left;
-        element.Height = Math.Max(minimumLineSpan, Math.Abs(rightY - leftY));
-        element.IsLineDirectionReversed = leftY > rightY;
+        if (sender is not Thumb { DataContext: LabelElementViewModel { IsLocked: false } line } thumb) return;
+        resizingLine = line;
+        var (start, end) = LineGeometry.GetEndpoints(line.ToData());
+        lineAnchor = thumb.Tag as string == "LineStart" ? end : start;
+        lineMovingStart = thumb.Tag as string == "LineStart" ? start : end;
+        linePointerStart = Mouse.GetPosition(DesignerCanvas);
+        e.Handled = true;
     }
 
+    private void LineEndpoint_DragDelta(object sender, DragDeltaEventArgs e)
+    {
+        if (resizingLine is null || DataContext is not MainViewModel viewModel) return;
+        var delta = Mouse.GetPosition(DesignerCanvas) - linePointerStart;
+        var pointer = new LinePoint(lineMovingStart.X + delta.X * 25.4 / 96,
+            lineMovingStart.Y + delta.Y * 25.4 / 96);
+        var endpoint = LineGeometry.ConstrainEndpoint(pointer, lineAnchor, viewModel.LabelWidth,
+            viewModel.LabelHeight, Keyboard.Modifiers.HasFlag(ModifierKeys.Shift));
+        viewModel.SetLineEndpoints(resizingLine, lineAnchor, endpoint);
+        e.Handled = true;
+    }
+
+    private void LineEndpoint_DragCompleted(object sender, DragCompletedEventArgs e)
+    {
+        resizingLine = null;
+        e.Handled = true;
+    }
     private void InlineTextEditor_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
     {
         if (sender is TextBox { DataContext: LabelElementViewModel element } &&
