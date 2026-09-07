@@ -137,5 +137,28 @@ public partial class App : Application
         languageService,
         recentFilesService,
         new GitHubUpdateService(UpdateHttpClient, typeof(App).Assembly.GetName().Version ?? new Version(1, 0, 0)),
-        new WpfUpdateNotificationService(languageService));
+        new WpfUpdateNotificationService(languageService, new UpdateInstallerService(
+            UpdateHttpClient,
+            Path.Combine(Path.GetTempPath(), "wLabelDesigner", "Updates"),
+            StartUpdateInstallerAsync)));
+
+    private async Task<bool> StartUpdateInstallerAsync(string path)
+    {
+        if (MainWindow is not MainWindow window || window.DataContext is not MainViewModel viewModel ||
+            !await viewModel.ConfirmCloseAsync())
+        {
+            return false;
+        }
+
+        using var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path)
+        {
+            UseShellExecute = true
+        });
+        if (process is null)
+        {
+            throw new InvalidOperationException("Could not start the update installer.");
+        }
+        window.CloseWithoutPrompt();
+        return true;
+    }
 }

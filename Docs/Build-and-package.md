@@ -103,7 +103,11 @@ The installer includes the GPL license, Start menu shortcut, optional desktop sh
 
 ## Release verification
 
-The app's **Help → Check for updates…** command compares its assembly version with the latest stable release at `mahmutessiz/wLabelDesigner` on GitHub. Publish releases with numeric tags such as `v1.2.0` and build the matching installer with `-Version 1.2.0` (or publish with `-p:Version=1.2.0`). Two to four numeric version components are supported, with an optional `v` prefix. Drafts and prereleases are excluded. A newer release opens in the user's browser only after confirmation; downloads and installation are manual. Checks run on demand with a 15-second HTTP timeout.
+The app's **Help → Check for updates…** command compares its assembly version with the latest stable release at `mahmutessiz/wLabelDesigner` on GitHub. Publish releases with numeric tags such as `v1.2.0` and build the matching installer with `-Version 1.2.0` (or publish with `-p:Version=1.2.0`). Two to four numeric version components are supported, with an optional `v` prefix. Drafts and prereleases are excluded. Checks run on demand with a 15-second HTTP timeout.
+
+Attach the installer as `wLabelDesigner-1.2.0-win-x64-setup.exe` with the version matching the release tag. **Download Update** requires this asset and its GitHub-provided SHA-256 digest; it does not run portable executables or unverified assets. Downloads stream to a unique file in the user's temporary `wLabelDesigner/Updates` directory with progress, cancellation, and a 15-minute timeout. The app checks the byte count and SHA-256 before starting setup, and deletes incomplete downloads. Completed installers remain in the temporary directory for retry or normal Windows temporary-file cleanup.
+
+Before launching setup, the app uses its existing save/discard/cancel prompt for unsaved work. Cancelling preserves the current session and downloaded installer. Once setup starts successfully, the app closes so the installer can replace its files. Users follow the normal setup wizard and can launch the updated app from its final page. Installer download and command behavior are tested with simulated services; release verification should include the full upgrade on a Windows test installation.
 
 
 Before distributing a release:

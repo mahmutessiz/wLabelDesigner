@@ -32,11 +32,30 @@ public sealed class GitHubUpdateService(HttpClient httpClient, Version currentVe
             Math.Max(0, version.Build), Math.Max(0, version.Revision));
         var normalizedCurrent = new Version(currentVersion.Major, currentVersion.Minor,
             Math.Max(0, currentVersion.Build), Math.Max(0, currentVersion.Revision));
-        return new(normalizedCurrent, normalizedVersion);
+        var expectedName = $"wLabelDesigner-{release.Tag!.TrimStart('v', 'V')}-win-x64-setup.exe";
+        var asset = release.Assets?.FirstOrDefault(asset => asset.Name == expectedName);
+        UpdateInstaller? installer = null;
+        if (asset is { Size: > 0, Digest: not null } &&
+            asset.Digest.StartsWith("sha256:", StringComparison.Ordinal) &&
+            asset.Digest.Length == 71 && asset.Digest[7..].All(Uri.IsHexDigit) &&
+            Uri.TryCreate(asset.Url, UriKind.Absolute, out var uri) &&
+            uri.Scheme == "https" && uri.Host == "github.com" &&
+            uri.AbsolutePath.StartsWith("/mahmutessiz/wLabelDesigner/releases/download/", StringComparison.Ordinal))
+        {
+            installer = new(uri, asset.Size, asset.Digest[7..]);
+        }
+        return new(normalizedCurrent, normalizedVersion, installer);
     }
 
     private sealed record Release(
         [property: JsonPropertyName("tag_name")] string? Tag,
         [property: JsonPropertyName("draft")] bool Draft,
-        [property: JsonPropertyName("prerelease")] bool Prerelease);
+        [property: JsonPropertyName("prerelease")] bool Prerelease,
+        [property: JsonPropertyName("assets")] Asset[]? Assets);
+
+    private sealed record Asset(
+        [property: JsonPropertyName("name")] string? Name,
+        [property: JsonPropertyName("browser_download_url")] string? Url,
+        [property: JsonPropertyName("size")] long Size,
+        [property: JsonPropertyName("digest")] string? Digest);
 }
