@@ -82,7 +82,7 @@ Self-contained publishing and Inno Setup installer commands are documented in [D
 6. Select a barcode or QR code to edit its encoded content in the contextual bar above the workspace.
 7. Use Shift-click to select multiple elements, then align or distribute them from the contextual top bar.
 8. Use the Layers panel to reorder, hide, show, lock, or unlock elements.
-9. Save the editable template as a `.wld` file, or export the rendered label as PNG or PDF.
+9. Save the editable template as a `.wld` file. Use **File → Save As…** (`Ctrl+Shift+S`) to choose a different name or location; subsequent saves use the new file. You can also export the rendered label as PNG or PDF.
 10. Press Print to review the label, select a printer, set copies and calibration, and print.
 
 Click empty workspace or press Escape to clear the current selection. Selected elements are temporarily displayed above overlapping elements while editing without changing the saved or printed layer order.

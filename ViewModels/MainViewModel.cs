@@ -747,10 +747,18 @@ public sealed partial class MainViewModel : ObservableObject
     private async Task SaveAsync(CancellationToken cancellationToken) =>
         await SaveDocumentAsync(cancellationToken);
 
-    private async Task<bool> SaveDocumentAsync(CancellationToken cancellationToken)
+    [RelayCommand]
+    private async Task SaveAsAsync(CancellationToken cancellationToken) =>
+        await SaveDocumentAsync(cancellationToken, saveAs: true);
+
+    private async Task<bool> SaveDocumentAsync(CancellationToken cancellationToken, bool saveAs = false)
     {
-        var suggestedName = MakeSafeFileName(DocumentName) + ".wld";
-        var path = currentPath ?? fileDialogService.ChooseTemplateToSave(suggestedName);
+        var suggestedName = currentPath is null
+            ? MakeSafeFileName(DocumentName) + ".wld"
+            : Path.GetFileName(currentPath);
+        var path = saveAs || currentPath is null
+            ? fileDialogService.ChooseTemplateToSave(suggestedName)
+            : currentPath;
         if (path is null)
         {
             StatusMessage = "Save cancelled";

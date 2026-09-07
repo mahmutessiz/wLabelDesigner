@@ -83,6 +83,7 @@ public sealed class WpfLanguageService : ILanguageService
             ["New"] = "Yeni",
             ["Open"] = "Aç",
             ["Save"] = "Kaydet",
+            ["Save _As…"] = "Farklı _kaydet…",
             ["Undo"] = "Geri al",
             ["Redo"] = "Yinele",
             ["Label"] = "Etiket",

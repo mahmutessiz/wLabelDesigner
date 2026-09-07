@@ -19,6 +19,7 @@
         <KeyBinding Key="N" Modifiers="Control" Command="{Binding NewDocumentCommand}" />
         <KeyBinding Key="O" Modifiers="Control" Command="{Binding OpenCommand}" />
         <KeyBinding Key="S" Modifiers="Control" Command="{Binding SaveCommand}" />
+        <KeyBinding Key="S" Modifiers="Control+Shift" Command="{Binding SaveAsCommand}" />
         <KeyBinding Key="P" Modifiers="Control" Command="{Binding PrintCommand}" />
         <KeyBinding Key="Z" Modifiers="Control" Command="{Binding UndoCommand}" />
         <KeyBinding Key="Y" Modifiers="Control" Command="{Binding RedoCommand}" />
@@ -266,6 +267,7 @@
                 <MenuItem Header="_New" Command="{Binding NewDocumentCommand}" InputGestureText="Ctrl+N" />
                 <MenuItem Header="_Open…" Command="{Binding OpenCommand}" InputGestureText="Ctrl+O" />
                 <MenuItem Header="_Save" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S" />
+                <MenuItem Header="Save _As…" Command="{Binding SaveAsCommand}" InputGestureText="Ctrl+Shift+S" />
                 <MenuItem Header="_Print…" Command="{Binding PrintCommand}" InputGestureText="Ctrl+P" />
                 <Separator />
                 <MenuItem Header="Export as _PNG…" Command="{Binding ExportPngCommand}" />

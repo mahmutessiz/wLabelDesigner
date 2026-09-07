@@ -8,6 +8,68 @@ namespace wLabelDesigner.Tests;
 public sealed class UnsavedChangesTests
 {
     [Fact]
+    public async Task SaveAs_UsesChosenPathForSubsequentSaves()
+    {
+        var store = new StubDocumentStore();
+        var dialogs = new StubFileDialogService { SavePath = "copy.wld" };
+        var viewModel = CreateViewModel(store, dialogs);
+        await viewModel.OpenPathAsync("original.wld");
+        viewModel.AddElementAt(LabelElementKind.Text, 4, 5);
+
+        await viewModel.SaveAsCommand.ExecuteAsync(null);
+
+        Assert.Equal("copy.wld", store.SavedPath);
+        Assert.Equal("original.wld", dialogs.SuggestedName);
+        Assert.Single(store.SavedDocument!.Elements);
+        Assert.False(viewModel.IsDirty);
+        Assert.Equal("Saved copy.wld", viewModel.StatusMessage);
+
+        await viewModel.SaveCommand.ExecuteAsync(null);
+
+        Assert.Equal("copy.wld", store.SavedPath);
+        Assert.Equal(1, dialogs.SaveDialogCount);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SaveAs_WhenCancelledOrFailed_PreservesOriginalPathAndChanges(bool fail)
+    {
+        var store = new StubDocumentStore { FailSave = fail };
+        var dialogs = new StubFileDialogService { SavePath = fail ? "copy.wld" : null };
+        var viewModel = CreateViewModel(store, dialogs);
+        await viewModel.OpenPathAsync("original.wld");
+        viewModel.AddElementAt(LabelElementKind.Text, 4, 5);
+
+        await viewModel.SaveAsCommand.ExecuteAsync(null);
+
+        Assert.True(viewModel.IsDirty);
+        Assert.Null(store.SavedDocument);
+        Assert.StartsWith(fail ? "Could not save template:" : "Save cancelled", viewModel.StatusMessage);
+
+        store.FailSave = false;
+        await viewModel.SaveCommand.ExecuteAsync(null);
+        Assert.Equal("original.wld", store.SavedPath);
+        Assert.Equal(1, dialogs.SaveDialogCount);
+    }
+
+    [Fact]
+    public async Task SaveAs_ForNewDocument_SavesEditableTemplate()
+    {
+        var store = new StubDocumentStore();
+        var dialogs = new StubFileDialogService { SavePath = "new.wld" };
+        var viewModel = CreateViewModel(store, dialogs);
+        viewModel.AddElementAt(LabelElementKind.Text, 4, 5);
+
+        await viewModel.SaveAsCommand.ExecuteAsync(null);
+
+        Assert.Equal("new.wld", store.SavedPath);
+        Assert.EndsWith(".wld", dialogs.SuggestedName);
+        Assert.Single(store.SavedDocument!.Elements);
+        Assert.False(viewModel.IsDirty);
+    }
+
+    [Fact]
     public async Task NewDocument_WhenPromptIsCancelled_PreservesCurrentDocument()
     {
         var prompt = new StubPrompt(UnsavedChangesChoice.Cancel);
@@ -112,12 +174,19 @@ public sealed class UnsavedChangesTests
         public LabelDocument DocumentToLoad { get; set; } = new();
 
         public LabelDocument? SavedDocument { get; private set; }
+        public string? SavedPath { get; private set; }
+        public bool FailSave { get; set; }
 
         public Task<LabelDocument> LoadAsync(string path, CancellationToken cancellationToken = default) =>
             Task.FromResult(DocumentToLoad);
 
         public Task SaveAsync(string path, LabelDocument document, CancellationToken cancellationToken = default)
         {
+            if (FailSave)
+            {
+                throw new System.IO.IOException("Test write failure");
+            }
+            SavedPath = path;
             SavedDocument = document;
             return Task.CompletedTask;
         }
@@ -131,7 +200,15 @@ public sealed class UnsavedChangesTests
 
         public string? ChooseTemplateToOpen() => OpenPath;
 
-        public string? ChooseTemplateToSave(string suggestedFileName) => SavePath;
+        public string? SuggestedName { get; private set; }
+        public int SaveDialogCount { get; private set; }
+
+        public string? ChooseTemplateToSave(string suggestedFileName)
+        {
+            SuggestedName = suggestedFileName;
+            SaveDialogCount++;
+            return SavePath;
+        }
     }
 
     private sealed class StubPrintService : ILabelPrintService
